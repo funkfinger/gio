@@ -14,7 +14,8 @@ This is the **v0.1.0 milestone**. Everything after this is additive.
 - [ ] `src/main.cpp` integrates arp + scales + tempo + MCP4725 DAC + gate output:
   - Fixed 120 BPM internal clock (tempo pot not yet wired)
   - Up-order arp (C3, E3, G3, C4) — major triad + octave rooted at C3
-  - Each step: write MIDI note to MCP4725 via `noteToDAC()`, gate on for 50% of step, gate off
+  - Non-blocking `millis()` timing: gate on/off and step advance driven by timestamp comparison, not `delay()`
+  - Each step: write MIDI note via `analogWrite(PIN_DAC_PWM, count)`, gate on for 50% of step
   - `LED_BUILTIN` flashes on gate on (beat indicator)
 - [ ] Scope confirms: 4-step V/Oct staircase at 120 BPM (500 ms/step), 50% gate duty
 - [ ] Audio confirms: audible 4-note up-arpeggio through Plaits or equivalent VCO + envelope

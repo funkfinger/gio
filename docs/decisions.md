@@ -98,7 +98,26 @@ Both jacks can operate as either a **trigger/clock input** (`digitalRead()`, ris
 
 **Why 100 kΩ + 68 kΩ:** the 100 kΩ series resistor limits clamp diode current to < 70 µA even at 10V. The 68 kΩ lower leg maps 0–8V → 0–3.24V, covering 8 octaves of V/Oct with 42 ADC counts/semitone — sufficient for scale quantisation. A lower series resistor (e.g., 3.3 kΩ as in the RA4M1 design) would give faster rise time but the 100 kΩ + 100 pF cable capacitance RC = 10 µs — fine at 300 BPM (50 ms/step).
 
-### 9. Test strategy: host TDD for pure logic, bench for HAL
+### 9. Gate / clock timing: `millis()` state machine (non-blocking)
+
+The main loop uses `millis()` timestamps instead of `delay()` for all gate and step timing. Each iteration checks whether enough time has passed to transition state (gate on → gate off → next step), then reads pots, polls the encoder, updates the OLED if needed, and checks for external clock edges — without blocking.
+
+```cpp
+// sketch of the pattern
+if (millis() - stepStart >= stepMs) {
+    stepStart = millis();
+    // advance arp, write DAC, gate on
+}
+if (millis() - stepStart >= gateOnMs) {
+    // gate off (if not already)
+}
+```
+
+**Why not `delay()`:** the RA4M1 firmware blocked for up to 125 ms per half-step. With an encoder, OLED, two ADC reads, and external clock detection in the loop, a blocked loop drops encoder turns, misses clock edges, and delays pot reads by up to 250 ms.
+
+**Why not hardware timer interrupt or dual-core (yet):** `millis()` is the simplest path. The worst-case loop jitter is dominated by I2C OLED refresh (~5.8 ms for a full 64×32 frame), which only happens on parameter change — not every loop. At 300 BPM (50 ms/step), 5.8 ms jitter is 12% of a step: audible in theory, likely inaudible in practice for a generative arp. **Revisit with a hardware timer (Path B) if jitter is audible on the bench.**
+
+### 10. Test strategy: host TDD for pure logic, bench for HAL
 
 - **Host tests (`pio test -e native`):** `scales`, `arp`, `tempo` — no Arduino deps, pure logic
 - **Bench-verified:** `dac_out` (MCP4725 via I2C), `gate_out`, `oled_ui`, `encoder_input`, `clock_in`
