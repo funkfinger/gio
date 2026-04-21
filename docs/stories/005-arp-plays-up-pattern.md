@@ -11,7 +11,7 @@ This is the **v0.1.0 milestone**. Everything after this is additive.
 - [ ] `firmware/arp/lib/arp/arp.h` and `arp.cpp` added (ported from RA4M1, pure C++, no Arduino deps)
 - [ ] `firmware/arp/lib/tempo/tempo.h` and `tempo.cpp` added (ported from RA4M1)
 - [ ] Host tests for `arp` and `tempo` pass via `pio test -e native` (ported test files)
-- [ ] `src/main.cpp` integrates arp + scales + tempo + MCP4725 DAC + gate output:
+- [ ] `src/main.cpp` integrates arp + scales + tempo + PWM DAC + gate output:
   - Fixed 120 BPM internal clock (tempo pot not yet wired)
   - Up-order arp (C3, E3, G3, C4) — major triad + octave rooted at C3
   - Non-blocking `millis()` timing: gate on/off and step advance driven by timestamp comparison, not `delay()`

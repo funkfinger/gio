@@ -120,29 +120,44 @@ if (millis() - stepStart >= gateOnMs) {
 ### 10. Test strategy: host TDD for pure logic, bench for HAL
 
 - **Host tests (`pio test -e native`):** `scales`, `arp`, `tempo` — no Arduino deps, pure logic
-- **Bench-verified:** `dac_out` (MCP4725 via I2C), `gate_out`, `oled_ui`, `encoder_input`, `clock_in`
+- **Bench-verified:** `pwm_dac` (PWM + 2-pole RC filter → MCP6002), `gate_out`, `oled_ui`, `encoder_input`, `clock_in`
 
 Bench workflow: oscilloscope (Rigol DS1054Z) for timing, multimeter for V/Oct voltages, VCO + tuner for pitch tracking.
 
-### 9. 64×32 OLED (0.49"), mounted vertically
+### 11. Platform version pinned to a tagged release
+
+`platformio.ini` pins the arduino-pico platform to a specific tag (`#4.4.0` at time of writing) rather than tracking `main`:
+
+```ini
+platform = https://github.com/earlephilhower/arduino-pico.git#4.4.0
+```
+
+**Why:**
+- CI and local builds stay reproducible across time. A platform bump should be a deliberate act, not a silent surprise on the next `pio run`.
+- The PWM DAC relies on the **per-pin** `analogWriteFreq(pin, freq)` overload. Older arduino-pico versions only exposed the global `analogWriteFreq(freq)` — calling it sets the frequency for every PWM slice, which will bite us the moment a second PWM consumer appears (gate shaping, NeoPixel, a second DAC). Pinning to a release known to expose the per-pin form prevents a silent regression.
+- Bench work is expensive. A platform change can shift PWM slice assignments, ADC averaging defaults, or I2C timing — any of which invalidate Story 003/004 calibration. If we're going to revalidate the bench, we do it because we chose to, not because GitHub's `main` moved.
+
+**Bump protocol:** update the pin → run host tests → rebuild firmware → re-run Story 003 PWM ramp bench checks → record in `bench-log.md`. Cheap insurance against a whole class of "worked yesterday" failures.
+
+### 12. 64×32 OLED (0.49"), mounted vertically
 
 The 64×32 SSD1306 at 0.49" fits within the 2HP panel width. Mounted vertically (rotated 90° in software), the active area is 32 px wide × 64 px tall in the panel window — enough for a parameter name and value on two lines with large-ish characters.
 
 **Alternative:** 128×32 OLED (used in the RA4M1 design pivot doc) — wider than 2HP when mounted horizontally; would need vertical mount too. The 64×32 is a better physical fit.
 
-### 10. Git workflow: feature branches + self-reviewed PRs
+### 13. Git workflow: feature branches + self-reviewed PRs
 
 Same as RA4M1 project. CI gates PRs. Self-review catches real bugs.
 
-### 11. User stories as the unit of work
+### 14. User stories as the unit of work
 
 See [`stories/README.md`](./stories/README.md) for format. Each story defines a verifiable outcome. Stories are satisfied by code and, for pure-logic modules, by tests first (TDD).
 
-### 12. CHANGELOG.md updated on every commit
+### 15. CHANGELOG.md updated on every commit
 
 Keep a Changelog format. `## [Unreleased]` in flight; moves to a versioned heading on tag.
 
-### 13. Versioning — SemVer for firmware, Rev N.M for hardware
+### 16. Versioning — SemVer for firmware, Rev N.M for hardware
 
 **Firmware:** `arp/v0.1.0`, `arp/v0.2.0`, etc. First tag on completion of Story 005.
 
@@ -156,7 +171,7 @@ Keep a Changelog format. `## [Unreleased]` in flight; moves to a versioned headi
 |---|---|---|
 | 1 | [001](./stories/001-repo-scaffolded.md) | Repo skeleton, licenses, CI, `.gitignore` |
 | 2 | [002](./stories/002-xiao-blinks.md) | Firmware builds and blinks the XIAO RP2350 |
-| 3 | [003](./stories/003-dac-and-quantiser.md) | MCP4725 emits calibration ramp; scale quantiser TDD'd on host |
+| 3 | [003](./stories/003-dac-and-quantiser.md) | PWM DAC + 2-pole RC filter emits clean ramp; scale quantiser TDD'd on host |
 | 4 | [004](./stories/004-voct-tracks-octaves.md) | Op-amp breadboard + calibration; V/Oct ±5¢ across C3–C7 |
 | 5 | [005](./stories/005-arp-plays-up-pattern.md) | Minimal arpeggiator — **v0.1 makes music** |
 

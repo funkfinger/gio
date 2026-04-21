@@ -8,7 +8,8 @@ Bundled in one PR because they share the same milestone: "novel subsystems prove
 
 ## Acceptance Criteria — PWM DAC Ramp (bench)
 
-- [ ] D2 (GP28) configured as 12-bit PWM output: `analogWriteResolution(12)`, `analogWriteFreq(36621)` (or closest to 150 MHz / 4096)
+- [ ] **Toolchain check:** confirm the pinned `arduino-pico` platform (see `platformio.ini`) exposes the per-pin form `analogWriteFreq(pin, freq)`. A one-line sanity build (e.g. `analogWriteFreq(PIN_DAC_PWM, 36621);` in `setup()`) must compile without fallback to the global `analogWriteFreq(freq)` overload. If compile fails, bump the platform pin intentionally and re-run all PWM DAC bench steps — do NOT silently fall back to global frequency (would change timing for any other PWM slice later).
+- [ ] D2 (GP28) configured as 12-bit PWM output: `analogWriteResolution(12)`, `analogWriteFreq(PIN_DAC_PWM, 36621)` (or closest to 150 MHz / 4096)
 - [ ] Firmware sweeps PWM count 0→4095 in a loop at ~10 Hz
 - [ ] **Raw PWM pin (before filter):** Rigol DS1054Z shows square wave at ~36.6 kHz, duty sweeping 0%→100%, amplitude 0–3.3V
 - [ ] **After 1-pole filter (R_f1 + C_f1 only):** scope shows sawtooth ramp 0→3.3V with visible ripple — confirm ripple frequency matches PWM frequency
@@ -33,7 +34,7 @@ Bundled in one PR because they share the same milestone: "novel subsystems prove
 ## Notes
 
 - The `scales` library code and tests port verbatim from `xiao-ra4m1-arp`. Goal: confirm they compile and pass in this PlatformIO env.
-- `analogWriteFreq()` in arduino-pico sets the PWM frequency for a pin. Set it once in `setup()` before the first `analogWrite()`. Exact frequency depends on clock divider resolution — 36,621 Hz is achievable; the exact value doesn't matter much since GAIN is calibrated empirically anyway.
+- `analogWriteFreq(pin, freq)` in arduino-pico sets the PWM frequency for a specific pin's slice. Set it once in `setup()` before the first `analogWrite()`. Exact frequency depends on clock divider resolution — 36,621 Hz is achievable; the exact value doesn't matter much since GAIN is calibrated empirically anyway. The per-pin form matters because we do not want to globally set PWM frequency for other slices that may drive unrelated peripherals later (e.g. NeoPixel, gate shaping). See `decisions.md` §11 for the platform version pin rationale.
 - GoogleTest requires an explicit `main()` in each test file.
 - The op-amp scaling stage is not added in this story — the filter output feeds the scope directly. Op-amp integration is Story 004.
 - If ADC noise coupling IS observed on bench, document it. Mitigation options: add a small cap to GND on ADC input pin, increase ADC averaging in firmware, or change PWM frequency. Do not try to fix it in breadboard layout — note it as a PCB routing constraint.
