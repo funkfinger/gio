@@ -37,25 +37,30 @@ framework = arduino
 
 **Fallback:** `arduino-cli` if PlatformIO hits a wall with the RP2350 board definition.
 
-### 3. External DAC (MCP4725 I2C) instead of onboard DAC
+### 3. PWM DAC instead of external I2C DAC (MCP4725)
 
-The RP2350 has no onboard DAC. MCP4725 is the simplest drop-in:
-- 12-bit, same resolution as the RA4M1 DAC
-- I2C, shares bus with OLED → no extra pins
-- Adafruit library, well-supported on arduino-pico
-- ~$1.50 in breakout form, available as SOT-23-6 for PCB
+The RP2350 has no onboard DAC. Rather than adding an external MCP4725 I2C DAC, V/Oct output uses the RP2350's 12-bit hardware PWM peripheral on D2 (GP28) with a 2-pole passive RC low-pass filter feeding the MCP6002 op-amp.
 
-**Alternatives considered:**
-- MCP4922 (SPI dual DAC) — more pins, overkill for one CV output
-- PWM + RC filter — lower accuracy (~8-bit effective), harder to calibrate
+**PWM DAC parameters:**
+- PWM frequency: 150 MHz / 4096 ≈ 36.6 kHz (12-bit wrap, no clock divider)
+- Filter: 2× (10 kΩ + 100 nF), f_c ≈ 160 Hz, −40 dB/decade above cutoff
+- Ripple at 36.6 kHz: ≈ 63 µV (< 0.1¢) — well below the 2 mV spec
+- Settling time (5τ): ≈ 5 ms — fine at 50 ms/step (300 BPM, 16th notes)
+- Firmware write: `analogWrite(PIN_DAC_PWM, count)` — no library needed
 
-### 4. I2C bus shared between MCP4725 (DAC) and SSD1306 (OLED)
+**Why not MCP4725:**
+- MCP4725 shares I2C bus with the OLED → potential bus contention during OLED refresh (~5.8 ms for a full 64×32 frame)
+- Extra IC, extra BOM cost, extra library dependency
+- PWM + RC filter uses components already in the passives BOM (same 10 kΩ / 100 nF values as op-amp network)
+- `analogWrite()` updates are faster than an I2C transaction (~15–20 µs)
 
-Hardware I2C0 on D4/D5. MCP4725 is address 0x60; SSD1306 is 0x3C. No conflict.
+**Risk to validate on bench (Story 003):** 36.6 kHz PWM switching noise on D2 may couple into adjacent ADC pins (A0 tempo pot, A1 CV in) on breadboard. Scope the ADC readings while PWM is active. If coupling is a problem on PCB, route PWM trace away from analog inputs and add ground pour between them.
 
-**Trade-off:** I2C DAC updates go through software transaction overhead (~15–20 µs at 400 kHz). At Eurorack control rates this is negligible — the MCP4725 settles in ~7 µs anyway.
+### 4. I2C bus dedicated to SSD1306 OLED
 
-**Why not software I2C:** hardware I2C on D4/D5 does not consume any ADC pins on the RP2350 (unlike the RA4M1 where D5 was ADC-capable). No reason to use software I2C here.
+Hardware I2C0 on D4/D5, used exclusively by the SSD1306 OLED (address 0x3C). No bus sharing — the PWM DAC approach eliminates the MCP4725 from the I2C bus entirely.
+
+**Benefit:** OLED can refresh at will without blocking DAC updates. Full 64×32 frame refresh takes ~5.8 ms at 400 kHz — this no longer affects V/Oct timing at all.
 
 ### 5. MVP (v0.1) is deliberately minimal
 
@@ -63,13 +68,13 @@ First working firmware:
 - Internal clock only (tempo pot drives it)
 - Major scale only
 - Up-arp, 4 notes (root, 3rd, 5th, octave)
-- MCP4725 → op-amp → V/Oct out, calibrated
+- PWM on D2 → 2-pole RC filter → MCP6002 op-amp → V/Oct out, calibrated
 - Gate out via NPN transistor stage
 - OLED shows tempo BPM only
 - Encoder click cycles through arp orders
 - No chaos, no CV in processing, no calibration mode, no NeoPixel
 
-**Why:** the one genuinely novel subsystem is RP2350 → MCP4725 I2C → MCP6002 → Eurorack V/Oct. Prove that before stacking features.
+**Why:** the one genuinely novel subsystem is RP2350 PWM → 2-pole RC filter → MCP6002 → Eurorack V/Oct. Prove that before stacking features.
 
 ### 6. Reuse logic libraries from xiao-ra4m1-arp verbatim
 
@@ -81,7 +86,7 @@ First working firmware:
 
 Same rule as RA4M1 project: don't open KiCad until DAC → MCP6002 → multimeter matches the calibration voltage table within ±2 mV.
 
-**New risk for this project:** the MCP4725 I2C transaction and the OLED update compete for the same I2C bus. Confirm the bus sharing works cleanly before committing to PCB traces.
+**New risk for this project:** 36.6 kHz PWM switching on D2 may couple noise into adjacent ADC pins. Confirm on breadboard (Story 003) before committing to PCB traces.
 
 ### 8. Test strategy: host TDD for pure logic, bench for HAL
 

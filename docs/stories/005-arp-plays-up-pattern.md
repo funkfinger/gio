@@ -25,7 +25,7 @@ This is the **v0.1.0 milestone**. Everything after this is additive.
 ## Notes
 
 - `lib/arp/` and `lib/tempo/` code and tests port verbatim from `xiao-ra4m1-arp`. Confirm they compile cleanly under the arduino-pico / RP2350 toolchain.
-- `noteToDAC()` replaces `analogWrite(PIN_DAC, dacCount)` with `mcp.setVoltage(dacCount, false)`.
+- `noteToDAC()` calls `analogWrite(PIN_DAC_PWM, dacCount)` — same call as the RA4M1's `analogWrite`, different pin.
 - Gate logic: NPN common-emitter inverts — `digitalWrite(PIN_GATE, LOW)` = gate HIGH (5V at J4).
 - At this stage: major scale only, fixed BPM, no encoder, no OLED, no pot reads, no CV in.
 

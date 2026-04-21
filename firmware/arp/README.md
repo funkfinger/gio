@@ -47,7 +47,6 @@ Baud rate: 115200.
 
 ## Library notes
 
-- **Adafruit MCP4725** — I2C DAC driver. Call `mcp.begin(0x60)` after `Wire.begin()`.
 - **Adafruit SSD1306 + GFX** — OLED driver. 64×32 init, rotate 90° for portrait.
 - **Encoder (Stoffregen)** — interrupt-driven quadrature encoder. Reliable on RP2350 PIO.
 - **Adafruit NeoPixel** — onboard RGB LED at `PIN_NEOPIXEL`.

@@ -28,15 +28,15 @@ pio run -d firmware/arp --target upload
 ## Hardware
 
 - **MCU:** Seeed XIAO RP2350 (RP2350A, dual Cortex-M33, 150 MHz)
-- **DAC:** MCP4725 (I2C, 12-bit) — external, on I2C bus with OLED
+- **DAC:** RP2350 12-bit PWM on D2 → 2-pole RC filter (2× 10 kΩ + 100 nF) → MCP6002 op-amp
 - **Display:** 64×32 SSD1306 OLED, 0.49", I2C, mounted vertically
 - **Controls:** 1× tempo pot, 1× PEC11 rotary encoder (with click)
 - **Jacks:** J1 clock/gate in, J2 CV in, J3 V/Oct out, J4 gate out
 
 ## Key decisions
 
-- **No onboard DAC** — RP2350 has no DAC; MCP4725 on I2C fills that role
-- **I2C bus** on D4 (SDA) / D5 (SCL): shared by MCP4725 + SSD1306 OLED
+- **No onboard DAC** — RP2350 PWM on D2 + 2-pole RC filter used instead; simpler than I2C DAC
+- **I2C bus** on D4 (SDA) / D5 (SCL): dedicated to SSD1306 OLED only (no bus sharing)
 - **Host TDD** for pure-logic modules (scales, arp, tempo) via `pio test -e native`
 - **Bench verification** for HAL (DAC, gate, OLED, encoder)
 - **CHANGELOG.md** updated on every commit (Keep a Changelog format)

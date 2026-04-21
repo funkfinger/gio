@@ -12,6 +12,10 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
+### Changed
+
+- DAC approach: replaced MCP4725 I2C DAC with RP2350 12-bit hardware PWM on D2 + 2-pole RC filter (2× 10 kΩ + 100 nF, f_c ≈ 160 Hz). Eliminates I2C bus contention between DAC and OLED, removes MCP4725 from BOM, simplifies firmware (no library needed). Ripple < 63 µV; settling time ~5 ms. Spec, decisions, and Stories 003–005 updated accordingly. D2 pin reassigned from CV In #2 to PWM V/Oct out; A3 promoted to spare CV in #2 slot.
+
 ### Added
 
 - Repo scaffolded: `firmware/arp/`, `hardware/`, `docs/`, `docs/stories/` directory tree

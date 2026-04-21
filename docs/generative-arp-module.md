@@ -1,16 +1,16 @@
 # Generative Arpeggiator — Eurorack CV/Gate Module
 
-> **Rev 0.1 — April 2026** · 2 HP · XIAO RP2350 · MCP4725 DAC · 4 Jacks · 1 Pot · 1 Encoder · 64×32 OLED
+> **Rev 0.1 — April 2026** · 2 HP · XIAO RP2350 · PWM DAC · 4 Jacks · 1 Pot · 1 Encoder · 64×32 OLED
 
 ## 1. Project Overview
 
 A 2 HP Eurorack generative arpeggiator module producing scale-quantised V/Oct pitch CV and gate outputs, driven by a probability-layered generative engine.
 
-Ported from [`xiao-ra4m1-arp`](https://github.com/funkfinger/xiao-ra4m1-arp) (RA4M1 with onboard DAC) to the XIAO RP2350, which has no onboard DAC. A MCP4725 I2C DAC replaces the RA4M1's internal DAC. The encoder + OLED UI from the RA4M1 design pivot is the baseline here from day one.
+Ported from [`xiao-ra4m1-arp`](https://github.com/funkfinger/xiao-ra4m1-arp) (RA4M1 with onboard DAC) to the XIAO RP2350, which has no onboard DAC. A 12-bit hardware PWM output through a 2-pole RC filter replaces the RA4M1's internal DAC — simpler BOM than an external I2C DAC, and it leaves the I2C bus dedicated to the OLED. The encoder + OLED UI from the RA4M1 design pivot is the baseline here from day one.
 
 ### 1.1 Design Goals
 
-- Scale-quantised generative melody via MCP4725 I2C DAC → MCP6002 op-amp → Eurorack V/Oct
+- Scale-quantised generative melody via RP2350 PWM → 2-pole RC filter → MCP6002 op-amp → Eurorack V/Oct
 - Encoder + OLED UI: tempo pot for the live knob, encoder + 64×32 display for everything else
 - 2 HP form factor (Hagiwo MOD2 template)
 - 2 CV inputs, 1 clock/gate input, 1 V/Oct output, 1 gate output
@@ -22,7 +22,7 @@ Ported from [`xiao-ra4m1-arp`](https://github.com/funkfinger/xiao-ra4m1-arp) (RA
 | Element | RA4M1 version | RP2350 version (this project) |
 |---|---|---|
 | MCU | Seeed XIAO RA4M1 (Cortex-M4, 12-bit DAC onboard) | Seeed XIAO RP2350 (dual Cortex-M33, no DAC) |
-| DAC | RA4M1 internal 12-bit DAC on D0/A0 | MCP4725 external I2C 12-bit DAC |
+| DAC | RA4M1 internal 12-bit DAC on D0/A0 | RP2350 12-bit PWM + 2-pole RC filter |
 | UI | 3 pots → pivoted to 1 pot + encoder + OLED | 1 pot + encoder + OLED (pivot is baseline) |
 | Display | 128×32 OLED (considered) | 64×32 OLED, 0.49", vertical mount |
 | Logic libs | `scales`, `arp`, `tempo` — pure C++, no Arduino deps | Same libs, reused verbatim |
@@ -51,27 +51,39 @@ Ported from [`xiao-ra4m1-arp`](https://github.com/funkfinger/xiao-ra4m1-arp) (RA
 | Flash | 4 MB (QSPI) |
 | SRAM | 520 KB |
 | ADC | 4× 12-bit (A0–A3) |
-| DAC | None — external MCP4725 via I2C |
+| DAC | None onboard — 12-bit PWM output + 2-pole RC filter |
 | GPIO | 26 total |
 | Interfaces | I2C, SPI, UART, USB 1.1, PIO |
 | Form factor | XIAO standard (21 × 17.8 mm), SMD stamp holes |
 | Arduino support | Via earlephilhower arduino-pico platform |
 | Price (approx.) | ~$6 USD |
 
-### 2.3 External DAC — MCP4725
+### 2.3 PWM DAC
 
-The RP2350 has no onboard DAC. The MCP4725 is a 12-bit I2C DAC that shares the I2C bus with the SSD1306 OLED.
+The RP2350 has no onboard DAC. V/Oct output is generated using the RP2350's hardware PWM peripheral at 12-bit resolution, followed by a 2-pole passive RC low-pass filter and the MCP6002 op-amp scaling stage.
 
 | Attribute | Value |
 |---|---|
-| Part | MCP4725A0T-E/CH (SOT-23-6) or MCP4725 breakout |
-| Resolution | 12-bit (4096 steps) |
-| Interface | I2C, address 0x60 (A0 low) |
-| Output range | 0–VDD (powered from 3.3V → 0–3.3V) |
-| Output impedance | ~1 Ω (internal) |
-| I2C speed | Up to 400 kHz (fast mode) |
-| EEPROM | Onboard — power-on output value stored |
-| Library | Adafruit MCP4725 |
+| PWM source | RP2350 hardware PWM slice on D2 (GP28) |
+| Resolution | 12-bit wrap (4096 counts, `analogWriteResolution(12)`) |
+| PWM frequency | 150 MHz / 4096 ≈ **36.6 kHz** |
+| Filter | 2-pole passive RC, f_c ≈ 160 Hz (2× 10 kΩ + 100 nF in series) |
+| Ripple at 36.6 kHz | ≈ 60 µV (< 0.1¢) |
+| Settling time (5τ) | ≈ 5 ms — well within 50 ms step at 300 BPM |
+| Output range after filter | 0–3.3 V into op-amp non-inverting input |
+| Library | None — `analogWrite()` built into arduino-pico |
+
+**Filter topology:**
+
+```
+D2 ──[10kΩ]──┬──[10kΩ]──┬── MCP6002(+) ──┤gain 1.27×├── V/Oct out (J3)
+              │           │
+            [100nF]     [100nF]
+              │           │
+             GND         GND
+```
+
+**PCB note:** route the D2 PWM trace away from ADC input traces (A0 tempo pot, A1 CV in). Keep filter capacitors close to the pin. 36.6 kHz switching noise can couple into adjacent analog pins if layout is careless — a known risk to verify during Story 003 breadboard work.
 
 ### 2.4 Pin Assignment
 
@@ -79,10 +91,10 @@ The RP2350 has no onboard DAC. The MCP4725 is a 12-bit I2C DAC that shares the I
 |---|---|---|---|---|
 | D0 / A0 | GP26 | In (analog) | Tempo pot | 12-bit ADC; wiper 0–3.3V |
 | D1 / A1 | GP27 | In (analog) | CV In #1 (J2) | 12-bit ADC; 0–5V → 0–3.3V via divider |
-| D2 / A2 | GP28 | In (analog) | CV In #2 (future) | 12-bit ADC; spare modulation input |
-| D3 / A3 | GP29 | In (analog) | Spare analog | 4th ADC — reserved |
-| D4 | GP6 | I2C SDA | I2C bus (DAC + OLED) | MCP4725 addr 0x60, SSD1306 addr 0x3C |
-| D5 | GP7 | I2C SCL | I2C bus (DAC + OLED) | 400 kHz fast mode |
+| D2 | GP28 | Out (PWM) | PWM V/Oct out → RC filter → J3 | 12-bit PWM @ 36.6 kHz; feeds 2-pole RC + MCP6002 |
+| D3 / A3 | GP29 | In (analog) | CV In #2 (future) | 4th ADC — spare modulation input |
+| D4 | GP6 | I2C SDA | I2C bus (OLED only) | SSD1306 addr 0x3C; dedicated — no DAC sharing |
+| D5 | GP7 | I2C SCL | I2C bus (OLED only) | 400 kHz fast mode |
 | D6 | GP0 | Out | Gate Out (J4) | 3.3V logic → 5V via NPN transistor |
 | D7 | GP1 | In (digital) | Clock / Gate In (J1) | Protected digital input |
 | D8 | GP2 | In (digital) | Encoder A (phase A) | INPUT_PULLUP; interrupt-driven |
@@ -91,9 +103,9 @@ The RP2350 has no onboard DAC. The MCP4725 is a 12-bit I2C DAC that shares the I
 | Internal | — | Out | Onboard NeoPixel | `WS2812_DATA_PIN` / `PIN_NEOPIXEL` |
 | Internal | — | Out | `LED_BUILTIN` | Onboard mono LED, beat indicator |
 
-**ADC-capable pins:** A0–A3 (four total). One consumed by tempo pot; A1 consumed by CV in #1; A2 and A3 are spare.
+**ADC-capable pins:** A0–A3 (four total). A0 consumed by tempo pot; A1 consumed by CV in #1; A3 is spare for future CV in #2. D2 (GP28) is used as PWM output — its ADC capability is sacrificed for V/Oct.
 
-**I2C:** hardware I2C0 on D4/D5. Both MCP4725 and SSD1306 share this bus — different addresses.
+**I2C:** hardware I2C0 on D4/D5, dedicated to SSD1306 OLED only. No bus sharing — the PWM DAC approach eliminates contention entirely.
 
 ### 2.5 Input Circuits
 
@@ -113,37 +125,43 @@ Eurorack gate: 0–5V or 0–10V. RP2350 GPIO max 3.3V. Protection:
 
 ### 2.6 V/Oct Output Stage
 
-MCP4725 outputs 0–3.3V (12-bit). Op-amp scales to Eurorack V/Oct.
+RP2350 PWM output → 2-pole RC filter → 0–3.3V DC → MCP6002 op-amp scaling → Eurorack V/Oct.
 
 #### 2.6.1 Target Output Range
 
 **C3 (MIDI 48, 0V) to C7 (MIDI 96, 4V)** — four octaves, 0–4V. Same as RA4M1 design.
 
-#### 2.6.2 Op-Amp Scaling Circuit
+#### 2.6.2 PWM Filter + Op-Amp Scaling Circuit
 
 Op-amp: **MCP6002** (single-supply, rail-to-rail, 5V powered). Non-inverting amplifier.
 
 | Component | Value | Function |
 |---|---|---|
+| R_f1 | 10 kΩ | PWM filter pole 1 (series) |
+| C_f1 | 100 nF | PWM filter pole 1 (shunt to GND) |
+| R_f2 | 10 kΩ | PWM filter pole 2 (series) |
+| C_f2 | 100 nF | PWM filter pole 2 (shunt to GND) |
 | U2 | MCP6002-I/P DIP-8 | Dual op-amp, single-supply, rail-to-rail |
-| R1 | 10 kΩ | Input resistor |
-| R2 | 2.7 kΩ | Gain resistor — sets gain ≈ 1.27× to map 0–3.3V → 0–4.2V |
-| R4 | 100 Ω | Output series resistor (short-circuit protection, minimal loading error) |
+| R_gain | 2.7 kΩ | Gain resistor — sets gain ≈ 1.27× (R_gain / R_fb) |
+| R_fb | 10 kΩ | Feedback resistor |
+| R4 | 100 Ω | Output series resistor (short-circuit protection) |
 | C1 | 100 nF | Op-amp supply decoupling |
 | C2 | 10 nF | Op-amp output stability / HF rolloff |
 
-Gain formula: `Vout = Vdac × (1 + R2/R1)`. With R1=10k, R2=2.7k: nominal gain 1.27×.
+> **Filter cutoff:** f_c = 1 / (2π × 10k × 100n) ≈ **160 Hz** per pole. Two poles give −40 dB/decade above 160 Hz. At 36.6 kHz PWM: attenuation ≈ (36600/160)² = 52,400× → ripple ≈ 3.3V / 52400 ≈ **63 µV** (< 0.1¢). Settling to within 1 mV: ~5τ = 5 / (2π × 160) ≈ **5 ms** — fast enough at 300 BPM (50 ms/step).
 
-Firmware DAC formula (same as RA4M1 version):
+Gain formula: `Vout = Vfiltered × (1 + R_gain/R_fb)`. With R_fb=10k, R_gain=2.7k: nominal gain 1.27×.
+
+Firmware PWM formula (same math as RA4M1, different write call):
 ```cpp
 float targetVolts = (midiNote - MIDI_ROOT) / 12.0f;
 float dacVolts    = targetVolts / GAIN;
-uint16_t dacCount = (uint16_t)((dacVolts / DAC_VREF) * DAC_MAX);
+int   pwmCount    = (int)((dacVolts / DAC_VREF) * DAC_MAX + 0.5f);
+pwmCount = constrain(pwmCount, 0, DAC_MAX);
+analogWrite(PIN_DAC_PWM, pwmCount);   // PIN_DAC_PWM = D2
 ```
 
-Resolution: 3.3V × 1.27 / 4096 ≈ 1.02 mV/step at V/Oct output. One semitone = 83.3 mV ≈ 82 steps — same as RA4M1.
-
-> **Note:** The MCP4725 has ~6–7 µs settling time — negligible at Eurorack audio rates. No glitching expected.
+Resolution: 3.3V × 1.27 / 4096 ≈ 1.02 mV/step at V/Oct output. One semitone = 83.3 mV ≈ 82 steps — identical to RA4M1.
 
 ### 2.7 Gate Output Stage (J4)
 
@@ -284,7 +302,6 @@ Same as RA4M1: internal clock from pot, external clock rising edge on J1. Each s
 | Ref | Component | Value / Part | Qty |
 |---|---|---|---|
 | U_MCU | MCU board | Seeed XIAO RP2350 | 1 |
-| U_DAC | I2C DAC | MCP4725 breakout or SOT-23-6 | 1 |
 | U_AMP | Op-amp | MCP6002-I/P DIP-8 | 1 |
 | U_REG | LDO | AMS1117-5.0 SOT-223 | 1 |
 | U_DISP | OLED | 64×32 SSD1306, 0.49", I2C | 1 |
@@ -295,9 +312,11 @@ Same as RA4M1: internal clock from pot, external clock rising edge on J1. Each s
 | J_PWR | Power header | 2×5 2.54mm shrouded | 1 |
 | RV1 | Tempo pot | B100K Alpha RD901F 9mm | 1 |
 | ENC1 | Rotary encoder | PEC11R (detented, with click) | 1 |
-| R1 | Resistor | 10 kΩ 0402 | 1 |
-| R2 | Resistor | 2.7 kΩ 0402 1% | 1 |
-| R4 | Resistor | 100 Ω 0402 | 1 |
+| R_f1, R_f2 | Resistors | 10 kΩ 0402 (PWM filter) | 2 |
+| R_fb | Resistor | 10 kΩ 0402 (op-amp feedback) | 1 |
+| R_gain | Resistor | 2.7 kΩ 0402 1% (op-amp gain) | 1 |
+| R4 | Resistor | 100 Ω 0402 (V/Oct output) | 1 |
+| C_f1, C_f2 | Capacitors | 100 nF 0402 (PWM filter) | 2 |
 | R5 | Resistor | 1 kΩ 0402 (transistor base) | 1 |
 | R6 | Resistor | 10 kΩ 0402 (gate pull-up) | 1 |
 | R7, R8 | Resistors | 3.3 kΩ 0402 (jack protection) | 2 |
