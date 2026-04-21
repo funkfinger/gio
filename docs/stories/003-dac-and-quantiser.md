@@ -45,4 +45,4 @@ Bundled in one PR because they share the same milestone: "novel subsystems prove
 
 ## Status
 
-not started
+done — scales lib + 13 host tests passing; PWM DAC ramp bench-verified (raw, 1-pole, 2-pole) on 2026-04-21. ADC noise check deferred to PCB stage (breadboard coupling not predictive). See `bench-log.md`.
