@@ -12,6 +12,16 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
+### Added
+
+- Story 002 complete: blinky flashed via UF2 (picotool), LED blinks at 1 Hz on bench. Flash: 56 KB / 2 MB.
+
+### Changed
+
+- `firmware/arp/platformio.ini`: switched `platform` from `earlephilhower/arduino-pico.git#4.4.0` (bare git URL — PlatformIO cannot find `platform.json` in this repo) to `maxgerhardt/platform-raspberrypi` + `platform_packages = framework-arduinopico @ …#4.4.0`. This is the correct PlatformIO wrapper for the earlephilhower core; the pinned arduino-pico version is unchanged.
+- `firmware/arp/platformio.ini`: removed `paulstoffregen/Encoder` from `lib_deps` — it uses AVR-specific register macros (`DIRECT_PIN_READ`, `pin1_register`) that do not compile on RP2350. Will be replaced with an RP2350-compatible alternative in Story 007.
+- `firmware/arp/src/main.cpp`: `LED_BUILTIN` → `PIN_LED` — the `seeed_xiao_rp2350` variant defines `PIN_LED (25u)` but does not alias `LED_BUILTIN`.
+
 ### Changed
 
 - `firmware/arp/platformio.ini`: pinned `earlephilhower/arduino-pico` platform to `#4.4.0` instead of tracking `main`. Locks the per-pin `analogWriteFreq(pin, freq)` overload that the PWM DAC depends on, and keeps CI + local + bench builds reproducible until we deliberately bump. Bump protocol documented in `decisions.md` §11. Story 003 gains a toolchain sanity check (`analogWriteFreq(PIN_DAC_PWM, 36621)` must compile against the pinned platform).

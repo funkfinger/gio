@@ -26,4 +26,4 @@
 
 ## Status
 
-not started
+done — flashed via UF2 (picotool), LED blinks at 1 Hz on bench. Flash: 56 KB / 2 MB.
