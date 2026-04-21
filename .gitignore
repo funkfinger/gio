@@ -1,0 +1,35 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+firmware/**/.pio/
+
+# KiCad
+*.bak
+*-backups/
+*.kicad_prl
+fp-info-cache
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artefacts
+*.o
+*.d
+*.elf
+*.bin
+*.uf2
+*.map
+
+# Python
+__pycache__/
+*.pyc
