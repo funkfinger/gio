@@ -92,7 +92,7 @@ D2 ──[10kΩ]──┬──[10kΩ]──┬── MCP6002(+) ──┤gain 1
 | D0 / A0 | GP26 | In (analog) | Tempo pot | 12-bit ADC; wiper 0–3.3V |
 | D1 / A1 | GP27 | In (analog) | CV In #1 (J2) | 12-bit ADC; 0–5V → 0–3.3V via divider |
 | D2 | GP28 | Out (PWM) | PWM V/Oct out → RC filter → J3 | 12-bit PWM @ 36.6 kHz; feeds 2-pole RC + MCP6002 |
-| D3 / A3 | GP29 | In (analog) | CV In #2 (future) | 4th ADC — spare modulation input |
+| D3 / A3 | GP29 | — | Spare (internal pad only) | 4th ADC — no panel jack; Rev 0.1 unpopulated |
 | D4 | GP6 | I2C SDA | I2C bus (OLED only) | SSD1306 addr 0x3C; dedicated — no DAC sharing |
 | D5 | GP7 | I2C SCL | I2C bus (OLED only) | 400 kHz fast mode |
 | D6 | GP0 | Out | Gate Out (J4) | 3.3V logic → 5V via NPN transistor |
@@ -103,7 +103,7 @@ D2 ──[10kΩ]──┬──[10kΩ]──┬── MCP6002(+) ──┤gain 1
 | Internal | — | Out | Onboard NeoPixel | `WS2812_DATA_PIN` / `PIN_NEOPIXEL` |
 | Internal | — | Out | `LED_BUILTIN` | Onboard mono LED, beat indicator |
 
-**ADC-capable pins:** A0–A3 (four total). A0 consumed by tempo pot; A1 consumed by CV in #1; A3 is spare for future CV in #2. D2 (GP28) is used as PWM output — its ADC capability is sacrificed for V/Oct.
+**ADC-capable pins:** A0–A3 (four total). A0 = tempo pot; A1 = CV in #1 (J2); A3 = spare internal pad, no panel jack in Rev 0.1; D2 (GP28) = PWM V/Oct out, ADC capability sacrificed.
 
 **I2C:** hardware I2C0 on D4/D5, dedicated to SSD1306 OLED only. No bus sharing — the PWM DAC approach eliminates contention entirely.
 
@@ -233,11 +233,11 @@ Same as RA4M1 version: AMS1117-5.0 from +12V, Eurorack 2×5 header, reverse-pola
 │ ENC  │  Rotary encoder (13mm body, click)
 ├──────┤
 │[J][J]│  J1: Clock In  |  J3: V/Oct Out
-│[J][J]│  J2: CV In #1  |  J4: Gate Out
+│[J][J]│  J2: CV In     |  J4: Gate Out
 └──────┘
 ```
 
-2 HP = 10.16 mm panel width. Jack bushings (PJ301M-12: 6mm) fit two per row. Pot bushing 9mm extends behind panel.
+2 HP = 10.16 mm panel width. Jack bushings (PJ301M-12: 6mm) fit two per row. Pot bushing 9mm extends behind panel. **4 jacks total — 2 in, 2 out. No 5th jack; module is firmly 2HP.**
 
 ---
 
