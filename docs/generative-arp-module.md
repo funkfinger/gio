@@ -90,38 +90,53 @@ D2 ──[10kΩ]──┬──[10kΩ]──┬── MCP6002(+) ──┤gain 1
 | XIAO Pin | RP2350 GPIO | Direction | Function | Notes |
 |---|---|---|---|---|
 | D0 / A0 | GP26 | In (analog) | Tempo pot | 12-bit ADC; wiper 0–3.3V |
-| D1 / A1 | GP27 | In (analog) | CV In #1 (J2) | 12-bit ADC; 0–5V → 0–3.3V via divider |
+| D1 / A1 | GP27 | In (analog/digital) | J2 — CV/Trigger In | Dual-purpose: `analogRead` for V/Oct pitch, `digitalRead` for trigger. 100 kΩ + 68 kΩ divider + BAT54 clamp |
 | D2 | GP28 | Out (PWM) | PWM V/Oct out → RC filter → J3 | 12-bit PWM @ 36.6 kHz; feeds 2-pole RC + MCP6002 |
-| D3 / A3 | GP29 | — | Spare (internal pad only) | 4th ADC — no panel jack; Rev 0.1 unpopulated |
+| D3 / A3 | GP29 | In (analog/digital) | J1 — Trigger/CV In | Dual-purpose: same circuit as J2. Moved here from D7 so J1 is ADC-capable |
 | D4 | GP6 | I2C SDA | I2C bus (OLED only) | SSD1306 addr 0x3C; dedicated — no DAC sharing |
 | D5 | GP7 | I2C SCL | I2C bus (OLED only) | 400 kHz fast mode |
 | D6 | GP0 | Out | Gate Out (J4) | 3.3V logic → 5V via NPN transistor |
-| D7 | GP1 | In (digital) | Clock / Gate In (J1) | Protected digital input |
+| D7 | GP1 | — | Spare digital GPIO | Freed when J1 moved to A3; Rev 0.1 unpopulated |
 | D8 | GP2 | In (digital) | Encoder A (phase A) | INPUT_PULLUP; interrupt-driven |
 | D9 | GP3 | In (digital) | Encoder B (phase B) | INPUT_PULLUP; interrupt-driven |
 | D10 | GP4 | In (digital) | Encoder click | INPUT_PULLUP |
 | Internal | — | Out | Onboard NeoPixel | `WS2812_DATA_PIN` / `PIN_NEOPIXEL` |
 | Internal | — | Out | `LED_BUILTIN` | Onboard mono LED, beat indicator |
 
-**ADC-capable pins:** A0–A3 (four total). A0 = tempo pot; A1 = CV in #1 (J2); A3 = spare internal pad, no panel jack in Rev 0.1; D2 (GP28) = PWM V/Oct out, ADC capability sacrificed.
+**ADC-capable pins:** A0–A3 (four total). A0 = tempo pot; A1 = J2 (CV/trigger in); A3 = J1 (trigger/CV in); D2 (GP28) = PWM V/Oct out, ADC capability sacrificed. All four ADC pins are committed.
 
-**I2C:** hardware I2C0 on D4/D5, dedicated to SSD1306 OLED only. No bus sharing — the PWM DAC approach eliminates contention entirely.
+**Dual-purpose jacks:** J1 (A3) and J2 (A1) use identical hardware — same protection and divider circuit. Firmware mode is selected per jack via the encoder menu: CLOCK mode (rising-edge detection) or PITCH mode (analogRead → scale quantise). This means either jack can accept either signal type; the module adapts in software.
 
-### 2.5 Input Circuits
+**I2C:** hardware I2C0 on D4/D5, dedicated to SSD1306 OLED only. No bus sharing.
 
-#### 2.5.1 Gate / Clock Input (J1) — Digital
+### 2.5 Input Circuits — J1 and J2 (Identical Hardware)
 
-Eurorack gate: 0–5V or 0–10V. RP2350 GPIO max 3.3V. Protection:
-- 3.3 kΩ series resistor
-- Schottky diode clamp to 3.3V rail (BAT54)
-- Schottky diode clamp to GND
-- Firmware threshold: >1.5V = HIGH
+Both J1 (A3/GP29) and J2 (A1/GP27) use the same protection and scaling circuit. The firmware mode (trigger or pitch CV) is selected per jack in the encoder menu.
 
-#### 2.5.2 CV Input (J2) — Analog
+**Protection + scaling circuit (per jack):**
 
-0–5V Eurorack input scaled to 0–3.3V via 100 kΩ / 220 kΩ divider (ratio ≈ 0.314 — wait, 100k/(100k+220k) ≈ 0.3125, maps 5V → 1.5V — actually this needs recalculating).
+```
+Jack ──[100 kΩ]──┬── ADC pin (A1 or A3)
+                  ├──[BAT54 to 3.3V rail]   clamps at +3.6V
+                  ├──[BAT54 to GND]          clamps at −0.3V
+                  └──[68 kΩ to GND]          lower divider leg
+```
 
-> **Note:** Use 150 kΩ / 100 kΩ divider: ratio = 100/(150+100) = 0.4, maps 5V → 2.0V. Or use 68 kΩ / 100 kΩ: ratio = 100/(68+100) ≈ 0.595, maps 5V → 2.97V (close to 3.3V ceiling — needs verification on bench). **Exact divider values to be confirmed during Story 004 breadboard work.** Protection diodes as per J1.
+| Parameter | Value |
+|---|---|
+| Series resistor | 100 kΩ (upper divider leg; limits clamp current to < 70 µA at 10V) |
+| Lower leg | 68 kΩ to GND |
+| Divider ratio | 68 / (100 + 68) ≈ 0.405 |
+| 0–5V gate in → ADC | 0–2.02V (threshold at ~750 counts for >1.5V trigger) |
+| 0–8V V/Oct in → ADC | 0–3.24V (covers 8 octaves; 42 ADC counts/semitone) |
+| Negative voltage | Clamped at −0.3V; clamp current at −5V ≈ 50 µA → safe |
+
+**Firmware modes (user-selectable per jack via encoder menu):**
+
+| Mode | Read method | Use case |
+|---|---|---|
+| CLOCK | `digitalRead()` rising edge, threshold ~750 counts | External clock, trigger sequencer |
+| PITCH | `analogRead()` → voltage divider inverse → semitone → `quantize()` | V/Oct pitch CV from sequencer or keyboard |
 
 ### 2.6 V/Oct Output Stage
 

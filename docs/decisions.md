@@ -88,7 +88,17 @@ Same rule as RA4M1 project: don't open KiCad until DAC → MCP6002 → multimete
 
 **New risk for this project:** 36.6 kHz PWM switching on D2 may couple noise into adjacent ADC pins. Confirm on breadboard (Story 003) before committing to PCB traces.
 
-### 8. Test strategy: host TDD for pure logic, bench for HAL
+### 8. Dual-purpose input jacks — same hardware, firmware-selectable mode
+
+J1 (A3/GP29) and J2 (A1/GP27) use identical protection and divider circuits: 100 kΩ series + 68 kΩ to GND + BAT54 dual Schottky. This maps 0–8V V/Oct → 0–3.24V at ADC and provides safe clamping for negative or over-voltage signals.
+
+Both jacks can operate as either a **trigger/clock input** (`digitalRead()`, rising-edge detection above ~1.5V) or a **pitch CV input** (`analogRead()` → inverse divider → semitone → `quantize()`). Mode is selected per jack in the encoder menu (CLOCK / PITCH).
+
+**Why:** the requirement was one trigger in and one V/Oct in. Rather than dedicate each jack in hardware — which would require different circuits and fix the panel semantics forever — both jacks get identical hardware and the split is done in firmware. Patcher can reassign either jack. D7 (GP1, previously the clock-only digital input) is freed.
+
+**Why 100 kΩ + 68 kΩ:** the 100 kΩ series resistor limits clamp diode current to < 70 µA even at 10V. The 68 kΩ lower leg maps 0–8V → 0–3.24V, covering 8 octaves of V/Oct with 42 ADC counts/semitone — sufficient for scale quantisation. A lower series resistor (e.g., 3.3 kΩ as in the RA4M1 design) would give faster rise time but the 100 kΩ + 100 pF cable capacitance RC = 10 µs — fine at 300 BPM (50 ms/step).
+
+### 9. Test strategy: host TDD for pure logic, bench for HAL
 
 - **Host tests (`pio test -e native`):** `scales`, `arp`, `tempo` — no Arduino deps, pure logic
 - **Bench-verified:** `dac_out` (MCP4725 via I2C), `gate_out`, `oled_ui`, `encoder_input`, `clock_in`
@@ -137,7 +147,7 @@ After PR 5, everything else (encoder menu, OLED display, six scales, CV in, chao
 
 ## Deferred decisions
 
-- **CV divider values:** 0–5V Eurorack → 0–3.3V RP2350 ADC. Exact resistor values to be confirmed on bench (Story 004 or a dedicated story).
+- **CV divider bench confirmation:** 100 kΩ / 68 kΩ divider maps 8V → 3.24V (Story 004 bench work). Verify no ADC saturation at max Eurorack V/Oct; confirm 42 counts/semitone is sufficient for clean quantisation.
 - **Calibration storage:** hardcoded `GAIN` constant in v0.1. Move to flash/EEPROM post-MVP.
 - **Encoder library:** `Encoder.h` vs `RotaryEncoder.h` — decide at Story 009.
 - **OLED rotation strategy:** software rotation (Adafruit GFX `setRotation(1)`) or hardware OLED orientation strap — confirm with part in hand.

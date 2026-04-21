@@ -14,7 +14,8 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Changed
 
-- DAC approach: replaced MCP4725 I2C DAC with RP2350 12-bit hardware PWM on D2 + 2-pole RC filter (2× 10 kΩ + 100 nF, f_c ≈ 160 Hz). Eliminates I2C bus contention between DAC and OLED, removes MCP4725 from BOM, simplifies firmware (no library needed). Ripple < 63 µV; settling time ~5 ms. Spec, decisions, and Stories 003–005 updated accordingly. D2 pin reassigned from CV In #2 to PWM V/Oct out; A3 promoted to spare CV in #2 slot.
+- DAC approach: replaced MCP4725 I2C DAC with RP2350 12-bit hardware PWM on D2 + 2-pole RC filter (2× 10 kΩ + 100 nF, f_c ≈ 160 Hz). Eliminates I2C bus contention between DAC and OLED, removes MCP4725 from BOM, simplifies firmware (no library needed). Ripple < 63 µV; settling time ~5 ms. Spec, decisions, and Stories 003–005 updated accordingly. D2 pin reassigned from CV In #2 to PWM V/Oct out.
+- Input jacks: J1 moved from D7 (digital-only, GP1) to A3 (GP29, ADC-capable). Both J1 and J2 now on ADC pins with identical protection circuits (100 kΩ series + 68 kΩ to GND + BAT54 dual Schottky). Both jacks are dual-purpose: CLOCK mode (rising-edge trigger) or PITCH mode (V/Oct → quantise), selectable per jack in encoder menu. Maps 0–8V V/Oct → 0–3.24V ADC (42 counts/semitone). D7 (GP1) freed as spare digital GPIO.
 
 ### Added
 
