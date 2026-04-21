@@ -126,18 +126,22 @@ Bench workflow: oscilloscope (Rigol DS1054Z) for timing, multimeter for V/Oct vo
 
 ### 11. Platform version pinned to a tagged release
 
-`platformio.ini` pins the arduino-pico platform to a specific tag (`#4.4.0` at time of writing) rather than tracking `main`:
+`platformio.ini` uses `maxgerhardt/platform-raspberrypi` (the PlatformIO wrapper) with the arduino-pico core pinned via `platform_packages`:
 
 ```ini
-platform = https://github.com/earlephilhower/arduino-pico.git#4.4.0
+platform = https://github.com/maxgerhardt/platform-raspberrypi.git
+platform_packages = framework-arduinopico @ https://github.com/earlephilhower/arduino-pico.git#4.4.0
 ```
 
-**Why:**
+The bare `earlephilhower/arduino-pico` git URL cannot be used directly as `platform =` because PlatformIO expects a `platform.json` manifest that the core repo does not supply.
+
+**Why pin:**
 - CI and local builds stay reproducible across time. A platform bump should be a deliberate act, not a silent surprise on the next `pio run`.
-- The PWM DAC relies on the **per-pin** `analogWriteFreq(pin, freq)` overload. Older arduino-pico versions only exposed the global `analogWriteFreq(freq)` — calling it sets the frequency for every PWM slice, which will bite us the moment a second PWM consumer appears (gate shaping, NeoPixel, a second DAC). Pinning to a release known to expose the per-pin form prevents a silent regression.
 - Bench work is expensive. A platform change can shift PWM slice assignments, ADC averaging defaults, or I2C timing — any of which invalidate Story 003/004 calibration. If we're going to revalidate the bench, we do it because we chose to, not because GitHub's `main` moved.
 
-**Bump protocol:** update the pin → run host tests → rebuild firmware → re-run Story 003 PWM ramp bench checks → record in `bench-log.md`. Cheap insurance against a whole class of "worked yesterday" failures.
+**PWM frequency note (Story 003 finding):** arduino-pico only exposes the global `analogWriteFreq(uint32_t freq)` — there is no per-pin overload in any released version. In practice this is acceptable for this design: D2 (GP28) is the only `analogWrite` pin; gate output uses digital GPIO; NeoPixel uses PIO (not PWM slices). Call `analogWriteFreq(36621)` once in `setup()` before `analogWrite()`. If a future story needs a second PWM slice at a different frequency, use the pico-sdk `pwm_set_clkdiv()` / `pwm_set_wrap()` APIs directly.
+
+**Bump protocol:** update the pin → run host tests → rebuild firmware → re-run Story 003 PWM ramp bench checks → record in `bench-log.md`.
 
 ### 12. 64×32 OLED (0.49"), mounted vertically
 

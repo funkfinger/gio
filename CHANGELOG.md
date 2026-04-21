@@ -14,11 +14,15 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- `firmware/arp/lib/scales/` — pure-C++ scale quantiser library: `quantize(midiNote, Scale)` and `scaleFromPot(pot, current)` with ±2 % hysteresis. No Arduino deps.
+- `firmware/arp/test/test_scales/test_main.cpp` — 13 GoogleTest cases: in-scale pass-through for all 6 scales, out-of-scale snapping with tie-break-downward, chromatic identity, octave invariance, scaleFromPot zone centres and hysteresis. All pass via `pio test -e native`.
 - Story 002 complete: blinky flashed via UF2 (picotool), LED blinks at 1 Hz on bench. Flash: 56 KB / 2 MB.
 
 ### Changed
 
+- `firmware/arp/src/main.cpp`: replaced blinky with PWM DAC ramp — 12-bit `analogWrite` on D2 (GP28), sweeping 0→4095 at ~10 Hz. `analogWriteFreq(36621)` sets 150 MHz / 4096 ≈ 36.6 kHz PWM carrier. Story 003 bench steps pending scope verification.
 - `firmware/arp/platformio.ini`: switched `platform` from `earlephilhower/arduino-pico.git#4.4.0` (bare git URL — PlatformIO cannot find `platform.json` in this repo) to `maxgerhardt/platform-raspberrypi` + `platform_packages = framework-arduinopico @ …#4.4.0`. This is the correct PlatformIO wrapper for the earlephilhower core; the pinned arduino-pico version is unchanged.
+- `docs/decisions.md` §11: corrected — arduino-pico has no per-pin `analogWriteFreq(pin, freq)` overload in any released version (only global form exists). Decision updated: use global `analogWriteFreq(freq)` once in `setup()`; for future multi-slice PWM use pico-sdk directly. Also updated platform spec to reflect the maxgerhardt wrapper approach.
 - `firmware/arp/platformio.ini`: removed `paulstoffregen/Encoder` from `lib_deps` — it uses AVR-specific register macros (`DIRECT_PIN_READ`, `pin1_register`) that do not compile on RP2350. Will be replaced with an RP2350-compatible alternative in Story 007.
 - `firmware/arp/src/main.cpp`: `LED_BUILTIN` → `PIN_LED` — the `seeed_xiao_rp2350` variant defines `PIN_LED (25u)` but does not alias `LED_BUILTIN`.
 
