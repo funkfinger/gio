@@ -167,6 +167,18 @@ Keep a Changelog format. `## [Unreleased]` in flight; moves to a versioned headi
 
 **Hardware:** `Rev 0.1` is first fabricated board. `Rev 1.0` is first public release.
 
+### 17. Encoder library: `mathertel/RotaryEncoder`
+
+`paulstoffregen/Encoder` was the original plan (interrupt-driven, fast) but it does not compile on RP2350 — it uses AVR/ARM-specific direct register-access macros (`DIRECT_PIN_READ`, `pin1_register`, `pin2_bitmask`, `Encoder::interruptArgs[]`) that have no RP2350 implementation in the library. Discovered during Story 002 platform fix; library removed from `lib_deps` at that time.
+
+`mathertel/RotaryEncoder` chosen as replacement:
+- Pure C++ — no platform-specific register access
+- Polling-based by default (call `tick()` from loop), with optional interrupt mode
+- LatchMode handles standard PEC11 detents (`TWO03` for one count per detent)
+- Active maintenance, broadly used across PIO platforms
+
+The polling approach is fine for our 24-detent PEC11 at human turn rates; we tick every loop iteration alongside other non-blocking work. If we ever observe missed detents under heavy loop load, switching to interrupt mode is a one-line change in `lib/encoder_input/`.
+
 ---
 
 ## Bring-up sequence (first five PRs)
@@ -187,7 +199,6 @@ After PR 5, everything else (encoder menu, OLED display, six scales, CV in, chao
 
 - **CV divider bench confirmation:** 100 kΩ / 68 kΩ divider maps 8V → 3.24V (Story 004 bench work). Verify no ADC saturation at max Eurorack V/Oct; confirm 42 counts/semitone is sufficient for clean quantisation.
 - **Calibration storage:** hardcoded `GAIN` constant in v0.1. Move to flash/EEPROM post-MVP.
-- **Encoder library:** `Encoder.h` vs `RotaryEncoder.h` — decide at Story 009.
 - **OLED rotation strategy:** software rotation (Adafruit GFX `setRotation(1)`) or hardware OLED orientation strap — confirm with part in hand.
 - **Chaos design:** deferred, same as RA4M1 project.
 - **RNG choice:** `random()` fine for MVP; XORShift or `std::minstd_rand` for reproducible host tests post-MVP.

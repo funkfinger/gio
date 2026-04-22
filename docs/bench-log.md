@@ -58,3 +58,19 @@ Measurements from hardware bring-up, ordered chronologically. Referenced by stor
 **Result:** pot turn translates immediately to perceived tempo change; arp speeds up and slows down smoothly across the full range. LED beat indicator stays in sync. No audible jitter or stuttering.
 
 **Library tests:** 35/35 passing (added 1 new exponential-ratio test).
+
+---
+
+## 2026-04-22 — Story 007: OLED + encoder bring-up
+
+**Setup:** SSD1306 0.91" 128×32 OLED on I2C (SDA=D4/GP6, SCL=D5/GP7, VCC=3V3, GND=GND, addr 0x3C). PEC11 encoder: A→D8 (GP2), B→D9 (GP3), Click→D10 (GP4), common→GND. Internal pullups on all encoder pins (no external Rs). Built-in 4.7 kΩ pullups on the OLED breakout — no external Rs needed.
+
+**Display substitution:** bench bring-up uses the 0.91" 128×32 in landscape. Final design uses the 0.49" 64×32 in portrait. Swap is one config block in `lib/oled_ui/oled_ui.h` — `OLED_WIDTH`, `OLED_HEIGHT`, `OLED_ROTATION`. No code changes elsewhere.
+
+**Firmware:** standalone bring-up (no arp). Encoder rotation increments/decrements an int counter; OLED shows live value. Encoder click flashes onboard LED + prints "CLICK" to USB serial.
+
+**Result:** all four ACs verified — splash "HELLO" on power-up, counter responds to rotation in real time, click triggers LED+serial. No bus glitches; OLED refresh is fast enough to feel instant when turning the knob.
+
+**Encoder library decision:** `mathertel/RotaryEncoder` chosen (polling-based, RP2350-compatible). Replaces `paulstoffregen/Encoder` which was removed back in Story 002 due to AVR-only register macros. Recorded in `decisions.md` §17.
+
+**Library tests:** still 35/35 passing — `oled_ui` and `encoder_input` are HAL modules (no host tests; bench-verified only per story note).

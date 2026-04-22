@@ -1,123 +1,86 @@
 #include <Arduino.h>
-#include "arp.h"
-#include "tempo.h"
+#include "oled_ui.h"
+#include "encoder_input.h"
 
-// Story 006: tempo pot. Same arp as v0.1 but step period is now derived live
-// from the tempo pot on A0 (D0). 16th-note subdivision: 125 ms/step at 120 BPM.
+// Story 007: OLED + encoder bring-up. Standalone — no arp engine.
+// Encoder rotation increments/decrements a counter shown live on the OLED.
+// Encoder click prints "CLICK" and flashes the onboard LED.
 
 // ------------------------------ pins -------------------------------
-static const uint8_t  PIN_DAC_PWM = D2;        // GP28 — 12-bit PWM V/Oct
-static const uint8_t  PIN_GATE    = D6;        // GP0  — gate via NPN inverter
-static const uint8_t  PIN_TEMPO   = A0;        // D0/GP26 — tempo pot wiper
-// PIN_LED is provided by the variant (GPIO25, active low)
-
-// ------------------------------ DAC --------------------------------
-static const uint32_t PWM_FREQ_HZ = 36621;
-static const uint16_t PWM_MAX     = 4095;
-static const float    VREF        = 3.3f;
-static const float    GAIN        = 1.26f;     // bench-calibrated; calibration.md
-
-// ------------------------------ ADC --------------------------------
-static const uint16_t ADC_MAX     = 4095;      // 12-bit
-
-// ----------------------------- music -------------------------------
-static const uint8_t CHORD[]      = {48, 52, 55, 60}; // C3 E3 G3 C4
-static const uint8_t CHORD_LEN    = 4;
-static const uint8_t SUBDIV       = 4;         // 16th notes (4 per quarter)
-static const float   GATE_FRAC    = 0.5f;      // 50 % gate duty
-
-// --------------------------- voltage ↔ note ------------------------
-static float midiToVolts(uint8_t midi) {
-    return ((float)midi - 48.0f) / 12.0f;
-}
-
-static uint16_t voltsToPwmCount(float volts_out) {
-    float v_pwm = volts_out / GAIN;
-    if (v_pwm < 0.0f) v_pwm = 0.0f;
-    if (v_pwm > VREF) v_pwm = VREF;
-    return (uint16_t)((v_pwm / VREF) * (float)PWM_MAX + 0.5f);
-}
-
-// --------------------------- gate driver ---------------------------
-static const bool GATE_INVERTED = true; // BC548 NPN inverter on D6 → J4
-
-static inline void gateWrite(bool on) {
-    digitalWrite(PIN_GATE, (on ^ GATE_INVERTED) ? HIGH : LOW);
-}
-
-static inline void ledWrite(bool on) {
-    digitalWrite(PIN_LED, on ? LOW : HIGH); // active-low onboard LED
-}
+// Encoder pins per docs/generative-arp-module.md §2.4:
+static const uint8_t PIN_ENC_A     = D8;   // GP2
+static const uint8_t PIN_ENC_B     = D9;   // GP3
+static const uint8_t PIN_ENC_CLICK = D10;  // GP4
+// I2C SDA/SCL are D4/D5 (GP6/GP7) — handled by Wire.
 
 // ------------------------------ state ------------------------------
-static Arp      arp;
-static uint32_t lastStepMs = 0;
-static uint32_t stepMs     = 125;  // refreshed at every step boundary
-static uint32_t gateMs     = 62;   // = stepMs * GATE_FRAC, refreshed alongside
-static bool     gateOn     = false;
+static OledUI       ui;
+static EncoderInput enc;
+static int32_t      counter = 0;
 
-// Read tempo pot (12-bit) → BPM (exponential 40..300) → step period in ms.
-// Recomputed once per step so the BPM in flight stays stable for the duration
-// of any one step; the pot reading is sampled at the moment of step advance.
-static void refreshTempoFromPot() {
-    uint16_t raw = analogRead(PIN_TEMPO);
-    if (raw > ADC_MAX) raw = ADC_MAX;
-    float pot = (float)raw / (float)ADC_MAX;
-    float bpm = tempo::potToBpm(pot);
-    stepMs = tempo::bpmToStepMs(bpm, SUBDIV);
-    gateMs = (uint32_t)((float)stepMs * GATE_FRAC + 0.5f);
+// LED helpers (active LOW on XIAO RP2350)
+static inline void ledWrite(bool on) {
+    digitalWrite(PIN_LED, on ? LOW : HIGH);
 }
 
-static void fireStep() {
-    refreshTempoFromPot();
-
-    uint8_t  midi  = arp.nextNote();
-    float    volts = midiToVolts(midi);
-    uint16_t cnt   = voltsToPwmCount(volts);
-
-    analogWrite(PIN_DAC_PWM, cnt);
-    gateWrite(true);
+static uint32_t ledOffAtMs = 0;
+static bool     ledOn      = false;
+static void blinkLed(uint32_t ms = 80) {
     ledWrite(true);
-    gateOn     = true;
-    lastStepMs = millis();
+    ledOn      = true;
+    ledOffAtMs = millis() + ms;
 }
 
 // ------------------------------- setup -----------------------------
 void setup() {
-    analogWriteResolution(12);
-    analogReadResolution(12);
-    analogWriteFreq(PWM_FREQ_HZ);
-    pinMode(PIN_DAC_PWM, OUTPUT);
-    pinMode(PIN_GATE,    OUTPUT);
-    pinMode(PIN_LED,     OUTPUT);
-    gateWrite(false);
+    pinMode(PIN_LED, OUTPUT);
     ledWrite(false);
 
-    arp.setNotes(CHORD, CHORD_LEN);
-    arp.setOrder(ArpOrder::Up);
+    Wire.begin();
+    Wire.setClock(400000); // 400 kHz fast mode (decisions.md §4 / §12)
 
     Serial.begin(115200);
     uint32_t t0 = millis();
     while (!Serial && (millis() - t0) < 2000) { /* wait briefly for USB */ }
 
     Serial.println();
-    Serial.println("=== gio Story 006 — tempo pot live ===");
-    Serial.println("Notes: C3 E3 G3 C4   Order: Up   Subdiv: 16ths   BPM: 40..300 (exp)");
+    Serial.println("=== gio Story 007 — OLED + encoder bring-up ===");
 
-    fireStep();
+    if (!ui.begin()) {
+        Serial.println("OLED init failed (no ACK at 0x3C). Check SDA/SCL/3V3/GND.");
+    } else {
+        ui.showLabel("HELLO");
+        ui.show();
+        Serial.println("OLED OK");
+    }
+
+    enc.begin(PIN_ENC_A, PIN_ENC_B, PIN_ENC_CLICK);
+
+    // Show the initial counter after the splash so the screen is meaningful.
+    delay(750);
+    ui.showParameter("counter", counter);
+    ui.show();
 }
 
 // ------------------------------- loop ------------------------------
 void loop() {
-    uint32_t now = millis();
+    enc.poll();
 
-    if (gateOn && (now - lastStepMs) >= gateMs) {
-        gateWrite(false);
-        ledWrite(false);
-        gateOn = false;
+    int8_t d = enc.delta();
+    if (d != 0) {
+        counter += d;
+        ui.showParameter("counter", counter);
+        ui.show();
+        Serial.printf("delta=%d  counter=%ld\n", (int)d, (long)counter);
     }
 
-    if ((now - lastStepMs) >= stepMs) {
-        fireStep();
+    if (enc.pressed()) {
+        Serial.println("CLICK");
+        blinkLed(120);
+    }
+
+    if (ledOn && (int32_t)(millis() - ledOffAtMs) >= 0) {
+        ledWrite(false);
+        ledOn = false;
     }
 }

@@ -14,6 +14,12 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Story 007 complete.** OLED + PEC11 encoder bench bring-up — both work standalone (no arp integration yet). Bench used a 0.91" 128×32 SSD1306 in landscape; final design will use a 0.49" 64×32 in portrait — one-line swap in `lib/oled_ui/oled_ui.h`.
+- `firmware/arp/lib/oled_ui/`: HAL wrapper around `Adafruit_SSD1306`. Three-constant config block (`OLED_WIDTH`, `OLED_HEIGHT`, `OLED_ROTATION`) for size/orientation. API: `begin()`, `clear()`, `showLabel()`, `showParameter(name, value)`, `showBeat(on)`, `show()`, `raw()` escape hatch.
+- `firmware/arp/lib/encoder_input/`: HAL wrapper around `mathertel/RotaryEncoder` + a 50 ms-debounced click. Polling API: `begin(pinA, pinB, pinClick)`, `poll()`, `delta()`, `pressed()`.
+- `firmware/arp/platformio.ini`: added `mathertel/RotaryEncoder` to `lib_deps`.
+- `firmware/arp/src/main.cpp`: replaced arp loop with standalone OLED+encoder bring-up — boot splash "HELLO", live counter from encoder rotation, LED + serial on encoder click.
+- `docs/decisions.md` §17: encoder library choice documented (`mathertel/RotaryEncoder`, polling, RP2350-compatible). Removed the corresponding "deferred decisions" bullet.
 - **Story 006 complete.** Tempo pot on A0 (D0/GP26, B10K) drives live BPM control. `src/main.cpp` reads `analogRead(PIN_TEMPO)` at every step boundary and recomputes step/gate periods from `tempo::potToBpm()` + `tempo::bpmToStepMs(bpm, 4)`. Subdivision switched from quarter notes to 16th notes (125 ms/step at 120 BPM).
 - New host test `PotToBpm.ConstantRatioPerEqualPotSlice` — verifies the exponential mapping has constant ratio between equally-spaced pot positions. Total host tests: 35.
 
