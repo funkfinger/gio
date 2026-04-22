@@ -52,20 +52,20 @@ TEST_F(ArpTest, UpDownTwoNotesSafe) {
 }
 
 // ---------------------------------------------------------------------------
-// Order1324
+// Skip (1-3-2-4 permutation)
 // ---------------------------------------------------------------------------
 
-TEST_F(ArpTest, Order1324PicksIndices0213) {
+TEST_F(ArpTest, SkipPicksIndices0213) {
     arp.setNotes(CHORD, 4);
-    arp.setOrder(ArpOrder::Order1324);
+    arp.setOrder(ArpOrder::Skip);
     // pattern indices: 0,2,1,3 → notes 60,67,64,72
     const uint8_t expected[] = {60, 67, 64, 72, 60, 67, 64, 72};
     for (uint8_t e : expected) EXPECT_EQ(arp.nextNote(), e);
 }
 
-TEST_F(ArpTest, Order1324FallsBackToUpForFewerThan4Notes) {
+TEST_F(ArpTest, SkipFallsBackToUpForFewerThan4Notes) {
     arp.setNotes(TWO, 2);
-    arp.setOrder(ArpOrder::Order1324);
+    arp.setOrder(ArpOrder::Skip);
     const uint8_t expected[] = {60, 67, 60, 67};
     for (uint8_t e : expected) EXPECT_EQ(arp.nextNote(), e);
 }

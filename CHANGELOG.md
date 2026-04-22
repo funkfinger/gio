@@ -14,6 +14,20 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Story 008 complete.** Encoder menu: click cycles parameter (Scale → Order → Scale), rotate changes the active param's value, long-press (≥500 ms) resets the arp at step 0 and flashes "RESET" on the OLED. Scale changes are now audible — each arp note is `quantize()`-ed through the active scale before reaching the DAC.
+- Onboard RGB LED used as active-param indicator: green for Scale, blue for Order. Pin discovery: data on **GPIO22**, power-enable on **GPIO23** (per Seeed wiki — not exposed by the arduino-pico variant header). LED is RGBW (4 bytes/pixel) → init with `NEO_GRBW + NEO_KHZ800`. 20 ms settle delay between power-enable and first `show()`.
+- `EncoderInput::pressedLong()` (≥500 ms) — fires the moment the threshold is crossed mid-hold; release of a long-press gesture suppresses any short-click on the same gesture.
+- `firmware/arp/README.md`: documented the BOOTSEL quirk (double-tap BOOT unreliable on our XIAO RP2350; use hold-BOOT-while-plugging method).
+
+### Changed
+
+- `lib/encoder_input/`: switched RotaryEncoder `LatchMode` from `TWO03` (initial guess for half-step encoders) to `FOUR3` after bench-confirming the actual PEC11 behavior. Documented above the constructor with troubleshooting hints for other encoders.
+- `lib/arp/`: `ArpOrder::Order1324` renamed to `ArpOrder::Skip` (matches Story 008's UI labeling). Test cases renamed accordingly. `arp.cpp` switch case updated. No behavior change.
+- `firmware/arp/src/main.cpp`: replaced standalone OLED+encoder bring-up (Story 007) with full integration — arp + tempo pot + scale-quantize + menu + NeoPixel + reset-on-long-press, all on a non-blocking `millis()` loop.
+- `firmware/arp/README.md`: library notes corrected (was: Stoffregen Encoder, default OLED size; now: mathertel/RotaryEncoder, oled_ui config block, NeoPixel pinout details).
+
+### Added
+
 - **Story 007 complete.** OLED + PEC11 encoder bench bring-up — both work standalone (no arp integration yet). Bench used a 0.91" 128×32 SSD1306 in landscape; final design will use a 0.49" 64×32 in portrait — one-line swap in `lib/oled_ui/oled_ui.h`.
 - `firmware/arp/lib/oled_ui/`: HAL wrapper around `Adafruit_SSD1306`. Three-constant config block (`OLED_WIDTH`, `OLED_HEIGHT`, `OLED_ROTATION`) for size/orientation. API: `begin()`, `clear()`, `showLabel()`, `showParameter(name, value)`, `showBeat(on)`, `show()`, `raw()` escape hatch.
 - `firmware/arp/lib/encoder_input/`: HAL wrapper around `mathertel/RotaryEncoder` + a 50 ms-debounced click. Polling API: `begin(pinA, pinB, pinClick)`, `poll()`, `delta()`, `pressed()`.

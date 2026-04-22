@@ -74,3 +74,25 @@ Measurements from hardware bring-up, ordered chronologically. Referenced by stor
 **Encoder library decision:** `mathertel/RotaryEncoder` chosen (polling-based, RP2350-compatible). Replaces `paulstoffregen/Encoder` which was removed back in Story 002 due to AVR-only register macros. Recorded in `decisions.md` §17.
 
 **Library tests:** still 35/35 passing — `oled_ui` and `encoder_input` are HAL modules (no host tests; bench-verified only per story note).
+
+---
+
+## 2026-04-22 — Story 008: encoder menu (full integration)
+
+**Setup:** all prior hardware in place — V/Oct chain, BC548 gate driver, tempo pot, OLED, encoder. No new wiring. Onboard RGB LED used for active-param indication (no external NeoPixel).
+
+**Scope:** flat menu model (no submenu). Encoder click cycles which parameter is active (Scale → Order → Scale). Encoder rotate changes the active param's value. Long-press (≥500 ms) resets the arp.
+
+**Audible behaviour:** the existing `lib/scales/quantize()` is now applied to each note before it goes to the DAC, so the menu's Scale selection genuinely changes what plays. Pent Min snaps E→Eb in the chord; Major leaves the major triad as-is; Chromatic is identity.
+
+**Bench iterations during the story:**
+
+1. **Encoder skipping every other detent** — initial latch mode `TWO03` was wrong for our PEC11. Switched to `FOUR0` (still skipping intermittently), then `FOUR3` — clean one-detent-per-option. Documented as the default in `decisions.md` §17.
+2. **Long-press only fires on release** — refactored `EncoderInput` so the long-press latches the moment the threshold is crossed mid-hold; release of a long-press gesture is silent (no spurious short-click). User now feels tactile RESET feedback while still holding.
+3. **NeoPixel dark at boot** — three issues stacked: (a) brightness was 24/255, too dim to see; bumped to 64. (b) discovered onboard LED is on **GPIO22 (data) + GPIO23 (power-enable)** per Seeed wiki — the variant header doesn't expose either; hardcoded both. (c) it's RGBW (4 bytes/pixel), not RGB; switched to `NEO_GRBW`. (d) needed a 20 ms settle delay between enabling power and the first `pixel.show()`.
+
+**Result:** Scale and Order both selectable via encoder; OLED shows live state; LED green on Scale active, blue on Order; long-press resets cleanly. All Story 008 ACs satisfied.
+
+**BOOTSEL quirk noted:** double-tap BOOT button doesn't reliably enter UF2 mode on this XIAO RP2350. Reliable method: hold BOOT while plugging in USB. Documented in `firmware/arp/README.md`.
+
+**Library tests:** 35/35 still green (`Order1324` test renamed to `Skip` in `test_arp`).

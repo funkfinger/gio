@@ -20,7 +20,7 @@ static uint8_t indexForStep(ArpOrder order, uint8_t step, uint8_t count) {
             return phase < count ? phase : (uint8_t)(period - phase);
         }
 
-        case ArpOrder::Order1324: {
+        case ArpOrder::Skip: {
             // Skip pattern for a 4-note arp: indices 0, 2, 1, 3.
             // For arps with fewer than 4 notes this is undefined — fall back to Up.
             if (count < 4) return step % count;

@@ -5,7 +5,7 @@ enum class ArpOrder : uint8_t {
     Up = 0,
     Down,
     UpDown,
-    Order1324,   // skip pattern; intended for 4-note arps. Falls back to Up if count < 4.
+    Skip,        // permutation pattern (1-3-2-4 for 4-note arps). Falls back to Up if count < 4.
     COUNT
 };
 
