@@ -96,3 +96,30 @@ Measurements from hardware bring-up, ordered chronologically. Referenced by stor
 **BOOTSEL quirk noted:** double-tap BOOT button doesn't reliably enter UF2 mode on this XIAO RP2350. Reliable method: hold BOOT while plugging in USB. Documented in `firmware/arp/README.md`.
 
 **Library tests:** 35/35 still green (`Order1324` test renamed to `Skip` in `test_arp`).
+
+---
+
+## 2026-04-22 — Story 009: CV input for V/oct transpose (α-summing)
+
+**Setup:** repurposed MCP6002 op-amp B (previously tied-off grounded buffer) as a unity-gain buffer after a 100 kΩ + 69 kΩ (47 + 22 in series) divider on J2. Buffer output → A1/GP27. Pot on bench (0..3.3 V) substituting for a real Eurorack source.
+
+**Design path** (pre-coding grill): settled on α-summing over β-with-detection after realising the switched-jack detection wiring is fiddly and that Plaits actually uses α. Encoder ROOT sets the base; CV adds on top. Unplugged behaviour is identical to plugged-0 V. No new hardware part needed.
+
+**Firmware delta:**
+- Chord stored as intervals `{0, 4, 7, 12}` instead of absolute MIDI, summed with a runtime `root_midi = encoder root + CV transpose`.
+- New menu item `ROOT` with 12 pitch classes pinned to MIDI octave 3. NeoPixel magenta when active.
+- `lib/cv/cvVoltsToTranspose()` — pure-logic helper, host-tested (10 new cases; now 45/45 green total).
+- Hysteresis wrapper around CV reads (½-semitone deadband) to kill ADC-noise flutter at snap boundaries.
+- Live OLED update of the effective ROOT (encoder + CV, mod 12) with `*` suffix when CV is contributing.
+- Played note clamped to MIDI [24, 96] to keep everything inside the DAC's range.
+
+**Bench iterations:**
+1. **"Pot doesn't change ADC" + "pitch too high"** — resolved as a loose breadboard connection plus a leftover jumper. Repaired.
+2. **"High end of pot tops out as a single note"** — serial diagnostics showed transpose values of 48–50 semitones at ~75 % pot rotation, far higher than spec. Root cause: the "100 kΩ" series resistor was actually **100 Ω** (Brown-Black-**Brown** vs Brown-Black-**Yellow**). With a 100 Ω top leg and 69 kΩ bottom, divider ratio collapsed from the spec 0.408 to ~0.999 — nearly all wiper voltage made it through. Swapped in the correct 100 kΩ; transpose now scales cleanly across the pot range.
+3. **UpDown "feels wrong"** — turned out to be ADC flutter near scale-snap boundaries; hysteresis wrapper (½-semitone deadband) fixed it.
+
+**Result:** pot sweep now audibly transposes the arp through scale-snapped roots across the full rotation. Per-note quantize preserved — different scales give recognisably different chord "shapes" as you sweep. Effective ROOT on OLED updates live. Encoder ROOT still fully functional when CV is at 0 V.
+
+**Tests:** 45/45 host tests green.
+
+**Deferred:** BAT54 clamp on op-amp B input (Rev 0.1 PCB). Wrap-vs-clamp for overshooting played notes — clamp chosen as predictable.
