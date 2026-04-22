@@ -1,4 +1,5 @@
 #include "tempo.h"
+#include <cmath>
 
 namespace tempo {
 
@@ -14,7 +15,9 @@ uint32_t bpmToStepMs(float bpm, uint8_t sub) {
 float potToBpm(float pot) {
     if (pot < 0.0f) pot = 0.0f;
     if (pot > 1.0f) pot = 1.0f;
-    return BPM_MIN + pot * (BPM_MAX - BPM_MIN);
+    // Exponential: BPM = BPM_MIN * (BPM_MAX/BPM_MIN)^pot.
+    // Equivalent to a constant doubling-per-rotation feel.
+    return BPM_MIN * powf(BPM_MAX / BPM_MIN, pot);
 }
 
 } // namespace tempo

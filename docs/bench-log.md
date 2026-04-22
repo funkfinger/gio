@@ -44,3 +44,17 @@ Measurements from hardware bring-up, ordered chronologically. Referenced by stor
 **Library tests:** 34/34 host tests passing (`scales` 13, `arp` 11, `tempo` 10) via `pio test -e native`.
 
 **Deferred:** scope screenshots and audio recording of the arpeggio (bench-log entry serving as record).
+
+---
+
+## 2026-04-22 — Story 006: tempo pot for live BPM control
+
+**Setup:** B-taper pot (10 kΩ used) wired between 3V3 and GND with wiper to A0 (D0/GP26). No filter cap; firmware samples ADC at step boundaries only.
+
+**Firmware:** `analogRead(A0)` at every step advance → `tempo::potToBpm()` (exponential 20..300 BPM) → `tempo::bpmToStepMs(bpm, 4)` for 16th-note subdivision.
+
+**Range adjustment:** spec called for 40–300 BPM but bench feel was that 40 BPM 16ths still felt too fast at the slow end. Dropped `BPM_MIN` to 20. New slow extreme is ~750 ms/note (~1.3 notes/sec), which matches "ambient crawl" expectations. Story AC and tempo tests updated; per-third ratio is now 15^(1/3) ≈ 2.47× (still feels evenly distributed across pot rotation).
+
+**Result:** pot turn translates immediately to perceived tempo change; arp speeds up and slows down smoothly across the full range. LED beat indicator stays in sync. No audible jitter or stuttering.
+
+**Library tests:** 35/35 passing (added 1 new exponential-ratio test).

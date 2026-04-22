@@ -12,7 +12,16 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
-*(empty — Story 006 starts here)*
+### Added
+
+- **Story 006 complete.** Tempo pot on A0 (D0/GP26, B10K) drives live BPM control. `src/main.cpp` reads `analogRead(PIN_TEMPO)` at every step boundary and recomputes step/gate periods from `tempo::potToBpm()` + `tempo::bpmToStepMs(bpm, 4)`. Subdivision switched from quarter notes to 16th notes (125 ms/step at 120 BPM).
+- New host test `PotToBpm.ConstantRatioPerEqualPotSlice` — verifies the exponential mapping has constant ratio between equally-spaced pot positions. Total host tests: 35.
+
+### Changed
+
+- `tempo::potToBpm()` mapping changed from linear to exponential: `BPM_MIN × (BPM_MAX/BPM_MIN)^pot`. Endpoints exact; ratio per equal pot slice is constant — gives a constant musical "feel" across the rotation.
+- `tempo::BPM_MIN`: 30 → 40 (Story 006 spec) → 20 (bench-feel adjustment 2026-04-22 — 40 BPM 16ths still too fast at the slow end). Per-third ratio is now ≈2.47×.
+- `docs/stories/006-tempo-pot.md`: AC updated to reflect 20..300 BPM range and constant-ratio framing (replaces "every 1/3 doubles BPM" wording).
 
 ---
 

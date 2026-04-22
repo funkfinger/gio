@@ -2,32 +2,31 @@
 #include "arp.h"
 #include "tempo.h"
 
-// Story 005: v0.1.0 — first arp. Plays a 4-note up-arpeggio (C3, E3, G3, C4)
-// at a fixed 120 BPM through PWM DAC + op-amp on D2 and gate on D6.
+// Story 006: tempo pot. Same arp as v0.1 but step period is now derived live
+// from the tempo pot on A0 (D0). 16th-note subdivision: 125 ms/step at 120 BPM.
 
 // ------------------------------ pins -------------------------------
 static const uint8_t  PIN_DAC_PWM = D2;        // GP28 — 12-bit PWM V/Oct
-static const uint8_t  PIN_GATE    = D6;        // GP0  — gate via NPN inverter (active low at pin → high at jack)
-// PIN_LED is provided by the variant header (GPIO25, active low — see Story 002)
+static const uint8_t  PIN_GATE    = D6;        // GP0  — gate via NPN inverter
+static const uint8_t  PIN_TEMPO   = A0;        // D0/GP26 — tempo pot wiper
+// PIN_LED is provided by the variant (GPIO25, active low)
 
 // ------------------------------ DAC --------------------------------
-static const uint32_t PWM_FREQ_HZ = 36621;     // ~150 MHz / 4096
-static const uint16_t PWM_MAX     = 4095;      // 12-bit
+static const uint32_t PWM_FREQ_HZ = 36621;
+static const uint16_t PWM_MAX     = 4095;
 static const float    VREF        = 3.3f;
-static const float    GAIN        = 1.26f;     // bench-calibrated 2026-04-22; see calibration.md
+static const float    GAIN        = 1.26f;     // bench-calibrated; calibration.md
+
+// ------------------------------ ADC --------------------------------
+static const uint16_t ADC_MAX     = 4095;      // 12-bit
 
 // ----------------------------- music -------------------------------
-// MIDI notes for the 4-note up arpeggio: C major triad rooted at C3 + octave.
-// C3=48, E3=52, G3=55, C4=60.
-static const uint8_t CHORD[]      = {48, 52, 55, 60};
+static const uint8_t CHORD[]      = {48, 52, 55, 60}; // C3 E3 G3 C4
 static const uint8_t CHORD_LEN    = 4;
-
-// 120 BPM quarter notes → 500 ms/step. 50 % gate duty.
-static const uint32_t STEP_MS     = 500;
-static const uint32_t GATE_MS     = STEP_MS / 2;
+static const uint8_t SUBDIV       = 4;         // 16th notes (4 per quarter)
+static const float   GATE_FRAC    = 0.5f;      // 50 % gate duty
 
 // --------------------------- voltage ↔ note ------------------------
-// V/Oct convention: C3 (MIDI 48) = 0.000 V, +1 V per octave.
 static float midiToVolts(uint8_t midi) {
     return ((float)midi - 48.0f) / 12.0f;
 }
@@ -40,25 +39,38 @@ static uint16_t voltsToPwmCount(float volts_out) {
 }
 
 // --------------------------- gate driver ---------------------------
-// NPN common-emitter inverter at J4: digitalWrite(PIN_GATE, HIGH) saturates the
-// transistor → jack pulled LOW. digitalWrite(LOW) → jack pulled HIGH (5V).
-static const bool GATE_INVERTED = true;
+static const bool GATE_INVERTED = true; // BC548 NPN inverter on D6 → J4
 
 static inline void gateWrite(bool on) {
     digitalWrite(PIN_GATE, (on ^ GATE_INVERTED) ? HIGH : LOW);
 }
 
 static inline void ledWrite(bool on) {
-    // PIN_LED is active-low on the XIAO RP2350 (LOW = lit).
-    digitalWrite(PIN_LED, on ? LOW : HIGH);
+    digitalWrite(PIN_LED, on ? LOW : HIGH); // active-low onboard LED
 }
 
 // ------------------------------ state ------------------------------
 static Arp      arp;
 static uint32_t lastStepMs = 0;
+static uint32_t stepMs     = 125;  // refreshed at every step boundary
+static uint32_t gateMs     = 62;   // = stepMs * GATE_FRAC, refreshed alongside
 static bool     gateOn     = false;
 
+// Read tempo pot (12-bit) → BPM (exponential 40..300) → step period in ms.
+// Recomputed once per step so the BPM in flight stays stable for the duration
+// of any one step; the pot reading is sampled at the moment of step advance.
+static void refreshTempoFromPot() {
+    uint16_t raw = analogRead(PIN_TEMPO);
+    if (raw > ADC_MAX) raw = ADC_MAX;
+    float pot = (float)raw / (float)ADC_MAX;
+    float bpm = tempo::potToBpm(pot);
+    stepMs = tempo::bpmToStepMs(bpm, SUBDIV);
+    gateMs = (uint32_t)((float)stepMs * GATE_FRAC + 0.5f);
+}
+
 static void fireStep() {
+    refreshTempoFromPot();
+
     uint8_t  midi  = arp.nextNote();
     float    volts = midiToVolts(midi);
     uint16_t cnt   = voltsToPwmCount(volts);
@@ -68,14 +80,12 @@ static void fireStep() {
     ledWrite(true);
     gateOn     = true;
     lastStepMs = millis();
-
-    Serial.printf("step=%u  midi=%u  volts=%.3f  count=%u\n",
-                  arp.step() - 1, midi, volts, cnt);
 }
 
 // ------------------------------- setup -----------------------------
 void setup() {
     analogWriteResolution(12);
+    analogReadResolution(12);
     analogWriteFreq(PWM_FREQ_HZ);
     pinMode(PIN_DAC_PWM, OUTPUT);
     pinMode(PIN_GATE,    OUTPUT);
@@ -91,25 +101,23 @@ void setup() {
     while (!Serial && (millis() - t0) < 2000) { /* wait briefly for USB */ }
 
     Serial.println();
-    Serial.println("=== gio v0.1 — arp plays up pattern (Story 005) ===");
-    Serial.println("Notes: C3 E3 G3 C4   Order: Up   Tempo: 120 BPM (500 ms/step, 50% gate)");
+    Serial.println("=== gio Story 006 — tempo pot live ===");
+    Serial.println("Notes: C3 E3 G3 C4   Order: Up   Subdiv: 16ths   BPM: 40..300 (exp)");
 
-    fireStep(); // first note immediately
+    fireStep();
 }
 
 // ------------------------------- loop ------------------------------
 void loop() {
     uint32_t now = millis();
 
-    // Gate-off after 50 % of step
-    if (gateOn && (now - lastStepMs) >= GATE_MS) {
+    if (gateOn && (now - lastStepMs) >= gateMs) {
         gateWrite(false);
         ledWrite(false);
         gateOn = false;
     }
 
-    // Advance to next step at the BPM clock
-    if ((now - lastStepMs) >= STEP_MS) {
+    if ((now - lastStepMs) >= stepMs) {
         fireStep();
     }
 }

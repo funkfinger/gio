@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cmath>
 #include "tempo.h"
 
 // ---------------------------------------------------------------------------
@@ -22,8 +23,8 @@ TEST(BpmToStepMs, OneTwentyBpmSixteenthNotes) {
 }
 
 TEST(BpmToStepMs, ClampsBelowMin) {
-    // 10 bpm clamped to 30 → 60000/30 = 2000 ms
-    EXPECT_EQ(tempo::bpmToStepMs(10.0f), 2000u);
+    // 5 bpm clamped to BPM_MIN (20) → 60000/20 = 3000 ms
+    EXPECT_EQ(tempo::bpmToStepMs(5.0f), 3000u);
 }
 
 TEST(BpmToStepMs, ClampsAboveMax) {
@@ -47,8 +48,22 @@ TEST(PotToBpm, OneIsMax) {
     EXPECT_FLOAT_EQ(tempo::potToBpm(1.0f), tempo::BPM_MAX);
 }
 
-TEST(PotToBpm, HalfwayIsMidpoint) {
-    EXPECT_FLOAT_EQ(tempo::potToBpm(0.5f), (tempo::BPM_MIN + tempo::BPM_MAX) * 0.5f);
+TEST(PotToBpm, HalfwayIsGeometricMean) {
+    // Exponential mapping: pot=0.5 → sqrt(BPM_MIN * BPM_MAX)
+    float expected = std::sqrt(tempo::BPM_MIN * tempo::BPM_MAX);
+    EXPECT_NEAR(tempo::potToBpm(0.5f), expected, 0.01f);
+}
+
+TEST(PotToBpm, ConstantRatioPerEqualPotSlice) {
+    // Exponential mapping → ratio between consecutive equally-spaced pot
+    // positions is constant. Expected ratio per third-turn: (BPM_MAX/BPM_MIN)^(1/3).
+    float expected = std::pow(tempo::BPM_MAX / tempo::BPM_MIN, 1.0f / 3.0f);
+    float r1 = tempo::potToBpm(1.0f / 3.0f) / tempo::potToBpm(0.0f);
+    float r2 = tempo::potToBpm(2.0f / 3.0f) / tempo::potToBpm(1.0f / 3.0f);
+    float r3 = tempo::potToBpm(3.0f / 3.0f) / tempo::potToBpm(2.0f / 3.0f);
+    EXPECT_NEAR(r1, expected, 0.01f);
+    EXPECT_NEAR(r2, expected, 0.01f);
+    EXPECT_NEAR(r3, expected, 0.01f);
 }
 
 TEST(PotToBpm, ClampsBelowZero) {
