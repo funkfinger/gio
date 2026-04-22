@@ -8,7 +8,7 @@
 
 - [ ] `lib/tempo/tempo.h/.cpp` already exists (Story 005) — no changes needed if ported
 - [ ] `src/main.cpp` reads `analogRead(PIN_TEMPO)` each loop iteration, maps to BPM via `bpmFromPot()`
-- [ ] Tempo range: 40–300 BPM, exponential curve (every 1/3 of pot rotation doubles BPM)
+- [ ] Tempo range: 20–300 BPM, exponential curve (constant ratio per equal pot slice; ≈2.47× per third-turn for this range)
 - [ ] At BPM=120: step period = 125 ms (16th note); gate = 62.5 ms. Scope-verify timing.
 - [ ] Turning pot from min to max sweeps audibly from slow crawl to fast 16th notes
 - [ ] Host tests for `bpmFromPot` and `stepMsFromBpm` pass (already covered by ported tempo tests)
@@ -25,4 +25,4 @@
 
 ## Status
 
-not started
+done — bench-confirmed 2026-04-22. Pot wired on A0; live BPM control via exponential 20..300 mapping at 16th-note subdivision. Spec-deviation: BPM_MIN dropped from 40 → 20 to give a slower crawl at the CCW extreme (per bench feel).
