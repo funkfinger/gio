@@ -36,4 +36,4 @@ This is the **v0.1.0 milestone**. Everything after this is additive.
 
 ## Status
 
-not started
+done — bench-confirmed 2026-04-22 (v0.1.0). `lib/arp/` (Up + Down + UpDown + Order1324) + `lib/tempo/` ported with 21 new host tests (34 total green). BC548 NPN gate driver wired on D6 → J4. Audible 4-note up-arp at 120 BPM through VCO. Tag `arp/v0.1.0` to be created on merge.

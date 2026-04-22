@@ -30,3 +30,17 @@ Measurements from hardware bring-up, ordered chronologically. Referenced by stor
 **Conclusion:** V/Oct signal chain is bench-validated and within musical tracking spec. Module is now capable of driving a Eurorack VCO. Ready for Story 005 (first arp).
 
 **Deferred:** ADC noise check (Story 003 carryover), CV input divider bench-verify (no story uses CV in yet), scope screenshots in `requirements/` (bench-log entries serving as record).
+
+---
+
+## 2026-04-22 — Story 005: arp plays up pattern (v0.1.0 milestone)
+
+**Setup:** Story 004 V/Oct chain unchanged. Added BC548 NPN gate driver: D6 (GP0) → 1 kΩ base resistor → BC548 base; emitter → GND; collector → 10 kΩ pullup to 5V → J4. Firmware-side `GATE_INVERTED = true` so `gateWrite(true)` produces gate HIGH at the jack. V/Oct out patched to VCO V/Oct in; gate out patched to VCO/envelope gate in; VCO out → monitor.
+
+**Result:** audible C3 → E3 → G3 → C4 up-arpeggio at 120 BPM (500 ms/step, 50 % gate duty). Onboard LED flashes in sync with each note. Sounds correct on bench.
+
+**Conclusion: the module makes music for the first time.** End-to-end signal chain validated — scales/arp/tempo logic + PWM DAC + RC filter + op-amp scaling + NPN gate driver + LED beat indicator all working together.
+
+**Library tests:** 34/34 host tests passing (`scales` 13, `arp` 11, `tempo` 10) via `pio test -e native`.
+
+**Deferred:** scope screenshots and audio recording of the arpeggio (bench-log entry serving as record).
