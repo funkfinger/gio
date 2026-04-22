@@ -14,6 +14,15 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Story 009 complete.** CV input on J2 transposes the arp (V/oct, α-summed with encoder ROOT). Semitone-snap + scale-snap + ½-semitone hysteresis on the CV path. Final played notes clamped to MIDI [24, 96].
+- `firmware/arp/lib/cv/`: pure-C++ `cvVoltsToTranspose(volts, scale)` — semitone round then scale-snap within octave. Clamps input to [0, 8 V]. 10 new host tests.
+- New menu param `ROOT` (12 pitch classes pinned to MIDI octave 3, default C). Encoder menu cycle: SCALE → ORDER → ROOT → SCALE. NeoPixel magenta for ROOT active.
+- OLED `ROOT` line shows the *effective* root (encoder + CV transpose, mod 12). Trailing `*` when CV is contributing so you can distinguish encoder-only from CV-modulated states.
+- Chord stored as intervals `{0, 4, 7, 12}` instead of absolute MIDI notes. Runtime `root_midi` computed per step.
+- MCP6002 op-amp B repurposed as unity-gain buffer on the CV input path. Divider: 100 kΩ series + 47 kΩ + 22 kΩ to GND (= 69 kΩ total ≈ spec 68 kΩ). Maps 0..8 V at J2 to 0..3.24 V at A1/GP27.
+
+### Added
+
 - **Story 008 complete.** Encoder menu: click cycles parameter (Scale → Order → Scale), rotate changes the active param's value, long-press (≥500 ms) resets the arp at step 0 and flashes "RESET" on the OLED. Scale changes are now audible — each arp note is `quantize()`-ed through the active scale before reaching the DAC.
 - Onboard RGB LED used as active-param indicator: green for Scale, blue for Order. Pin discovery: data on **GPIO22**, power-enable on **GPIO23** (per Seeed wiki — not exposed by the arduino-pico variant header). LED is RGBW (4 bytes/pixel) → init with `NEO_GRBW + NEO_KHZ800`. 20 ms settle delay between power-enable and first `show()`.
 - `EncoderInput::pressedLong()` (≥500 ms) — fires the moment the threshold is crossed mid-hold; release of a long-press gesture suppresses any short-click on the same gesture.
