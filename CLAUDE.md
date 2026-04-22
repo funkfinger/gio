@@ -21,7 +21,8 @@ pio run -d firmware/arp
 # Host-side unit tests (pure logic only — no Arduino deps)
 pio test -d firmware/arp -e native
 
-# Upload to board (double-tap BOOT to enter UF2 bootloader)
+# Upload to board. BOOTSEL on this unit: double-tap is unreliable;
+# hold BOOT while plugging USB (see firmware/arp/README.md).
 pio run -d firmware/arp --target upload
 ```
 
@@ -42,3 +43,7 @@ pio run -d firmware/arp --target upload
 - **CHANGELOG.md** updated on every commit (Keep a Changelog format)
 
 See `docs/decisions.md` for the full rationale and `docs/stories/` for the backlog.
+
+## Parts inventory
+
+When bench parts are needed, check the user's inventory at `~/Git/binkey-data/parts/` before asking them to order. It's a directory of markdown files — one per part family — with quantities and cabinet/bin locations (e.g. `cabinet-2-bin-2`). Prefer exact values from inventory; substitute when the exact value isn't stocked and document the substitution in the bench-log.
