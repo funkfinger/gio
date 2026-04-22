@@ -1,13 +1,13 @@
 # Story 004: V/Oct Tracks Across Octaves
 
 **As a** bench engineer
-**I want** the MCP4725 → MCP6002 op-amp signal chain, breadboarded, to produce a V/Oct output that tracks within ±5¢ across C3–C7
+**I want** the PWM DAC → 2-pole RC filter → MCP6002 op-amp signal chain, breadboarded, to produce a V/Oct output that tracks within ±5¢ across C3–C7
 **So that** the module can drive a VCO musically, proving the scaling circuit works with real components before committing to a PCB
 
 ## Acceptance Criteria
 
 - [ ] MCP6002-I/P (DIP-8) breadboarded with R1=10kΩ, R2=2.7kΩ (gain ~1.27× nominal)
-- [ ] Firmware outputs MIDI notes C3, C4, C5, C6, C7 on MCP4725, 2 seconds each, with serial output of target voltage
+- [ ] Firmware outputs MIDI notes C3, C4, C5, C6, C7 via D2 PWM, 2 seconds each, with serial output of target voltage
 - [ ] Signal chain: RP2350 D2 PWM → 2-pole RC filter → MCP6002 non-inverting amp → J3 (V/Oct out)
 - [ ] Multimeter reads each target voltage within ±2 mV (0.000V, 1.000V, 2.000V, 3.000V, 4.000V)
 - [ ] `GAIN` constant in firmware set to measured op-amp gain (nominal 1.27, expect ~1.261 with 5% resistors)
@@ -29,4 +29,4 @@
 
 ## Status
 
-not started
+done — bench-calibrated 2026-04-22. R_f built as 2.2 kΩ + 470 Ω series. Final GAIN = 1.26. Multimeter sweep within ±2 mV per step (≈±2.4¢). VCO + tuner end-to-end shows ≤±4¢ best-fit residual across C3–C7. Full data in `docs/calibration.md`. CV input divider verification deferred to first CV-consuming story; scope screenshots formally skipped (bench-log serves as record).

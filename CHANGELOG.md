@@ -16,6 +16,8 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 - `firmware/arp/lib/scales/` — pure-C++ scale quantiser library: `quantize(midiNote, Scale)` and `scaleFromPot(pot, current)` with ±2 % hysteresis. No Arduino deps.
 - `firmware/arp/test/test_scales/test_main.cpp` — 13 GoogleTest cases: in-scale pass-through for all 6 scales, out-of-scale snapping with tie-break-downward, chromatic identity, octave invariance, scaleFromPot zone centres and hysteresis. All pass via `pio test -e native`.
+- Story 004 complete: MCP6002 op-amp non-inverting amp breadboarded (gain network 2.2 kΩ + 470 Ω in series for R_f, 10 kΩ for R_g), bench-calibrated 2026-04-22. Final firmware `GAIN = 1.26`. V/Oct output within ±2 mV / ±2.4¢ across C3–C7 by multimeter; ≤±4¢ best-fit residual end-to-end through VCO + tuner. New file `docs/calibration.md` records procedure and raw data.
+- `firmware/arp/src/main.cpp`: replaced PWM ramp with V/Oct calibration sequence — outputs C3..C7 (MIDI 48..96), 2 s each, with target voltages on USB serial. To be replaced by arp integration in Story 005.
 - Story 003 complete: scales library + 13 host tests passing; PWM DAC ramp bench-verified (raw 36.6 kHz square, 1-pole sawtooth, 2-pole clean ramp). ADC noise check deferred to PCB stage. First entry in `docs/bench-log.md`.
 - Story 002 complete: blinky flashed via UF2 (picotool), LED blinks at 1 Hz on bench. Flash: 56 KB / 2 MB.
 
