@@ -12,45 +12,42 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
+*(empty — Story 010 starts here)*
+
+---
+
+## [arp/v0.2.0] — 2026-04-22
+
+**Module is fully hands-on playable.** Stories 006–009 complete. Live tempo pot, OLED + encoder hardware alive, full encoder menu (scale + order + root with long-press reset), audible scale quantisation per step, and V/oct CV input on J2 that transposes the arp. 45 host tests passing.
+
 ### Added
 
-- **Story 009 complete.** CV input on J2 transposes the arp (V/oct, α-summed with encoder ROOT). Semitone-snap + scale-snap + ½-semitone hysteresis on the CV path. Final played notes clamped to MIDI [24, 96].
-- `firmware/arp/lib/cv/`: pure-C++ `cvVoltsToTranspose(volts, scale)` — semitone round then scale-snap within octave. Clamps input to [0, 8 V]. 10 new host tests.
-- New menu param `ROOT` (12 pitch classes pinned to MIDI octave 3, default C). Encoder menu cycle: SCALE → ORDER → ROOT → SCALE. NeoPixel magenta for ROOT active.
-- OLED `ROOT` line shows the *effective* root (encoder + CV transpose, mod 12). Trailing `*` when CV is contributing so you can distinguish encoder-only from CV-modulated states.
-- Chord stored as intervals `{0, 4, 7, 12}` instead of absolute MIDI notes. Runtime `root_midi` computed per step.
-- MCP6002 op-amp B repurposed as unity-gain buffer on the CV input path. Divider: 100 kΩ series + 47 kΩ + 22 kΩ to GND (= 69 kΩ total ≈ spec 68 kΩ). Maps 0..8 V at J2 to 0..3.24 V at A1/GP27.
-
-### Added
-
-- **Story 008 complete.** Encoder menu: click cycles parameter (Scale → Order → Scale), rotate changes the active param's value, long-press (≥500 ms) resets the arp at step 0 and flashes "RESET" on the OLED. Scale changes are now audible — each arp note is `quantize()`-ed through the active scale before reaching the DAC.
-- Onboard RGB LED used as active-param indicator: green for Scale, blue for Order. Pin discovery: data on **GPIO22**, power-enable on **GPIO23** (per Seeed wiki — not exposed by the arduino-pico variant header). LED is RGBW (4 bytes/pixel) → init with `NEO_GRBW + NEO_KHZ800`. 20 ms settle delay between power-enable and first `show()`.
-- `EncoderInput::pressedLong()` (≥500 ms) — fires the moment the threshold is crossed mid-hold; release of a long-press gesture suppresses any short-click on the same gesture.
-- `firmware/arp/README.md`: documented the BOOTSEL quirk (double-tap BOOT unreliable on our XIAO RP2350; use hold-BOOT-while-plugging method).
+- **Story 009:** `firmware/arp/lib/cv/` — pure-C++ `cvVoltsToTranspose(volts, scale)` (semitone round → scale-snap within octave, input clamped to [0, 8 V]). 10 new host tests.
+- **Story 009:** CV input on J2 transposes the arp (V/oct, α-summed with encoder ROOT). ½-semitone hysteresis wrapper kills ADC-noise flutter at snap boundaries. Final played notes clamped to MIDI [24, 96].
+- **Story 009:** MCP6002 op-amp B repurposed as unity-gain buffer on the CV input path. Divider: 100 kΩ series + (47 kΩ + 22 kΩ) to GND = 69 kΩ (≈ spec 68 kΩ). Maps 0..8 V at J2 to 0..3.24 V at A1/GP27.
+- **Story 009:** New menu param `ROOT` (12 pitch classes, pinned to MIDI octave 3, default C). Encoder menu cycle: SCALE → ORDER → ROOT → SCALE. NeoPixel **magenta** for ROOT active. OLED `ROOT` line shows the *effective* root (encoder + CV, mod 12) with trailing `*` when CV is contributing.
+- **Story 009:** Chord stored as intervals `{0, 4, 7, 12}` instead of absolute MIDI notes. Runtime `root_midi` computed per step.
+- **Story 008:** Encoder menu for Scale and Order. Click cycles parameter (Scale → Order → Scale), rotate changes the active value, **long-press (≥500 ms)** resets the arp at step 0 and flashes "RESET" on the OLED. Long-press fires mid-hold; release is silent (no spurious short-click on the same gesture).
+- **Story 008:** Scale changes are now *audible* — each arp note passes through `quantize()` with the active scale before reaching the DAC.
+- **Story 008:** Onboard RGB LED as active-param indicator — green for Scale, blue for Order. Pin discovery: data on **GPIO22**, power-enable on **GPIO23** (per Seeed wiki; not exposed by the arduino-pico variant header). LED is **RGBW** (4 bytes/pixel) → `NEO_GRBW + NEO_KHZ800`. 20 ms settle delay between power-enable and first `show()`.
+- **Story 007:** `firmware/arp/lib/oled_ui/` — HAL wrapper around `Adafruit_SSD1306`. Three-constant config block (`OLED_WIDTH`, `OLED_HEIGHT`, `OLED_ROTATION`) for one-line swap between bench (0.91" 128×32 landscape) and final (0.49" 64×32 portrait).
+- **Story 007:** `firmware/arp/lib/encoder_input/` — HAL wrapper around `mathertel/RotaryEncoder` + 50 ms-debounced click + `pressedLong()` (≥500 ms threshold). `LatchMode = FOUR3` chosen after bench iteration.
+- **Story 006:** Tempo pot on A0 (D0/GP26, B10K) drives live BPM control. `src/main.cpp` reads `analogRead(PIN_TEMPO)` at every step boundary and recomputes step/gate periods from `tempo::potToBpm()` + `tempo::bpmToStepMs(bpm, 4)`. Subdivision switched from quarter notes to 16th notes (125 ms/step at 120 BPM).
+- Host test coverage grew from 34 → 45: new `test_tempo::PotToBpm.ConstantRatioPerEqualPotSlice`, 11 `test_arp` cases kept current after `Order1324 → Skip` rename, 10 new `test_cv` cases.
+- `docs/decisions.md` §17: encoder library choice documented (`mathertel/RotaryEncoder`, polling, RP2350-compatible). Deferred-decisions bullet removed.
+- `firmware/arp/README.md`: documented the BOOTSEL quirk (double-tap BOOT unreliable on our XIAO RP2350; use hold-BOOT-while-plugging).
+- `docs/stories/009-cv-input-transpose.md` added. `docs/bench-log.md` entries for Stories 006, 007, 008, 009 (including the 100 Ω vs 100 kΩ colour-band bug and its diagnosis from serial output).
 
 ### Changed
 
-- `lib/encoder_input/`: switched RotaryEncoder `LatchMode` from `TWO03` (initial guess for half-step encoders) to `FOUR3` after bench-confirming the actual PEC11 behavior. Documented above the constructor with troubleshooting hints for other encoders.
-- `lib/arp/`: `ArpOrder::Order1324` renamed to `ArpOrder::Skip` (matches Story 008's UI labeling). Test cases renamed accordingly. `arp.cpp` switch case updated. No behavior change.
-- `firmware/arp/src/main.cpp`: replaced standalone OLED+encoder bring-up (Story 007) with full integration — arp + tempo pot + scale-quantize + menu + NeoPixel + reset-on-long-press, all on a non-blocking `millis()` loop.
-- `firmware/arp/README.md`: library notes corrected (was: Stoffregen Encoder, default OLED size; now: mathertel/RotaryEncoder, oled_ui config block, NeoPixel pinout details).
-
-### Added
-
-- **Story 007 complete.** OLED + PEC11 encoder bench bring-up — both work standalone (no arp integration yet). Bench used a 0.91" 128×32 SSD1306 in landscape; final design will use a 0.49" 64×32 in portrait — one-line swap in `lib/oled_ui/oled_ui.h`.
-- `firmware/arp/lib/oled_ui/`: HAL wrapper around `Adafruit_SSD1306`. Three-constant config block (`OLED_WIDTH`, `OLED_HEIGHT`, `OLED_ROTATION`) for size/orientation. API: `begin()`, `clear()`, `showLabel()`, `showParameter(name, value)`, `showBeat(on)`, `show()`, `raw()` escape hatch.
-- `firmware/arp/lib/encoder_input/`: HAL wrapper around `mathertel/RotaryEncoder` + a 50 ms-debounced click. Polling API: `begin(pinA, pinB, pinClick)`, `poll()`, `delta()`, `pressed()`.
-- `firmware/arp/platformio.ini`: added `mathertel/RotaryEncoder` to `lib_deps`.
-- `firmware/arp/src/main.cpp`: replaced arp loop with standalone OLED+encoder bring-up — boot splash "HELLO", live counter from encoder rotation, LED + serial on encoder click.
-- `docs/decisions.md` §17: encoder library choice documented (`mathertel/RotaryEncoder`, polling, RP2350-compatible). Removed the corresponding "deferred decisions" bullet.
-- **Story 006 complete.** Tempo pot on A0 (D0/GP26, B10K) drives live BPM control. `src/main.cpp` reads `analogRead(PIN_TEMPO)` at every step boundary and recomputes step/gate periods from `tempo::potToBpm()` + `tempo::bpmToStepMs(bpm, 4)`. Subdivision switched from quarter notes to 16th notes (125 ms/step at 120 BPM).
-- New host test `PotToBpm.ConstantRatioPerEqualPotSlice` — verifies the exponential mapping has constant ratio between equally-spaced pot positions. Total host tests: 35.
-
-### Changed
-
-- `tempo::potToBpm()` mapping changed from linear to exponential: `BPM_MIN × (BPM_MAX/BPM_MIN)^pot`. Endpoints exact; ratio per equal pot slice is constant — gives a constant musical "feel" across the rotation.
-- `tempo::BPM_MIN`: 30 → 40 (Story 006 spec) → 20 (bench-feel adjustment 2026-04-22 — 40 BPM 16ths still too fast at the slow end). Per-third ratio is now ≈2.47×.
-- `docs/stories/006-tempo-pot.md`: AC updated to reflect 20..300 BPM range and constant-ratio framing (replaces "every 1/3 doubles BPM" wording).
+- `lib/arp/ArpOrder::Order1324` → `ArpOrder::Skip` (matches menu UI labeling). Test cases renamed. No behaviour change.
+- `lib/tempo/potToBpm()` mapping: linear → exponential (`BPM_MIN × (BPM_MAX/BPM_MIN)^pot`). Endpoints exact; ratio per equal pot slice is constant → uniform musical feel across rotation.
+- `lib/tempo/BPM_MIN`: 30 → 40 (Story 006 spec) → **20** (bench-feel adjustment — 40 BPM 16ths still felt too fast at the slow end). Per-third ratio ≈ 2.47×.
+- `firmware/arp/src/main.cpp` rewritten three times across Stories 006–009: tempo-pot integration → standalone OLED/encoder bring-up → full arp+menu integration → CV-transpose integration. Now a non-blocking `millis()` loop with all subsystems live.
+- `lib/encoder_input/` `RotaryEncoder::LatchMode` bench-tuned to `FOUR3` (TWO03 → FOUR0 → FOUR3 during Story 008 bring-up; header documents troubleshooting hints).
+- `docs/stories/006-tempo-pot.md`: AC text updated to reflect the 20..300 BPM range and constant-ratio framing (replaces "every 1/3 doubles BPM" language).
+- `firmware/arp/README.md`: library notes corrected (was: Stoffregen Encoder, default OLED size; now: mathertel/RotaryEncoder, `oled_ui` config block, NeoPixel pinout).
+- `firmware/arp/platformio.ini`: added `mathertel/RotaryEncoder` to `lib_deps`; removed `paulstoffregen/Encoder` (AVR-only).
 
 ---
 
