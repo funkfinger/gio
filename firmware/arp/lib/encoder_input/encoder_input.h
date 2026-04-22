@@ -16,9 +16,16 @@ public:
     // Returns 0 if no movement. Reading clears the accumulator.
     int8_t delta();
 
-    // True once per click edge (rising falling-edge of the button to LOW),
-    // debounced. Reading clears the latched flag.
+    // Short click: latched on release, only if the press was shorter than
+    // LONG_PRESS_MS. Reading clears the latched flag.
     bool pressed();
+
+    // Long press: latched on release, only if the press was at least
+    // LONG_PRESS_MS. A long press SUPPRESSES the short click for the same
+    // gesture. Reading clears the latched flag.
+    bool pressedLong();
+
+    static constexpr uint32_t LONG_PRESS_MS = 500;
 
 private:
     void* impl_      = nullptr; // opaque handle to RotaryEncoder
@@ -26,8 +33,13 @@ private:
     long    lastPos_  = 0;
     int8_t  pending_  = 0;
 
-    // Click debounce
-    bool     clickLast_   = false; // last sampled state (LOW = pressed)
-    bool     pressedFlag_ = false;
-    uint32_t lastClickMs_ = 0;
+    // Press / debounce state. Long-press fires the moment we cross the
+    // threshold while the button is still held; the release edge of the same
+    // gesture is then suppressed (no spurious short-press follows a long-press).
+    bool     buttonDown_     = false; // current debounced state
+    uint32_t lastEdgeMs_     = 0;     // for debounce timing
+    uint32_t pressStartMs_   = 0;     // millis() at press-down edge
+    bool     longFiredThisGesture_ = false;
+    bool     pressedFlag_    = false; // latched short-press
+    bool     longPressedFlag_= false; // latched long-press
 };

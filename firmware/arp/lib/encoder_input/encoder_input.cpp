@@ -4,9 +4,11 @@
 
 static const uint32_t CLICK_DEBOUNCE_MS = 50;
 
-// LatchMode::TWO03 = one detent per two raw quadrature transitions, latches at
-// the rest positions of typical PEC11 encoders. Gives one count per click on
-// a standard 24-detent encoder.
+// LatchMode chosen to match this build's PEC11. FOUR0 = one detent per four
+// raw quadrature transitions, latching at state 00 — typical for full-step
+// PEC11s (e.g. PEC11R-4015F-S0024). If you see one detent producing two
+// counts, try FOUR3. If you see one detent producing 0.5 counts (every other
+// detent missed), try TWO03.
 
 namespace {
 RotaryEncoder* gEnc = nullptr;
@@ -20,15 +22,17 @@ void EncoderInput::begin(uint8_t pinA, uint8_t pinB, uint8_t pinClick) {
 
     // mathertel/RotaryEncoder does not own its pins beyond construction;
     // we hold one static instance to keep memory layout predictable.
-    static RotaryEncoder s_enc(pinA, pinB, RotaryEncoder::LatchMode::TWO03);
+    static RotaryEncoder s_enc(pinA, pinB, RotaryEncoder::LatchMode::FOUR3);
     gEnc = &s_enc;
     impl_ = gEnc;
 
-    lastPos_      = gEnc->getPosition();
-    pending_      = 0;
-    pressedFlag_  = false;
-    clickLast_    = (digitalRead(pinClick_) == LOW);
-    lastClickMs_  = 0;
+    lastPos_         = gEnc->getPosition();
+    pending_         = 0;
+    pressedFlag_     = false;
+    longPressedFlag_ = false;
+    buttonDown_      = (digitalRead(pinClick_) == LOW);
+    pressStartMs_    = 0;
+    lastEdgeMs_      = 0;
 }
 
 void EncoderInput::poll() {
@@ -49,13 +53,35 @@ void EncoderInput::poll() {
         }
     }
 
-    // Debounced click: detect HIGH→LOW edge on PIN_CLICK.
+    // Debounced press tracking.
+    //   - Long-press fires once at the threshold while still held (tactile feedback).
+    //   - Release of a long-press gesture is silent (no short-click follows).
+    //   - Short-press fires on release, only if the long-press never armed.
     bool now = (digitalRead(pinClick_) == LOW);
     uint32_t t = millis();
-    if (now != clickLast_ && (t - lastClickMs_) > CLICK_DEBOUNCE_MS) {
-        if (now) pressedFlag_ = true; // edge into pressed
-        clickLast_   = now;
-        lastClickMs_ = t;
+
+    if (now != buttonDown_ && (t - lastEdgeMs_) > CLICK_DEBOUNCE_MS) {
+        lastEdgeMs_ = t;
+        if (now) {
+            // Press-down edge
+            buttonDown_           = true;
+            pressStartMs_         = t;
+            longFiredThisGesture_ = false;
+        } else {
+            // Release edge
+            if (!longFiredThisGesture_) {
+                pressedFlag_ = true;   // short click
+            }
+            buttonDown_           = false;
+            longFiredThisGesture_ = false;
+        }
+    }
+
+    // While still held: fire long-press once we've crossed the threshold.
+    if (buttonDown_ && !longFiredThisGesture_
+        && (t - pressStartMs_) >= EncoderInput::LONG_PRESS_MS) {
+        longPressedFlag_      = true;
+        longFiredThisGesture_ = true;
     }
 }
 
@@ -68,5 +94,11 @@ int8_t EncoderInput::delta() {
 bool EncoderInput::pressed() {
     bool p = pressedFlag_;
     pressedFlag_ = false;
+    return p;
+}
+
+bool EncoderInput::pressedLong() {
+    bool p = longPressedFlag_;
+    longPressedFlag_ = false;
     return p;
 }
