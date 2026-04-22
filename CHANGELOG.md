@@ -14,6 +14,12 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Story 005 complete (v0.1.0 milestone — module makes music for the first time).** Bench-confirmed 2026-04-22.
+- `firmware/arp/lib/arp/`: pure-C++ arpeggiator engine. `Arp::nextNote()` advances state and returns the MIDI note for the current step. Orders implemented: `Up`, `Down`, `UpDown` (palindrome, no endpoint repeat), `Order1324` (skip pattern, falls back to `Up` for arps with <4 notes). Adding a new order = adding one case in `indexForStep()`.
+- `firmware/arp/lib/tempo/`: pure-C++ tempo helper. `bpmToStepMs(bpm, sub=1)` clamped to [30, 300] BPM with subdivision support; `potToBpm(pot)` linear in [0, 1] → [BPM_MIN, BPM_MAX].
+- `firmware/arp/test/test_arp/` and `test/test_tempo/`: 21 new GoogleTest cases (11 arp + 10 tempo). Total host tests: 34, all green via `pio test -e native`.
+- `firmware/arp/src/main.cpp`: replaced V/Oct calibration sequence with arp integration — non-blocking `millis()` loop, fixed 120 BPM, 4-note up-arpeggio over MIDI 48/52/55/60 (C3 E3 G3 C4), 50 % gate duty, `PIN_LED` as beat indicator. `GATE_INVERTED` constant abstracts NPN driver polarity.
+- BC548 NPN common-emitter gate driver wired on breadboard: D6 → 1 kΩ → base; collector → 10 kΩ pullup → 5V (= J4 gate node); emitter → GND.
 - `firmware/arp/lib/scales/` — pure-C++ scale quantiser library: `quantize(midiNote, Scale)` and `scaleFromPot(pot, current)` with ±2 % hysteresis. No Arduino deps.
 - `firmware/arp/test/test_scales/test_main.cpp` — 13 GoogleTest cases: in-scale pass-through for all 6 scales, out-of-scale snapping with tie-break-downward, chromatic identity, octave invariance, scaleFromPot zone centres and hysteresis. All pass via `pio test -e native`.
 - Story 004 complete: MCP6002 op-amp non-inverting amp breadboarded (gain network 2.2 kΩ + 470 Ω in series for R_f, 10 kΩ for R_g), bench-calibrated 2026-04-22. Final firmware `GAIN = 1.26`. V/Oct output within ±2 mV / ±2.4¢ across C3–C7 by multimeter; ≤±4¢ best-fit residual end-to-end through VCO + tuner. New file `docs/calibration.md` records procedure and raw data.
