@@ -179,6 +179,20 @@ Keep a Changelog format. `## [Unreleased]` in flight; moves to a versioned headi
 
 The polling approach is fine for our 24-detent PEC11 at human turn rates; we tick every loop iteration alongside other non-blocking work. If we ever observe missed detents under heavy loop load, switching to interrupt mode is a one-line change in `lib/encoder_input/`.
 
+### 18. RP2350-E9 silicon errata: external pulldowns must be ≤ 8.2 kΩ
+
+The RP2350 has a documented silicon bug ([RP2350-E9](https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf), also covered on Hackaday): when a GPIO is configured as `INPUT_PULLDOWN` *and* the input buffer is enabled, the pad latches at ~2.2 V instead of pulling to GND. The internal pulldown alone cannot defeat this latch.
+
+**Workaround (per Pi Foundation):** drive the input with an external pulldown of **≤ 8.2 kΩ**. That impedance can overpower the latched 2.2 V and produce a clean LOW.
+
+**Discovered during Story 010** (clock-in on J1). The original spec'd divider was 100 kΩ + 68 kΩ — far too high-impedance. With those values the pin sat at ~2 V "low," `digitalRead` always returned HIGH, and no edges were detected. Cost roughly 90 minutes of bench debugging including swapping a XIAO RP2350 (in case the pin had been damaged by the patched MOD2 output) before the user spotted the errata.
+
+**Implications for Rev 0.1 PCB:**
+- Any GPIO input that needs a pulldown must have an external resistor ≤ 8.2 kΩ tied to GND.
+- For voltage dividers feeding GPIO (e.g. clock-in, trigger-in), bias the resistor values toward 10 k / 10 k (or lower) rather than the spec's 100 k / 68 k. Adjust the dividing ratio accordingly.
+- The CV input on J2 is fine because it's buffered by op-amp B (the ADC sees a low-Z source already).
+- Firmware: continue to set `INPUT_PULLDOWN` as belt + braces, but treat it as decorative — the external resistor is doing the actual work.
+
 ---
 
 ## Bring-up sequence (first five PRs)
