@@ -12,21 +12,35 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
+*(empty — next story starts here)*
+
+---
+
+## [arp/v0.3.0] — 2026-04-23
+
+**External clock-in lands; bench tooling matures.** Story 010 complete. gio can now be patched into an external Eurorack clock and follow it; the tempo pot becomes a clock multiplier (×1 / ×2 / ×4) when external is active. A standalone bench clock source (`firmware/clock-mod2/`) was built on a HAGIWO MOD2 board to drive testing. Two notable hardware bugs encountered and documented: RP2350-E9 silicon errata (broken internal pulldowns) and a MOD2 PCB defect (JP2 doesn't route to C18). 45 host tests still green.
+
 ### Added
 
-- **Story 010 complete.** External clock input on J1. `digitalRead` edge detection on D3 / GP5; auto-switches to external mode within 2 s of any rising edge, falls back to internal tempo on timeout. Tempo pot becomes a clock divider (÷1, ÷2, ÷4) when external is active. OLED tag shows `INT` / `EXT`.
-- `firmware/clock-mod2/` — bench clock source (side quest). HAGIWO MOD2 board with XIAO RP2350; `POT1 → BPM (exp 20–300) → GP1 → 0–10 V gate at J6`. Reuses `lib/tempo/` from gio. `README.md` documents the JP2/C18 board defect on Rev A and the wire-across-cap workaround.
-- `docs/stories/010-clock-input.md` and detailed `docs/bench-log.md` entry.
+- **Story 010:** External clock input on J1 (D3 / GP5). `digitalRead`-based edge detection with 10 ms software debounce (rejects bounce on slow edges). Auto-switches to external mode within 2 s of a detected rising edge; falls back to internal tempo pot on timeout. OLED top-right tag shows `INT` / `EXT`.
+- **Story 010:** Tempo pot acts as a **clock multiplier** when external is active — bottom 1/3 = ×1 (one step per pulse), middle = ×2 (insert one interpolated step at half-period), top = ×4 (three interpolated steps at quarter-period spacing). Default ×2 chosen as the most musically useful at typical Eurorack clock rates. Interpolation uses the previously-measured period — one-pulse-late approximation; see `decisions.md` deferred section for the runaway-on-slowdown caveat.
+- `firmware/clock-mod2/` — bench clock source for a HAGIWO MOD2 board (XIAO RP2350 socketed). POT1 sets pulse rate exponentially in **2..20 Hz** (renamed from BPM since "BPM" is the wrong unit for a raw clock). GP1 → MOD2 op-amp gain stage → 0–10 V gates at J6. GP5 drives the panel LED in sync.
+- `docs/stories/010-clock-input.md`, detailed `docs/bench-log.md` entry covering the full Story 010 + side-quest bench journey.
 
 ### Changed
 
-- `firmware/arp/src/main.cpp`: PIN_J1 = D3 / GP5 (digital). Spec called for A3 / GP29 but **GP29 is not exposed on the XIAO RP2350** (variant only breaks out GP0–7 + GP9–12, GP16–17, GP20–21). All ADC-capable pins are in use, so J1 is digital-only on this build; pitch mode on J1 deferred until an ADC pin is freed.
-- `firmware/arp/src/main.cpp`: `pinMode(PIN_J1, INPUT_PULLDOWN)` — internal pulldown is *not* sufficient on RP2350 due to silicon errata; the external 10 kΩ pulldown does the actual work (see below).
+- `firmware/arp/src/main.cpp`: `PIN_J1 = D3 / GP5` (digital, not analog). Spec called for `A3 / GP29` but **GP29 is not exposed on the XIAO RP2350** (variant only breaks out GP0–7 + GP9–12, GP16–17, GP20–21). All ADC-capable pins (GP26/27/28) are already used, so J1 is digital-only on this build; pitch mode on J1 is deferred until an ADC channel is freed.
+- `firmware/arp/src/main.cpp`: `pinMode(PIN_J1, INPUT_PULLDOWN)` — kept as belt-and-braces, but the internal pulldown is silently broken on RP2350 (see RP2350-E9 below). The external 10 kΩ pulldown is what actually pulls the pin low.
+- Bench input divider on J1: spec was 100 kΩ + 68 kΩ; **bench-built as 10 kΩ + 10 kΩ** to overpower the RP2350-E9 latched-pad voltage. Same 1:2 ratio so firmware needs no change.
+- `firmware/clock-mod2/`: switched from `tempo::potToBpm` (20..300 BPM, quarter notes) to direct exponential `potToHz` (2..20 Hz). "BPM" is the wrong unit for a raw clock source; raised the floor and ceiling to better match Eurorack clock rates.
 
 ### Docs
 
-- **`docs/decisions.md` §18 — RP2350-E9 silicon errata.** Internal `INPUT_PULLDOWN` latches the pad at ~2.2 V instead of pulling to GND. Pi Foundation workaround: external pulldown ≤ 8.2 kΩ. Cost ~90 min of bench debugging during Story 010 before the user spotted the errata. Rule for Rev 0.1 PCB: any GPIO needing a pulldown gets an external resistor ≤ 8.2 kΩ.
-- `docs/decisions.md` "Deferred decisions": added the MOD2 JP2 lesson (verify every solder-jumper net survives schematic→PCB transfer) and a placeholder for "gio as a clock source" feature.
+- **`docs/decisions.md` §18 — RP2350-E9 silicon errata.** Internal `INPUT_PULLDOWN` latches the pad at ~2.2 V instead of pulling to GND. Pi Foundation workaround: external pulldown ≤ 8.2 kΩ. Cost ~90 min of bench debugging during Story 010 before user spotted the errata. **Rule for Rev 0.1 PCB:** every GPIO that needs a pulldown gets an external resistor ≤ 8.2 kΩ.
+- `docs/decisions.md` "Deferred decisions" — added: (a) the MOD2 JP2 lesson (verify every solder-jumper net survives schematic→PCB transfer); (b) "gio as a clock source" feature placeholder; (c) external-clock multiplier feel notes (×1/×2/×4 is fine; replace with ÷N would be a regression at Eurorack rates; multiplication is the genuinely useful direction).
+- **BOOTSEL workflow update** — discovered today that `picotool` can soft-reset the running firmware into BOOTSEL via USB CDC, so `pio run --target upload` works without any button-press for normal re-flashes. Manual hold-BOOT-while-plug only needed for fresh chips or unresponsive firmware. Updated `CLAUDE.md`, `firmware/arp/README.md`, and `firmware/clock-mod2/README.md`.
+- `firmware/clock-mod2/README.md`: documents the **JP2/C18 board defect on MOD2 Rev A** — soldered solder-bridge has no electrical effect because the JP2 traces don't reach C18. Workaround: solder a wire across C18 directly.
+- New `docs/stories/010-clock-input.md`.
 
 ---
 
