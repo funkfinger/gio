@@ -12,7 +12,35 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
-*(empty — next story starts here)*
+### Added
+
+- `firmware/arp/lib/trigger_in/` — pure-C++ firmware Schmitt trigger (`trigger_in::Schmitt`) for rising-edge detection on a polled voltage signal. Defaults to Eurorack-standard thresholds (high = +1.5 V, low = +0.5 V, 1 V hysteresis). Constructor accepts custom thresholds; initial state is "not armed" so an idle-high jack at startup doesn't fire spuriously. Story 016 prep — wires straight into the buffered ADC reads from Story 015 when bench-built.
+- 15 new GoogleTest cases in `test_trigger_in/` covering: initial-state safety, rising-edge fire-once, square-wave repeat, exact-threshold behaviour, hysteresis (ripple rejection + must-drop-below-low to re-arm), slow-ramp single-fire, reset, custom thresholds. **Total host tests: 45 → 60, all green.**
+
+### Changed
+
+- **SPI pin map confirmed against the actual arduino-pico variant header** for `seeed_xiao_rp2350`. Corrects mistakes in the earlier spec-doc draft. Final mapping: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3, default SS=D3/GP5. CS_DAC=D3 (default SS), CS_ADC=D6/GP0. Encoder migrates from D8/D9/D10 to A1/A2/D7 to free SPI0 default pins.
+- **Library decision for SPI peripherals locked: Rob Tillaart's `DAC8552` and `MCP_ADC`** — both Arduino-framework, MIT-licensed, well-maintained. User has bench-validated the DAC8552 library previously in `~/Git/Electronics/eurorack/dac8852-test/`. This means we don't roll our own SPI frame packers; instead `lib/outputs/` and `lib/inputs/` HAL wrappers add calibration math on top of the proven libraries. Lib_deps staged in `platformio.ini` (commented; uncomment when bench-ready).
+- Story 012 updated with confirmed pin map, encoder migration table, library choice, and bench acceptance criteria. Status: prep complete, awaiting parts.
+
+- **`docs/generative-arp-module.md` rewritten end-to-end** to reflect the platform-module pivot and the SPI signal-chain architecture. Net changes from prior revision:
+  - Reframed as platform module hosting multiple apps; arp is now one app of several
+  - PWM-DAC + MCP6002 + native ADC chain replaced by **DAC8552 + MCP3208 + TL072s on ±12V**
+  - All 4 jacks documented as symmetric / dual-purpose (CV ↔ trigger/gate)
+  - **Mutable Instruments–style protection** topology spec'd on every input and output (100k series + BAT43 clamps + op-amp buffer)
+  - Pin-assignment table updated for SPI bus; encoder reassigned from D8/D9/D10 to A1/A2/D3 to free SPI0 default pin set
+  - Generic panel labels (`IN 1`/`IN 2`/`OUT 1`/`OUT 2`/`KNOB`)
+  - NeoPixel light-pipe through panel PCB documented as a Rev 0.1 feature
+  - Firmware section grew an "Apps + Platform + HAL + Drivers" four-layer architecture diagram and `App` interface definition
+  - BOM rebuilt against actual inventory locations
+  - Removed all stale MCP4725 references and the GP29-on-XIAO-RP2350 myth
+- `docs/decisions.md` — added §19 (platform-module reframing), §20 (SPI bus replaces PWM-DAC + native ADC), §21 (TL072 + ±12V replaces MCP6002 + 5V), §22 (Mutable-style protection on every jack), §23 (generic jack labels). Reorganised "Deferred decisions" to separate **resolved** items (CV divider, ext-clock divider feel, gio-as-clock-source) from **still-open** items (calibration storage, app-private settings, second pot for Rev 0.2, NeoPixel light-pipe style, DAC VREF source, trigger output edge speed). Added a note to §18 (RP2350-E9) clarifying that the platform pivot moves CV/trigger jacks behind op-amp buffers, so the rule's practical impact on Rev 0.1 is small.
+- `docs/stories/011-power-rails.md` reduced from "build a power supply" to "verify the Hivemind Protomato breadboarding kit's rails" — the bench platform handles ±12V/+5V/GND with reverse-protection. Original LM7805 + 1N5818 design preserved as reference for the Rev 0.1 PCB.
+
+### Docs
+
+- **Platform-module pivot scoped.** Stories 011–018 added — full bench-rebuild roadmap moving the design from "single-purpose arpeggiator on native ADC + PWM-DAC" to "platform module with shared SPI bus (DAC8552 + MCP3208) + MI-style protection + TL072 buffers + app-loader firmware skeleton."
+- **Inventory check complete** (against `~/Git/binkey-data/parts/`). On hand and sufficient for bench: TL072CP (×25), DAC8552 (×4 — *upgrade* from spec'd MCP4822), PEC11L encoders (×5), PJ-3001F Thonkiconn jacks (30+), 100 kΩ linear pots (20+), BAT43 Schottky (50+), LM7805 + LM7912, all standard SMT R/C values. **Ordered:** MCP3208 SPI ADC (×2), Eurorack 2×5 shrouded headers (×5), 0.49" 64×32 SSD1306 OLED (delivery tomorrow). DAC8552 already mounted on a hand-soldered protoboard, ready for Story 012 SPI bring-up.
 
 ---
 

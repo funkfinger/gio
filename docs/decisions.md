@@ -181,6 +181,8 @@ The polling approach is fine for our 24-detent PEC11 at human turn rates; we tic
 
 ### 18. RP2350-E9 silicon errata: external pulldowns must be ≤ 8.2 kΩ
 
+> **Note (post-platform-pivot):** §19+ moves all CV/trigger jacks behind op-amp buffers + MCP3208. The RP2350-E9 rule still applies to any leftover direct-to-GPIO input, but Rev 0.1 has none — encoder + SPI CS lines are all driven actively or pulled high to +3.3V. The rule is preserved here for future stories that might add a direct-to-GPIO trigger input on a spare pin.
+
 The RP2350 has a documented silicon bug ([RP2350-E9](https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf), also covered on Hackaday): when a GPIO is configured as `INPUT_PULLDOWN` *and* the input buffer is enabled, the pad latches at ~2.2 V instead of pulling to GND. The internal pulldown alone cannot defeat this latch.
 
 **Workaround (per Pi Foundation):** drive the input with an external pulldown of **≤ 8.2 kΩ**. That impedance can overpower the latched 2.2 V and produce a clean LOW.
@@ -192,6 +194,87 @@ The RP2350 has a documented silicon bug ([RP2350-E9](https://datasheets.raspberr
 - For voltage dividers feeding GPIO (e.g. clock-in, trigger-in), bias the resistor values toward 10 k / 10 k (or lower) rather than the spec's 100 k / 68 k. Adjust the dividing ratio accordingly.
 - The CV input on J2 is fine because it's buffered by op-amp B (the ADC sees a low-Z source already).
 - Firmware: continue to set `INPUT_PULLDOWN` as belt + braces, but treat it as decorative — the external resistor is doing the actual work.
+
+### 19. Platform-module reframing — gio is a platform, the arp is one app
+
+`arp/v0.3.0` shipped a fully-functional generative arpeggiator. During post-v0.3.0 design discussion (2026-04-23) we reframed gio as a **platform module**: the same hardware should host multiple swappable apps (arp, clock-out, LFO, S&H, quantizer, etc.), with the user selecting an app at runtime via the encoder.
+
+**Why pivot now, before the PCB:**
+- The hardware doesn't change much for "platform" vs "single-purpose" — the changes are mostly in firmware structure + panel labelling.
+- A platform module needs **symmetric I/O** (any jack can do any job per app); we were partway there already (J1+J2 dual-mode in spec) but committed to it incompletely.
+- Forcing the architecture through "must support N apps" exposes what's actually generic vs. arp-specific in the firmware. Cleaner code, smaller per-app footprint.
+- The chip (RP2350 dual Cortex-M33, 4 MB flash, 520 KB SRAM) has *vastly* more headroom than the arp uses. Wasted otherwise.
+
+**What changes:**
+- Panel silkscreen goes generic (`IN 1`, `IN 2`, `OUT 1`, `OUT 2`, `KNOB`).
+- Firmware grows a `lib/platform/` layer with an `App` interface + app loader + flash-persisted "last loaded app."
+- HAL is aggregated into a `Hardware` struct passed to apps; apps don't reach for global pins.
+
+**What doesn't change:**
+- The arp app's behaviour is identical to `arp/v0.3.0` — just refactored to live behind the App interface.
+- 2 HP form factor.
+- XIAO RP2350.
+
+### 20. SPI bus replaces PWM-DAC + native ADC for signal I/O
+
+**Out:** RP2350 12-bit PWM on D2 + 2-pole RC filter + MCP6002 op-amp scaling (the v0.3.0 V/oct chain). Native ADCs A1 (CV in) and A3-that-doesn't-exist (clock in).
+
+**In:** TI **DAC8552** (16-bit dual SPI DAC) + Microchip **MCP3208** (8-channel SPI ADC), both on a shared SPI bus. Each gets a dedicated CS line.
+
+**Why:**
+- **Symmetric I/O.** Both outputs become full-fidelity CV outputs that can also do gates (Story 014 verifies edge speed). Both inputs become full-fidelity CV inputs that can also do trigger detection in firmware (Story 016). No hardware mode switches; apps decide per-jack.
+- **Resolution win.** DAC8552 is 16-bit (76 µV/count at 5V VREF) vs the 12-bit PWM-DAC (805 µV/count) — at jack scale that's 305 µV/count vs 3.2 mV/count, ≈ 0.4 cents vs 4 cents at V/oct. PWM-DAC was already adequate; DAC8552 is comfortably overkill.
+- **No PWM-RC filter.** Eliminates the 5 ms settling time; outputs respond at SPI write rate (~5 µs).
+- **Frees native ADCs.** A0 (tempo pot) stays native; A1/A2 become spares. A3-on-GP29 is no longer a problem because it never existed (board variant doesn't expose GP29).
+- **Already in stock.** DAC8552 ×4 (Cab-3/Bin-37); MCP3208 ordered tomorrow. Saves the hunt for a different DAC.
+
+**Cost:**
+- One SPI bus eats 3 + N CS pins (N = number of SPI devices). For us: SCK + MOSI + MISO + 2 CS = 5 pins. The encoder has to move off D8/D9/D10 to free the SPI0 default pin set; new home is A1/A2/D3 (GP27/GP28/GP5). Polled encoder doesn't care about pin choice.
+- DAC8552 is VSSOP-8 (3×3 mm). For breadboard work, mounted on a hand-soldered protoboard or a VSSOP→DIP breakout. For PCB it's a hand-solderable QFN-class part.
+
+### 21. TL072 op-amps on ±12V replaces MCP6002 single-supply 5V
+
+**Out:** MCP6002 single-supply rail-to-rail op-amp (5V powered) used for V/oct gain stage (v0.3.0) and CV-in buffering (Story 009).
+
+**In:** **TL072** dual JFET op-amp running directly off Eurorack ±12V. Two TL072s for the four op-amp channels needed (2 inputs + 2 outputs); a TL074 quad is a viable consolidation (in stock as backup).
+
+**Why:**
+- **Native bipolar swing.** Eurorack signals are ±10V; we want to handle them honestly without offset gymnastics. ±12V supply lets the TL072 swing the full Eurorack range with 1–2V headroom.
+- **House style.** Mutable Instruments uses TL07x throughout; their reference circuits (which we're patterning input/output protection on, §22) assume dual-supply. Stays compatible.
+- **No new rail.** Eurorack already supplies ±12V; the TL072 plugs in directly. The local LM7805 is still needed for the DAC + ADC + XIAO logic side.
+- **In stock.** TL072CP × 25 (Cab-3/Bin-32 §B). DIP-8, breadboard-friendly.
+
+**Cost:**
+- Need the negative rail (was previously not strictly necessary). Eurorack provides it; trivial.
+- TL072 input bias current is pA-range (JFET) — same as MCP6002 — so high-impedance input nodes are still safe.
+
+### 22. Mutable Instruments–style input + output protection on every jack
+
+Every jack gets the same protection topology, modelled on Mutable's published designs:
+
+**Inputs:**
+- 100 kΩ series resistor (current-limits clamp diodes during abuse)
+- Dual Schottky (BAT43) clamps to ±12V rails (caps over-voltage at ±12.4V; current limited by the 100 kΩ to < 30 µA at ±15V abuse)
+- TL072 inverting summing amp scales ±10V at jack to 0–5V at MCP3208 (with offset reference from +5V)
+
+**Outputs:**
+- TL072 inverting summing amp scales 0–5V at DAC to ±10V at jack (with offset reference from +5V; firmware compensates for inversion)
+- 1 kΩ series resistor at output (limits short-circuit current to ~12 mA, well within TL072 protection)
+- Dual Schottky (BAT43) clamps to ±12V at the jack (protects against rail-shorts patched in by mistake)
+
+**Why:**
+- **Patch-cable abuse is real.** A user plugging +12V from a power module into our input or shorting our output to ±12V should not destroy the module. MI-style protection survives arbitrary patch-cable mistakes.
+- **In-stock parts.** BAT43 × 50+; TL072 × 25; standard SMT resistor reels. No exotic parts.
+- **Convention compliance.** Anyone who's worked on Eurorack DIY recognises the topology immediately; review and trust come for free.
+
+### 23. Generic jack labels + dual-purpose jack convention
+
+Panel silkscreen labels jacks by direction only (IN/OUT), not by function (no "TEMPO," "V/OCT," "GATE," "CV IN" labels). The OLED tells the user what each jack is doing in the current app.
+
+**Why:**
+- **Direct consequence of §19.** A platform module can't lock jack semantics in silkscreen — different apps use them differently.
+- **Both inputs are dual-purpose** (CV or trigger detected in firmware via Schmitt — see Story 016). Both outputs are dual-purpose (CV via `outputs.write(volts)` or gate via `outputs.gate(on)` — same hardware). Labels would mislead.
+- **Visual distinction:** inputs vs outputs distinguished by jack body colour or position (TBD at panel-design time; Mutable convention is white = in, black = out).
 
 ---
 
@@ -211,11 +294,22 @@ After PR 5, everything else (encoder menu, OLED display, six scales, CV in, chao
 
 ## Deferred decisions
 
-- **CV divider bench confirmation:** 100 kΩ / 68 kΩ divider maps 8V → 3.24V (Story 004 bench work). Verify no ADC saturation at max Eurorack V/Oct; confirm 42 counts/semitone is sufficient for clean quantisation.
-- **Calibration storage:** hardcoded `GAIN` constant in v0.1. Move to flash/EEPROM post-MVP.
-- **OLED rotation strategy:** software rotation (Adafruit GFX `setRotation(1)`) or hardware OLED orientation strap — confirm with part in hand.
-- **Chaos design:** deferred, same as RA4M1 project.
+### Resolved by the platform pivot (§19–§23)
+
+- ~~**CV divider bench confirmation**~~ — superseded by §22 MI-style protection topology. Story 015 will validate the new circuit.
+- ~~**External-clock divider feel**~~ — implemented in `arp/v0.3.0` with multiplier (×1/×2/×4) replacing divider. Now part of arp-app behaviour, not a platform-level concern.
+- ~~**"gio as clock source" feature**~~ — implemented as a first-class app (`apps/clock_out/`) per Story 018. Resolves the deferred question.
+
+### Still open
+
+- **Calibration storage:** hardcoded `gain` / `offset` constants in Rev 0.1. Move to flash/EEPROM post-platform-skeleton (own story).
+- **OLED rotation strategy:** software rotation (Adafruit GFX `setRotation(1)`) or hardware OLED orientation strap — confirm with the 0.49" 64×32 part in hand.
+- **App-private settings persistence:** Story 018 persists "last loaded app" only. Per-app state (e.g. arp's last scale/order/root) needs a follow-up story with a flash-partition scheme.
+- **Calibration-utility app:** Stories 013/015 use hand-rolled bench calibration via `main.cpp` sweeps. A dedicated calibration app (selectable via app switcher) would be friendlier and could persist constants per channel. Defer until there's a concrete pain point.
+- **Chaos design (arp app feature):** deferred from RA4M1 project, still deferred. Independent of platform work.
 - **RNG choice:** `random()` fine for MVP; XORShift or `std::minstd_rand` for reproducible host tests post-MVP.
-- **External-clock divider feel:** Story 010 ships with the tempo pot acting as ÷1 / ÷2 / ÷4 when external clock is active. Bench feedback (2026-04-23): only ÷1 sees real use — ÷2 and ÷4 audibly *slow* the arp, which is rarely the desired behaviour at Eurorack clock rates. The genuinely-useful direction is **multiplication** — at slow incoming clocks (whole notes, half notes), inserting interpolated triggers between pulses gives a faster melodic feel without losing sync. Implementation needs period measurement + scheduled triggers between pulses (approximate, since the next pulse's actual interval is unknown until it arrives — runaway is a risk if the source slows down). Options to reconsider: (a) replace divider with multiplier (×1 / ×2 / ×4 with period interpolation), (b) bias the pot toward ÷1 (e.g. bottom 2/3 = ÷1, then ÷2, then ÷4), (c) repurpose the pot in external mode (swing, gate length, octave shift). For now: leave as-is and revisit if it feels limiting in actual patches.
-- **Possible "gio as clock source" feature:** during Story 010 prep we built `firmware/clock-mod2/` (a HAGIWO MOD2 turned into a square-wave bench clock). The same pattern — PWM/digital output on a pin, configurable rate — could land on gio as a secondary mode (e.g., long-press-Hold-to-toggle Internal-Arp ↔ Internal-Clock-Out). Defer until there's a clear use case beyond bench testing.
 - **PCB jumper sanity check (lesson from MOD2 build):** the MOD2 Rev A board has a JP2 (solder-bridge across C18 for AC/DC coupling) where the JP2 pads do not actually route to C18's pads — bridging JP2 had no electrical effect. Workaround: solder a wire directly across C18. **Apply to gio Rev 0.1:** during KiCad work, verify every solder-jumper / option-jumper symbol's connections survive the schematic-to-PCB transfer (ERC + DRC + manual eyeball each JP-named net). Cheap insurance.
+- **Second pot for Rev 0.2:** considered and deferred. One-pot UI is workable for many apps via the encoder-menu / pot-modulation convention, but multi-knob apps (LFO with rate + shape, dual-VCA with two gains, etc.) would benefit. Add when the first one-pot-cramps-an-app moment shows up.
+- **NeoPixel light pipe:** mechanical detail of the panel PCB (clear plastic insert vs. clear-resin-fill vs. open pinhole). Pick at panel-design time.
+- **DAC8552 VREF source:** Stories 011–013 use +5V from LM7805 as VREF. Add a precision 4.096V reference IC (REF3040 or similar) only if bench reveals temperature drift > ±1 mV at V/oct. The 16-bit DAC is wasted resolution if VREF is noisy/drifty.
+- **Trigger output edge speed:** §20 assumes DAC8552 + TL072 produces edges fast enough for downstream gates (Story 014 verifies). If bench reveals some module that double-fires, add a 74HC14 Schmitt buffer (in stock as `sn74hct14n-hex-schmitt-trigger.md`) on the gate-likely outputs.
