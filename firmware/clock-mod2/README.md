@@ -35,11 +35,11 @@ Shares toolchain with `firmware/arp` — the same pinned `framework-arduinopico@
 
 ## Upload
 
-Same BOOTSEL caveat as the gio board — double-tap is unreliable on some XIAO RP2350 units. Hold BOOT while plugging USB, release, then:
-
 ```bash
 pio run -d firmware/clock-mod2 --target upload
 ```
+
+Same workflow as the gio firmware — `picotool` soft-resets the board into BOOTSEL via USB, no button-press needed for normal re-flashes. Manual BOOTSEL only required for first-flash of a fresh XIAO or recovery. See `firmware/arp/README.md` for the manual procedure.
 
 ## Serial monitor
 

@@ -13,28 +13,30 @@ PlatformIO project for the gio arpeggiator firmware targeting the Seeed XIAO RP2
 pio run -d firmware/arp
 ```
 
-## Upload (UF2 method)
-
-1. Put the XIAO RP2350 into BOOTSEL mode.
-2. A drive named `RPI-RP2` (mounted as `/Volumes/RP2350` on macOS) appears.
-3. Run:
+## Upload
 
 ```bash
 pio run -d firmware/arp --target upload
 ```
 
-PlatformIO copies the `.uf2` file to the drive automatically. The board resets and runs the new firmware.
+That's it — **no button-press needed for normal re-flashes.** PlatformIO uses `picotool` as the default upload protocol for this board, and the running firmware exposes a USB endpoint that lets `picotool` send a "reboot to bootloader" request. The board soft-resets, picotool flashes, then it reboots into the new firmware.
 
-### Entering BOOTSEL on this XIAO RP2350
+You only need manual BOOTSEL when:
 
-The "double-tap BOOT" trick advertised by Seeed is **unreliable on this unit** — bench-confirmed across many flashes throughout Stories 002–008. The method that always works:
+- **First-flash of a fresh XIAO** (no firmware to soft-reset from yet).
+- **Firmware is hung / crashed before USB came up** (rare — you'd notice the board not appearing in `ls /dev/tty.usbmodem*`).
+- You ever flash bare metal or strip out the picotool USB endpoint.
+
+### Manual BOOTSEL (when needed)
+
+The "double-tap BOOT" trick advertised by Seeed is **unreliable on the XIAO RP2350 units we've used** — bench-confirmed across many flashes during Stories 002–010. The method that always works:
 
 1. Unplug USB.
 2. Hold the BOOT button down.
 3. Plug USB in (still holding BOOT).
 4. Release BOOT — `RP2350` mounts as a drive.
 
-Different XIAO RP2350 boards may behave differently; double-tap may work for you. If not, use the hold-then-plug method.
+Then run the upload command as above (in this state, picotool detects BOOTSEL directly without needing the soft-reset path).
 
 ## Host-side unit tests
 

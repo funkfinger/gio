@@ -21,8 +21,9 @@ pio run -d firmware/arp
 # Host-side unit tests (pure logic only — no Arduino deps)
 pio test -d firmware/arp -e native
 
-# Upload to board. BOOTSEL on this unit: double-tap is unreliable;
-# hold BOOT while plugging USB (see firmware/arp/README.md).
+# Upload to board. Picotool soft-resets via USB into BOOTSEL automatically —
+# no button-press needed for normal re-flashes. Manual BOOTSEL is only required
+# if the running firmware is broken or unresponsive (see firmware/arp/README.md).
 pio run -d firmware/arp --target upload
 ```
 

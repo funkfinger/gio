@@ -140,12 +140,13 @@ static uint32_t resetFlashUntilMs = 0;
 static int      currentCvTranspose = 0;          // updated each step; used by display
 
 // External clock state
-static bool     extClockHigh        = false;     // current Schmitt-trigger output
-static uint32_t extLastEdgeMs       = 0;         // millis() of last rising edge (0 = never)
-static uint32_t extPrevEdgeMs       = 0;         // millis() of edge before that
-static uint8_t  extPulseCount       = 0;         // counts pulses up to extDivider
-static uint8_t  extDivider          = 1;         // 1, 2, or 4 (from tempo pot)
-static bool     wasExtModeLast      = false;     // for detecting mode transitions
+static bool     extClockHigh             = false; // current Schmitt-trigger output
+static uint32_t extLastEdgeMs            = 0;     // millis() of last rising edge (0 = never)
+static uint32_t extPrevEdgeMs            = 0;     // millis() of edge before that
+static uint8_t  extMultiplier            = 2;     // 1, 2, or 4 steps per external pulse (from tempo pot)
+static uint8_t  extStepsRemaining        = 0;     // interpolated steps still to fire before next pulse
+static uint32_t extInterpolatedInterval  = 0;     // ms between interpolated steps (period / multiplier)
+static bool     wasExtModeLast           = false; // for detecting mode transitions
 
 // ---------------------- voltage ↔ note -----------------------------
 static float midiToVolts(uint8_t midi) {
@@ -206,13 +207,21 @@ static void refreshTempoFromPot() {
     gateMs = (uint32_t)((float)stepMs * GATE_FRAC + 0.5f);
 }
 
-// Read the tempo pot in external-clock mode and map it to a clock divider.
-// Three zones with hysteresis: bottom 1/3 → ÷1, middle → ÷2, top → ÷4.
-static uint8_t externalDividerFromPot() {
-    static uint8_t held = 1;
-    static const uint16_t LOW_BOUND  = ADC_MAX / 3;          // ~1365
-    static const uint16_t HIGH_BOUND = (2 * ADC_MAX) / 3;    // ~2730
-    static const uint16_t HYST       = 100;                  // ~80 mV
+// Read the tempo pot in external-clock mode and map it to a clock MULTIPLIER —
+// how many arp steps to fire per external pulse. Three zones with hysteresis:
+// bottom 1/3 → ×1 (one step per pulse), middle → ×2 (insert one step at the
+// midpoint), top → ×4 (insert three at quarter-period spacing).
+//
+// The multiplier uses the previously-measured period to schedule interpolated
+// steps — so it's a one-pulse-late approximation. If the source clock slows
+// down between pulses, the interpolated steps still fire on the OLD interval
+// and might overshoot. Acceptable for typical musical clock changes; would
+// need rework if used with very wide tempo modulation.
+static uint8_t externalMultiplierFromPot() {
+    static uint8_t held = 2;                              // default ×2 — feels best at Eurorack rates
+    static const uint16_t LOW_BOUND  = ADC_MAX / 3;       // ~1365
+    static const uint16_t HIGH_BOUND = (2 * ADC_MAX) / 3; // ~2730
+    static const uint16_t HYST       = 100;
     uint16_t raw = analogRead(PIN_TEMPO);
     if (raw > ADC_MAX) raw = ADC_MAX;
     if (held == 1 && raw > LOW_BOUND  + HYST) held = 2;
@@ -255,16 +264,14 @@ static void renderMenu();   // fwd decl: defined below fireStep()
 
 static void fireStep() {
     if (externalClockActive()) {
-        // External mode: derive gate length from the last measured inter-edge
-        // interval. Skip on the very first pulse (no period yet).
-        if (extPrevEdgeMs > 0) {
-            uint32_t period = extLastEdgeMs - extPrevEdgeMs;
-            if (period > 0 && period < 10000) {
-                gateMs = ((uint32_t)period * extDivider) / 2;
-                // sanity-clamp so a stale interval can't strand the gate
-                if (gateMs < 5)    gateMs = 5;
-                if (gateMs > 5000) gateMs = 50;
-            }
+        // External mode: gate length = half of the interpolated step interval.
+        // The interpolated interval has already been computed from the last
+        // measured period in the loop's edge handler; we just use it here.
+        if (extInterpolatedInterval > 0) {
+            gateMs = extInterpolatedInterval / 2;
+            // sanity-clamp so a stale interval can't strand the gate
+            if (gateMs < 5)    gateMs = 5;
+            if (gateMs > 5000) gateMs = 50;
         }
     } else {
         refreshTempoFromPot();
@@ -458,21 +465,32 @@ void loop() {
             // Just timed out → internal: re-anchor timing from pot
             refreshTempoFromPot();
             lastStepMs    = millis();
-            extPulseCount = 0;
+            extStepsRemaining = 0;
+            extInterpolatedInterval = 0;
         }
         renderMenu(); // toggles the INT/EXT badge
         Serial.printf("clock=%s\n", extNow ? "EXTERNAL" : "INTERNAL");
     }
 
     if (extNow) {
-        // External: advance only when a pulse arrives AND divider count fires.
+        // External: each pulse fires a step + N-1 interpolated steps before
+        // the next pulse. The interpolated interval is computed once per
+        // pulse from the previously-measured period (so the very first pulse
+        // doesn't interpolate — extPrevEdgeMs is 0).
         if (extEdge) {
-            extDivider = externalDividerFromPot();   // sample on each pulse
-            extPulseCount++;
-            if (extPulseCount >= extDivider) {
-                extPulseCount = 0;
-                fireStep();
+            extMultiplier = externalMultiplierFromPot();
+            if (extPrevEdgeMs > 0 && extMultiplier > 0) {
+                uint32_t period = extLastEdgeMs - extPrevEdgeMs;
+                extInterpolatedInterval = period / extMultiplier;
             }
+            extStepsRemaining = (extMultiplier > 0) ? (uint8_t)(extMultiplier - 1) : 0;
+            fireStep();
+        }
+        // Fire any pending interpolated steps on schedule.
+        if (extStepsRemaining > 0 && extInterpolatedInterval > 0
+            && (now - lastStepMs) >= extInterpolatedInterval) {
+            fireStep();
+            extStepsRemaining--;
         }
     } else {
         // Internal: existing time-based step advance.
