@@ -10,9 +10,9 @@
 //
 // ROTATION values: 0=native landscape, 1=90° CW (portrait), 2=180°, 3=270° CW.
 // ---------------------------------------------------------------------------
-#define OLED_WIDTH    128
+#define OLED_WIDTH     64
 #define OLED_HEIGHT    32
-#define OLED_ROTATION   0
+#define OLED_ROTATION   1
 
 #define OLED_I2C_ADDR 0x3C   // both 0.91" and 0.49" SSD1306 default to 0x3C
 
