@@ -223,16 +223,24 @@ static uint8_t externalDividerFromPot() {
 }
 
 // Edge detector on PIN_J1 (digitalRead). Returns true on a low→high transition.
+// Debounced: rejects edges within MIN_EDGE_INTERVAL_MS of the previous accepted
+// one. 10 ms = up to 6000 BPM rejected as bounce, well above musical territory.
 static bool pollExternalClockEdge() {
+    static const uint32_t MIN_EDGE_INTERVAL_MS = 10;
     bool now = (digitalRead(PIN_J1) == HIGH);
     if (extClockHigh) {
         if (!now) extClockHigh = false;
         return false;
     }
     if (now) {
+        uint32_t now_ms = millis();
+        if (extLastEdgeMs != 0 && (now_ms - extLastEdgeMs) < MIN_EDGE_INTERVAL_MS) {
+            extClockHigh = true;     // accept the new state, but don't fire
+            return false;
+        }
         extClockHigh   = true;
         extPrevEdgeMs  = extLastEdgeMs;
-        extLastEdgeMs  = millis();
+        extLastEdgeMs  = now_ms;
         return true;
     }
     return false;
