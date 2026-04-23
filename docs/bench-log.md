@@ -123,3 +123,30 @@ Measurements from hardware bring-up, ordered chronologically. Referenced by stor
 **Tests:** 45/45 host tests green.
 
 **Deferred:** BAT54 clamp on op-amp B input (Rev 0.1 PCB). Wrap-vs-clamp for overshooting played notes — clamp chosen as predictable.
+
+---
+
+## 2026-04-23 — Story 010: external clock input on J1 (with side quest)
+
+**Setup:** new firmware reads J1 (D3 / GP5) via `digitalRead` for rising-edge detection. Auto-switches to external mode within 2 s of detected edges; falls back to internal tempo on timeout. Tempo pot becomes a clock divider (÷1, ÷2, ÷4) when external is active. OLED shows `INT` or `EXT` tag.
+
+**Pin reassignment from spec:** the spec called for J1 on `A3` / `GP29`, but `GP29` is **not exposed** on the XIAO RP2350 (only GP0–GP7 top + GP9–GP12, GP16–GP17, GP20–GP21 bottom-pads). All ADC-capable pins (GP26/27/28) are taken (tempo pot, CV in, PWM out). J1 is therefore digital-only on this build; pitch mode on J1 is deferred until an ADC pin is freed (e.g. by replacing the tempo pot with encoder navigation).
+
+**Side quest (separate session, same day):** built `firmware/clock-mod2/` to drive a HAGIWO MOD2 board as a bench clock source. Hit a board defect on the MOD2 — JP2 (solder bridge across C18 for AC/DC coupling) doesn't actually route to C18's pads on this PCB rev. Workaround: solder a wire across C18 directly. Documented in `firmware/clock-mod2/README.md` and `decisions.md` deferred section.
+
+**RP2350-E9 silicon bug — main quest blocker:**
+1. Built the spec'd 100 kΩ + 100 kΩ divider on J1.
+2. With MOD2 patched in, `digitalRead(D3)` was stuck at HIGH. No edges ever detected.
+3. Multimeter at D3 showed "low" sitting at ~2.13 V — well above the GPIO HIGH threshold (~1.6 V), so the GPIO never saw a true LOW.
+4. Verified MOD2 output was a clean 0–8 V square wave (scope), GND was shared between boards, divider continuity was correct, divider input (post-resistor-A) was 0 V at low.
+5. Disconnected D3 from the divider — divider output dropped cleanly to 0 V. So D3 itself was sourcing/holding ~2 V into the divider.
+6. Tried `INPUT_PULLDOWN` instead of `INPUT` — no change.
+7. Soldered in a fresh XIAO RP2350 (suspected ESD damage). Same result.
+8. **User identified the silicon errata: [RP2350-E9](https://hackaday.com/2024/08/28/hardware-bug-in-raspberry-pis-rp2350-causes-faulty-pull-down-behavior/)** — when input buffer is enabled with internal pulldown, the pad latches at ~2.2 V. Pi Foundation workaround: external pulldown must be ≤ 8.2 kΩ.
+9. **Fix:** swapped the divider from 100 kΩ + 100 kΩ → **10 kΩ + 10 kΩ**. Same 1:2 ratio (firmware unchanged) but now the bottom-leg 10 k is low enough to overpower the latched silicon-bug voltage. Edges detected immediately.
+
+Total bench time on the RP2350-E9 hunt: ~90 minutes. Documented in `decisions.md` §18 so we don't repeat the error on Rev 0.1 PCB. Rule: any GPIO input that needs a pulldown gets an external resistor ≤ 8.2 kΩ.
+
+**Result:** gio now correctly tracks external clock from MOD2. EXT badge appears on OLED. LED blinks per pulse. Divider zone hysteresis works. Disconnect cable → falls back to internal tempo within 2 s.
+
+**Deferred:** pitch mode on J1 (needs an ADC pin freed up); BAT43 clamp on J1 input (Rev 0.1 PCB).

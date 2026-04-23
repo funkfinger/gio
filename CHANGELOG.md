@@ -12,7 +12,21 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
-*(empty — Story 010 starts here)*
+### Added
+
+- **Story 010 complete.** External clock input on J1. `digitalRead` edge detection on D3 / GP5; auto-switches to external mode within 2 s of any rising edge, falls back to internal tempo on timeout. Tempo pot becomes a clock divider (÷1, ÷2, ÷4) when external is active. OLED tag shows `INT` / `EXT`.
+- `firmware/clock-mod2/` — bench clock source (side quest). HAGIWO MOD2 board with XIAO RP2350; `POT1 → BPM (exp 20–300) → GP1 → 0–10 V gate at J6`. Reuses `lib/tempo/` from gio. `README.md` documents the JP2/C18 board defect on Rev A and the wire-across-cap workaround.
+- `docs/stories/010-clock-input.md` and detailed `docs/bench-log.md` entry.
+
+### Changed
+
+- `firmware/arp/src/main.cpp`: PIN_J1 = D3 / GP5 (digital). Spec called for A3 / GP29 but **GP29 is not exposed on the XIAO RP2350** (variant only breaks out GP0–7 + GP9–12, GP16–17, GP20–21). All ADC-capable pins are in use, so J1 is digital-only on this build; pitch mode on J1 deferred until an ADC pin is freed.
+- `firmware/arp/src/main.cpp`: `pinMode(PIN_J1, INPUT_PULLDOWN)` — internal pulldown is *not* sufficient on RP2350 due to silicon errata; the external 10 kΩ pulldown does the actual work (see below).
+
+### Docs
+
+- **`docs/decisions.md` §18 — RP2350-E9 silicon errata.** Internal `INPUT_PULLDOWN` latches the pad at ~2.2 V instead of pulling to GND. Pi Foundation workaround: external pulldown ≤ 8.2 kΩ. Cost ~90 min of bench debugging during Story 010 before the user spotted the errata. Rule for Rev 0.1 PCB: any GPIO needing a pulldown gets an external resistor ≤ 8.2 kΩ.
+- `docs/decisions.md` "Deferred decisions": added the MOD2 JP2 lesson (verify every solder-jumper net survives schematic→PCB transfer) and a placeholder for "gio as a clock source" feature.
 
 ---
 

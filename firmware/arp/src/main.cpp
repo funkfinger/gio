@@ -8,16 +8,24 @@
 #include "oled_ui.h"
 #include "encoder_input.h"
 
+// Story 010: external clock input on J1, auto-detect mode.
 // Story 009: CV input for V/oct transpose (α-summing).
-// Encoder ROOT sets the base root note. CV at J2 is read every step,
-// snapped to semitones then to the active scale, and ADDED to the encoder
-// root. Unplugged J2 reads ~0 V → 0 transpose → arp plays exactly as encoder set.
+//
+// When a clock signal is detected on J1 (rising edges within the last 2 s),
+// the arp advances on each edge instead of running on the internal tempo.
+// When external clock stops, the module falls back to the tempo pot.
+// Tempo pot acts as a clock divider when external is active (÷1, ÷2, ÷4).
 
 // ------------------------------ pins -------------------------------
 static const uint8_t  PIN_DAC_PWM    = D2;   // GP28
 static const uint8_t  PIN_GATE       = D6;   // GP0
 static const uint8_t  PIN_TEMPO      = A0;   // D0/GP26
 static const uint8_t  PIN_CV         = A1;   // D1/GP27 — buffered CV in (op-amp B)
+static const uint8_t  PIN_J1         = D3;   // GP5 — clock in (digital). Spec called for
+                                             // GP29/A3 but the XIAO RP2350 doesn't expose
+                                             // GP29. ADC-capable pins are all taken (A0/A1/A2),
+                                             // so J1 is digital-only for now; pitch mode on
+                                             // J1 deferred until an ADC pin is freed.
 static const uint8_t  PIN_ENC_A      = D8;   // GP2
 static const uint8_t  PIN_ENC_B      = D9;   // GP3
 static const uint8_t  PIN_ENC_CLICK  = D10;  // GP4
@@ -41,6 +49,14 @@ static const uint16_t ADC_MAX     = 4095;
 static const float CV_DIVIDER_RATIO = 69.0f / 169.0f; // = 0.4083
 static const uint8_t MIDI_NOTE_MIN = 24;   // C1 — clamp lower bound for played notes
 static const uint8_t MIDI_NOTE_MAX = 96;   // C7 — clamp upper bound (matches DAC range)
+
+// ------------------------------ Clock-in ---------------------------
+// J1 is wired through a 100 kΩ + 100 kΩ divider (1:2 ratio) to GP5.
+// Eurorack 5..10 V clock pulses → 2.5..5 V at the GPIO. Above ~3.3 V the
+// RP2350's internal clamp + 100 kΩ series limit current safely. The GPIO
+// detects HIGH above ~1.6 V which corresponds to ~3.2 V at the jack — well
+// inside any standard Eurorack gate level (≥4 V).
+static const uint32_t EXT_CLOCK_TIMEOUT_MS = 2000;   // no edges this long → internal
 
 // ----------------------------- music -------------------------------
 // Chord stored as semitone INTERVALS from the active root. Root is added
@@ -123,6 +139,14 @@ static bool     gateOn           = false;
 static uint32_t resetFlashUntilMs = 0;
 static int      currentCvTranspose = 0;          // updated each step; used by display
 
+// External clock state
+static bool     extClockHigh        = false;     // current Schmitt-trigger output
+static uint32_t extLastEdgeMs       = 0;         // millis() of last rising edge (0 = never)
+static uint32_t extPrevEdgeMs       = 0;         // millis() of edge before that
+static uint8_t  extPulseCount       = 0;         // counts pulses up to extDivider
+static uint8_t  extDivider          = 1;         // 1, 2, or 4 (from tempo pot)
+static bool     wasExtModeLast      = false;     // for detecting mode transitions
+
 // ---------------------- voltage ↔ note -----------------------------
 static float midiToVolts(uint8_t midi) {
     return ((float)midi - 48.0f) / 12.0f;
@@ -182,10 +206,61 @@ static void refreshTempoFromPot() {
     gateMs = (uint32_t)((float)stepMs * GATE_FRAC + 0.5f);
 }
 
+// Read the tempo pot in external-clock mode and map it to a clock divider.
+// Three zones with hysteresis: bottom 1/3 → ÷1, middle → ÷2, top → ÷4.
+static uint8_t externalDividerFromPot() {
+    static uint8_t held = 1;
+    static const uint16_t LOW_BOUND  = ADC_MAX / 3;          // ~1365
+    static const uint16_t HIGH_BOUND = (2 * ADC_MAX) / 3;    // ~2730
+    static const uint16_t HYST       = 100;                  // ~80 mV
+    uint16_t raw = analogRead(PIN_TEMPO);
+    if (raw > ADC_MAX) raw = ADC_MAX;
+    if (held == 1 && raw > LOW_BOUND  + HYST) held = 2;
+    if (held == 2 && raw < LOW_BOUND  - HYST) held = 1;
+    if (held == 2 && raw > HIGH_BOUND + HYST) held = 4;
+    if (held == 4 && raw < HIGH_BOUND - HYST) held = 2;
+    return held;
+}
+
+// Edge detector on PIN_J1 (digitalRead). Returns true on a low→high transition.
+static bool pollExternalClockEdge() {
+    bool now = (digitalRead(PIN_J1) == HIGH);
+    if (extClockHigh) {
+        if (!now) extClockHigh = false;
+        return false;
+    }
+    if (now) {
+        extClockHigh   = true;
+        extPrevEdgeMs  = extLastEdgeMs;
+        extLastEdgeMs  = millis();
+        return true;
+    }
+    return false;
+}
+
+static bool externalClockActive() {
+    if (extLastEdgeMs == 0) return false;
+    return (millis() - extLastEdgeMs) < EXT_CLOCK_TIMEOUT_MS;
+}
+
 static void renderMenu();   // fwd decl: defined below fireStep()
 
 static void fireStep() {
-    refreshTempoFromPot();
+    if (externalClockActive()) {
+        // External mode: derive gate length from the last measured inter-edge
+        // interval. Skip on the very first pulse (no period yet).
+        if (extPrevEdgeMs > 0) {
+            uint32_t period = extLastEdgeMs - extPrevEdgeMs;
+            if (period > 0 && period < 10000) {
+                gateMs = ((uint32_t)period * extDivider) / 2;
+                // sanity-clamp so a stale interval can't strand the gate
+                if (gateMs < 5)    gateMs = 5;
+                if (gateMs > 5000) gateMs = 50;
+            }
+        }
+    } else {
+        refreshTempoFromPot();
+    }
 
     // Sample CV (with hysteresis) and detect transpose change for display refresh.
     int newCvTranspose = readCvTransposeWithHysteresis();
@@ -258,7 +333,14 @@ static void renderMenu() {
     ui.clear();
     ui.raw().setCursor(0, 0);
     ui.raw().setTextSize(1);
-    ui.raw().println(paramName(active));
+    ui.raw().print(paramName(active));
+    {
+        // Top-right tag: EXT when external clock active, INT otherwise.
+        int16_t w = ui.raw().width();
+        ui.raw().setCursor(w - 18, 0);
+        ui.raw().print(externalClockActive() ? "EXT" : "INT");
+    }
+    ui.raw().println();
     ui.raw().setTextSize(2);
     ui.raw().println(activeValueName());
     ui.show();
@@ -283,9 +365,15 @@ void setup() {
     while (!Serial && (millis() - t0) < 2000) { /* wait briefly for USB */ }
 
     Serial.println();
-    Serial.println("=== gio Story 009 — CV transpose (α-sum) ===");
-    Serial.println("Click=cycle  Rotate=value  Hold=reset  CV at J2 transposes");
+    Serial.println("=== gio Story 010 — clock-in on J1 ===");
+    Serial.println("Click=cycle  Rotate=value  Hold=reset");
+    Serial.println("J1 clock auto-detected; tempo pot becomes div (1/2/4) when ext");
 
+    // Internal pulldown is enabled belt-and-braces, but on RP2350 it cannot be
+    // relied on alone (silicon errata RP2350-E9). The bench fix is a low-impedance
+    // external divider (10 kΩ + 10 kΩ at J1, ≤ 8.2 kΩ effective pulldown).
+    // See decisions.md §18.
+    pinMode(PIN_J1, INPUT_PULLDOWN);
     if (!ui.begin()) Serial.println("OLED init failed!");
     enc.begin(PIN_ENC_A, PIN_ENC_B, PIN_ENC_CLICK);
 
@@ -350,11 +438,42 @@ void loop() {
         ledWrite(false);
         gateOn = false;
     }
-    if ((now - lastStepMs) >= stepMs) {
-        fireStep();
-        if (resetFlashUntilMs && (int32_t)(now - resetFlashUntilMs) >= 0) {
-            resetFlashUntilMs = 0;
-            renderMenu();
+
+    // ---- clock source selection: external if recent edges, else internal ----
+    bool extEdge = pollExternalClockEdge();
+    bool extNow  = externalClockActive();
+
+    // Detect mode transition (for OLED refresh + clean fallback to internal)
+    if (extNow != wasExtModeLast) {
+        wasExtModeLast = extNow;
+        if (!extNow) {
+            // Just timed out → internal: re-anchor timing from pot
+            refreshTempoFromPot();
+            lastStepMs    = millis();
+            extPulseCount = 0;
+        }
+        renderMenu(); // toggles the INT/EXT badge
+        Serial.printf("clock=%s\n", extNow ? "EXTERNAL" : "INTERNAL");
+    }
+
+    if (extNow) {
+        // External: advance only when a pulse arrives AND divider count fires.
+        if (extEdge) {
+            extDivider = externalDividerFromPot();   // sample on each pulse
+            extPulseCount++;
+            if (extPulseCount >= extDivider) {
+                extPulseCount = 0;
+                fireStep();
+            }
+        }
+    } else {
+        // Internal: existing time-based step advance.
+        if ((now - lastStepMs) >= stepMs) {
+            fireStep();
+            if (resetFlashUntilMs && (int32_t)(now - resetFlashUntilMs) >= 0) {
+                resetFlashUntilMs = 0;
+                renderMenu();
+            }
         }
     }
 }
