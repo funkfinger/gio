@@ -390,6 +390,9 @@ void setup() {
     // See decisions.md §18.
     pinMode(PIN_J1, INPUT_PULLDOWN);
     if (!ui.begin()) Serial.println("OLED init failed!");
+    // Boot splash: frame 1 holds for 3 s, then 100 ms per subsequent frame.
+    // Total run time ≈ 3.0 + 8 × 0.1 = 3.8 s. Blocks setup(); fine here.
+    ui.playAnimation(screens::splash_screen_animation, 3000, 100);
     enc.begin(PIN_ENC_A, PIN_ENC_B, PIN_ENC_CLICK);
 
     pinMode(PIN_NEOPIXEL_POWER, OUTPUT);

@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <Adafruit_SSD1306.h>
+#include "screens.h"
 
 // ---------------------------------------------------------------------------
 // OLED hardware config — change THESE THREE constants when swapping displays.
@@ -31,6 +32,22 @@ public:
 
     // Beat indicator dot in a corner. Caller toggles per beat.
     void showBeat(bool on);
+
+    // Draw a generated screen bitmap at (x, y). Default (0, 0) centres a
+    // full-panel bitmap in the top-left. Uses SSD1306_WHITE; a lit pixel in
+    // the source PNG becomes a white pixel on the OLED. Does NOT call show().
+    void drawScreen(const screens::Screen& s, int16_t x = 0, int16_t y = 0);
+
+    // Blocking: play a generated animation from first frame to last. The
+    // first frame is held on screen for `first_frame_hold_ms` (useful for
+    // boot-splash behaviour); all subsequent frames tick at `frame_delay_ms`.
+    // Calls show() internally after each frame. Draws each frame at (x, y);
+    // default origin draws full-panel animations in the top-left.
+    void playAnimation(const screens::Animation& ani,
+                       uint16_t first_frame_hold_ms,
+                       uint16_t frame_delay_ms,
+                       int16_t x = 0,
+                       int16_t y = 0);
 
     // Push backbuffer to the display.
     void show();

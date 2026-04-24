@@ -48,6 +48,26 @@ void OledUI::showBeat(bool on) {
     else    display_.fillRect(w - 5, h - 5, 4, 4, SSD1306_BLACK);
 }
 
+void OledUI::drawScreen(const screens::Screen& s, int16_t x, int16_t y) {
+    if (!ready_) return;
+    display_.drawBitmap(x, y, s.data, s.width, s.height, SSD1306_WHITE);
+}
+
+void OledUI::playAnimation(const screens::Animation& ani,
+                           uint16_t first_frame_hold_ms,
+                           uint16_t frame_delay_ms,
+                           int16_t  x,
+                           int16_t  y) {
+    if (!ready_) return;
+    for (uint8_t i = 0; i < ani.count; ++i) {
+        display_.clearDisplay();
+        display_.drawBitmap(x, y, ani.frames[i]->data, ani.frames[i]->width,
+                            ani.frames[i]->height, SSD1306_WHITE);
+        display_.display();
+        delay(i == 0 ? first_frame_hold_ms : frame_delay_ms);
+    }
+}
+
 void OledUI::show() {
     if (!ready_) return;
     display_.display();

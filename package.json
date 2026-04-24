@@ -1,0 +1,15 @@
+{
+  "name": "gio-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build tools for the gio Eurorack platform module. Converts single-colour bitmaps in assets/screens/ into a C++ screens library consumable by the firmware.",
+  "scripts": {
+    "build:screens": "node tools/bitmap2header.js"
+  },
+  "dependencies": {
+    "pngjs": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

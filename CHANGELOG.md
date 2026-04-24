@@ -14,6 +14,17 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Graphics pipeline for the OLED** — `assets/screens/*.png` are converted to a packed C++ bitmap library by `tools/bitmap2header.js` (Node, one dep: `pngjs`). The generated `firmware/arp/lib/screens/{screens.h,screens.cpp}` exposes each PNG as `screens::<name>` with a tiny `Screen` struct (`data`, `width`, `height`). **Animation support:** any subdirectory of PNGs under `assets/screens/` also emits a `screens::Animation` (ordered frame-pointer array + count). Frame order within a directory is natural-sort (`frame2` before `frame10`). Packed in Adafruit GFX `drawBitmap` byte order. Workflow: drop PNG → `npm run build:screens` → `pio run`. Details in `assets/screens/README.md`.
+- **Boot splash animation.** 9-frame splash in `assets/screens/splash-screen-animation/` plays on every boot: frame 1 holds 3 s, frames 2–9 tick at 100 ms each (total ~3.8 s). Blocking call in `setup()`; runs before the normal menu renders.
+- `OledUI::drawScreen(const screens::Screen&, x, y)` — thin passthrough to `Adafruit_SSD1306::drawBitmap()`.
+- `OledUI::playAnimation(const screens::Animation&, first_frame_hold_ms, frame_delay_ms, x, y)` — blocking animation player with distinct first-frame hold (splash-friendly).
+- `tools/generate-sample-png.js` — one-shot helper that creates a 32×64 test PNG for round-trip verification on fresh clones. Delete `assets/screens/sample.png` once real art exists.
+- `package.json` at repo root — `npm install` pulls `pngjs`; `npm run build:screens` regenerates the library. Pivot from Python to Node for tooling since the project's primary human is more fluent in JS.
+
+### Changed
+
+- **Bitmap threshold flipped to OLED-native convention.** Previously: dark pixel in PNG → lit pixel on OLED. Now: **white pixel in PNG → lit pixel on OLED, black → off.** Matches how the panel physically looks — draw with light strokes on a black canvas and your image on screen matches the display. `tools/bitmap2header.js` updated; README and the sample-PNG generator follow suit.
+
 - `firmware/arp/lib/trigger_in/` — pure-C++ firmware Schmitt trigger (`trigger_in::Schmitt`) for rising-edge detection on a polled voltage signal. Defaults to Eurorack-standard thresholds (high = +1.5 V, low = +0.5 V, 1 V hysteresis). Constructor accepts custom thresholds; initial state is "not armed" so an idle-high jack at startup doesn't fire spuriously. Story 016 prep — wires straight into the buffered ADC reads from Story 015 when bench-built.
 - 15 new GoogleTest cases in `test_trigger_in/` covering: initial-state safety, rising-edge fire-once, square-wave repeat, exact-threshold behaviour, hysteresis (ripple rejection + must-drop-below-low to re-arm), slow-ramp single-fire, reset, custom thresholds. **Total host tests: 45 → 60, all green.**
 

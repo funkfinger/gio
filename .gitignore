@@ -33,3 +33,8 @@ fp-info-cache
 # Python
 __pycache__/
 *.pyc
+
+# Node (tools/)
+node_modules/
+npm-debug.log
+package-lock.json
