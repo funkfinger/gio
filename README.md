@@ -1,5 +1,7 @@
 # gio
 
+![gio on the breadboard](docs/images/gio-early-breadboard.jpg)
+
 A 2 HP Eurorack generative arpeggiator module built around the Seeed XIAO RP2350. Produces scale-quantised V/Oct pitch CV and gate outputs driven by a probability-layered generative engine. Open-source hardware and firmware.
 
 Spiritual successor to [funkfinger/xiao-ra4m1-arp](https://github.com/funkfinger/xiao-ra4m1-arp), ported to the RP2350 with an encoder + OLED UI and an external I2C DAC (MCP4725) in place of the RA4M1's onboard DAC.
