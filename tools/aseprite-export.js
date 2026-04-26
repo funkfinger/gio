@@ -3,16 +3,21 @@
 // under assets/screens/ as individual PNGs that bitmap2header.js then
 // converts to C++ bitmaps.
 //
-// Convention (opt-in per-frame export via tagging):
-//   - Single-frame tag (from == to) → exports as `<base>-<tag>.png`.
-//     Examples: key-A.png, key-Csharp.png, splash-1.png.
-//   - Multi-frame tag (e.g. "Loop" covering all frames) → ignored.
-//     If you want every frame exported, tag each one individually.
-//   - Untagged frames → ignored (so existing manual PNGs are preserved).
+// Convention:
+//   - Tag a frame in Aseprite (Window → Timeline → right-click → New Tag).
+//   - Single-frame tags export as `<base>-<tag>.png` (e.g. `key-A.png`).
+//   - **Multi-frame tags are bad news.** If a tag spans multiple frames,
+//     Aseprite's `{tag}` placeholder generates `<base>-<tag>1.png`,
+//     `<base>-<tag>2.png`, ... `<base>-<tag>N.png` — one file per frame.
+//     These pollute the screens namespace with redundant bitmaps. The tool
+//     auto-detects them after export, deletes them, and warns. Remove the
+//     multi-frame tag in Aseprite to silence the warning.
 //
-// Why per-tag CLI invocations instead of `--save-as 'name_{tag}.png'`:
-// the `{tag}` placeholder is broken on Aseprite 1.3.17.1 — it produces
-// no output even when tags exist. Per-tag CLI calls work reliably.
+// Why no Lua introspection: Aseprite 1.3.17.1's CLI placeholder substitution
+// (`{tag}`) works fine for direct exports. The earlier Lua-based approach
+// (kept at tools/aseprite-list-tags.lua, deprecated for now) was needed for
+// per-tag CLI invocations to avoid multi-frame pollution — but the post-
+// export cleanup below handles that without needing per-tag invocations.
 //
 // Aseprite path defaults to the macOS standard install. Set
 // ASEPRITE_PATH=/path/to/aseprite to override.
@@ -26,7 +31,6 @@ const ASEPRITE = process.env.ASEPRITE_PATH
 
 const REPO_ROOT  = path.resolve(__dirname, '..');
 const ASSETS_DIR = path.join(REPO_ROOT, 'assets', 'screens');
-const LIST_TAGS_LUA = path.join(__dirname, 'aseprite-list-tags.lua');
 
 function findAsepriteFiles(dir) {
   const out = [];
@@ -38,61 +42,81 @@ function findAsepriteFiles(dir) {
   return out;
 }
 
-function listTags(file) {
-  const r = spawnSync(ASEPRITE,
-    ['-b', file, '--script', LIST_TAGS_LUA],
-    { encoding: 'utf8' });
-  if (r.status !== 0) {
-    throw new Error(`aseprite list-tags failed for ${file}:\n${r.stderr}`);
-  }
-  // Aseprite may print other things; pick the JSON line.
-  const lines = r.stdout.trim().split('\n');
-  const jsonLine = lines.find(l => l.startsWith('['));
-  if (!jsonLine) {
-    throw new Error(`no tag JSON in stdout for ${file}: ${r.stdout}`);
-  }
-  return JSON.parse(jsonLine);
+// List PNGs in a directory that match the basename's prefix.
+function pngsForBase(dir, base) {
+  if (!fs.existsSync(dir)) return new Set();
+  return new Set(
+    fs.readdirSync(dir).filter(f =>
+      f.startsWith(`${base}-`) && f.toLowerCase().endsWith('.png')
+    )
+  );
 }
 
-function exportFrame(file, frameNum, outPath) {
-  // --frame-range is 0-based and inclusive on both ends. Aseprite's Lua
-  // API (used by aseprite-list-tags.lua) reports tag fromFrame.frameNumber
-  // as 1-based, so we subtract 1 here. Verified empirically against the
-  // 1.3.17.1 CLI — bench-checked 2026-04-26.
-  const cliFrame = frameNum - 1;
-  const r = spawnSync(ASEPRITE, [
-    '-b', file,
-    '--frame-range', `${cliFrame},${cliFrame}`,
-    '--save-as', outPath,
-  ], { encoding: 'utf8' });
-  if (r.status !== 0) {
-    throw new Error(`aseprite export failed: ${r.stderr}`);
+// Detect multi-frame-tag pollution among NEW files: any group of >=2 files
+// sharing the same `<base>-<tag>` prefix where each ends with a digit
+// suffix (e.g. key-Loop1.png, key-Loop2.png, ...). Returns a Map of
+// prefix → [filenames].
+function detectMultiFrameGroups(base, newFiles) {
+  const groups = new Map();
+  for (const f of newFiles) {
+    // Strip "<base>-" then look for trailing digits before .png.
+    const stripped = f.slice(base.length + 1, -4);  // remove "<base>-" prefix and ".png"
+    const m = stripped.match(/^(.+?)(\d+)$/);
+    if (!m) continue;
+    const tagName = m[1];
+    if (!groups.has(tagName)) groups.set(tagName, []);
+    groups.get(tagName).push(f);
   }
+  // Keep only groups with multiple files (true multi-frame tag pattern).
+  for (const [k, v] of groups.entries()) {
+    if (v.length < 2) groups.delete(k);
+  }
+  return groups;
 }
 
-function processFile(file) {
+function exportFile(file) {
   const dir  = path.dirname(file);
   const base = path.basename(file, '.aseprite');
-  const tags = listTags(file);
 
-  // Filter for single-frame tags only.
-  const singleFrameTags = tags.filter(t => t.from === t.to);
+  const before = pngsForBase(dir, base);
+  const r = spawnSync(ASEPRITE, [
+    '-b', file,
+    '--save-as', path.join(dir, `${base}-{tag}.png`),
+  ], { encoding: 'utf8' });
+  if (r.status !== 0) {
+    throw new Error(`aseprite export failed for ${file}:\n${r.stderr}`);
+  }
+  const after = pngsForBase(dir, base);
+  const newFiles = [...after].filter(f => !before.has(f));
 
-  if (singleFrameTags.length === 0) {
-    const ignored = tags.length > 0
-      ? ` (${tags.length} multi-frame tag(s) ignored: ${tags.map(t => `"${t.name}"`).join(', ')})`
-      : ' (no tags)';
-    console.log(`  ${path.relative(ASSETS_DIR, file)}  →  skipped${ignored}`);
-    return 0;
+  // Empty-tag artifact: an untagged .aseprite produces `<base>-.png` (the
+  // {tag} substitution is empty, leaving a trailing dash). Detect + delete.
+  const emptyTagFile = `${base}-.png`;
+  const hasEmptyTag = newFiles.includes(emptyTagFile);
+  if (hasEmptyTag) {
+    console.warn(`  ⚠  no tags in ${path.relative(ASSETS_DIR, file)} — deleting empty-tag artifact: ${emptyTagFile}`);
+    console.warn(`     → tag at least one frame in Aseprite, or move the .aseprite out of assets/screens/ to skip it`);
+    fs.unlinkSync(path.join(dir, emptyTagFile));
   }
 
-  for (const tag of singleFrameTags) {
-    const outName = `${base}-${tag.name}.png`;
-    const outPath = path.join(dir, outName);
-    exportFrame(file, tag.from, outPath);
-    console.log(`  ${path.relative(ASSETS_DIR, file)}  →  ${path.relative(ASSETS_DIR, outPath)}`);
+  const polluted = detectMultiFrameGroups(base, newFiles.filter(f => f !== emptyTagFile));
+
+  for (const f of newFiles) {
+    if (f === emptyTagFile) continue;
+    const isPolluted = [...polluted.values()].some(grp => grp.includes(f));
+    if (!isPolluted) {
+      console.log(`  ${path.relative(ASSETS_DIR, file)}  →  ${f}`);
+    }
   }
-  return singleFrameTags.length;
+
+  if (polluted.size > 0) {
+    for (const [tagName, files] of polluted.entries()) {
+      console.warn(`  ⚠  multi-frame tag detected: "${tagName}" in ${path.relative(ASSETS_DIR, file)} (${files.length} frames)`);
+      console.warn(`     deleting: ${files.join(', ')}`);
+      console.warn(`     → remove the "${tagName}" tag in Aseprite to silence this`);
+      for (const f of files) fs.unlinkSync(path.join(dir, f));
+    }
+  }
 }
 
 function main() {
@@ -115,9 +139,7 @@ function main() {
 
   console.log(`Aseprite: ${ASEPRITE}`);
   console.log(`Scanning ${files.length} .aseprite file(s):`);
-  let total = 0;
-  for (const f of files) total += processFile(f);
-  console.log(`Done — exported ${total} frame(s).`);
+  for (const f of files) exportFile(f);
 }
 
 main();
