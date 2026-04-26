@@ -14,6 +14,8 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Trigger ratcheting (Story 019).** New menu param `TRIG` (1, 2, 3, 4 — selectable via encoder). Each arp note still produces one pitch, but the gate fires N evenly-spaced times within the note. Each sub-gate is `(stepMs / N) * 0.5` long with a 5 ms floor. Composes with the external-clock multiplier — multiplier controls notes-per-pulse, ratchet controls gates-per-note (so external + ×2 + TRIG 3 = 6 gates per incoming pulse). Encoder cycle: SCALE → ORDER → ROOT → TRIG → SCALE. NeoPixel adds yellow/amber for TRIG. Bench-confirmed audibly at all four values. Future: random ratchet (Story 020 deferred).
+
 - **Graphics pipeline for the OLED** — `assets/screens/*.png` are converted to a packed C++ bitmap library by `tools/bitmap2header.js` (Node, one dep: `pngjs`). The generated `firmware/arp/lib/screens/{screens.h,screens.cpp}` exposes each PNG as `screens::<name>` with a tiny `Screen` struct (`data`, `width`, `height`). **Animation support:** any subdirectory of PNGs under `assets/screens/` also emits a `screens::Animation` (ordered frame-pointer array + count). Frame order within a directory is natural-sort (`frame2` before `frame10`). Packed in Adafruit GFX `drawBitmap` byte order. Workflow: drop PNG → `npm run build:screens` → `pio run`. Details in `assets/screens/README.md`.
 - **Boot splash animation.** 9-frame splash in `assets/screens/splash-screen-animation/` plays on every boot: frame 1 holds 3 s, frames 2–9 tick at 100 ms each (total ~3.8 s). Blocking call in `setup()`; runs before the normal menu renders.
 - `OledUI::drawScreen(const screens::Screen&, x, y)` — thin passthrough to `Adafruit_SSD1306::drawBitmap()`.

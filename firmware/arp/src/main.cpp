@@ -76,14 +76,15 @@ static const char* PITCH_CLASS_NAMES[12] = {
 static const uint8_t ROOT_OCTAVE_BASE_MIDI = 48;
 
 // ----------------------------- menu --------------------------------
-enum class Param : uint8_t { Scale = 0, Order, Root, COUNT };
+enum class Param : uint8_t { Scale = 0, Order, Root, Trigger, COUNT };
 
 static const char* paramName(Param p) {
     switch (p) {
-        case Param::Scale: return "SCALE";
-        case Param::Order: return "ORDER";
-        case Param::Root:  return "ROOT";
-        default:           return "?";
+        case Param::Scale:   return "SCALE";
+        case Param::Order:   return "ORDER";
+        case Param::Root:    return "ROOT";
+        case Param::Trigger: return "TRIG";
+        default:             return "?";
     }
 }
 static const char* scaleName(Scale s) {
@@ -132,12 +133,21 @@ static OledUI        ui;
 static EncoderInput  enc;
 static Adafruit_NeoPixel pixel(1, PIN_NEOPIXEL_DATA, NEO_GRBW + NEO_KHZ800);
 
-static uint32_t lastStepMs       = 0;
-static uint32_t stepMs           = 125;
-static uint32_t gateMs           = 62;
+static uint32_t lastStepMs       = 0;             // start of current note (note advance)
+static uint32_t stepMs           = 125;           // total note length
 static bool     gateOn           = false;
 static uint32_t resetFlashUntilMs = 0;
 static int      currentCvTranspose = 0;          // updated each step; used by display
+
+// Trigger ratcheting (Story 019) — N gates per note. ratchet=1 = legacy
+// behaviour; 2..4 fire sub-gates evenly within the note (same pitch, same
+// step length). Composes with the external-clock multiplier — multiplier
+// controls notes-per-pulse, ratchet controls gates-per-note.
+static uint8_t  ratchet          = 1;             // 1..4
+static uint32_t subStepMs        = 125;           // = stepMs / ratchet
+static uint32_t subGateMs        = 62;            // = subStepMs * GATE_FRAC
+static uint32_t lastSubGateMs    = 0;             // start of current sub-gate
+static uint8_t  subGatesFired    = 0;             // sub-gates fired in current note
 
 // External clock state
 static bool     extClockHigh             = false; // current Schmitt-trigger output
@@ -198,13 +208,33 @@ static int readCvTransposeWithHysteresis() {
 }
 
 // --------------------------- engine glue ---------------------------
+// Recompute sub-gate timing from a note length (called when stepMs or
+// ratchet changes). Each sub-gate takes subStepMs from start to start;
+// each gate stays HIGH for subGateMs (= subStepMs * GATE_FRAC).
+static void recalcSubTiming(uint32_t noteMs) {
+    if (ratchet < 1) ratchet = 1;
+    subStepMs = noteMs / ratchet;
+    if (subStepMs < 5) subStepMs = 5;             // sanity floor
+    subGateMs = (uint32_t)((float)subStepMs * GATE_FRAC + 0.5f);
+}
+
 static void refreshTempoFromPot() {
     uint16_t raw = analogRead(PIN_TEMPO);
     if (raw > ADC_MAX) raw = ADC_MAX;
     float pot = (float)raw / (float)ADC_MAX;
     float bpm = tempo::potToBpm(pot);
     stepMs = tempo::bpmToStepMs(bpm, SUBDIV);
-    gateMs = (uint32_t)((float)stepMs * GATE_FRAC + 0.5f);
+    recalcSubTiming(stepMs);
+}
+
+// Fire a sub-gate WITHOUT changing the DAC value — same pitch, just another
+// trigger. Called between fireStep() invocations when ratchet > 1.
+static void fireSubGate() {
+    gateWrite(true);
+    ledWrite(true);
+    gateOn        = true;
+    lastSubGateMs = millis();
+    subGatesFired++;
 }
 
 // Read the tempo pot in external-clock mode and map it to a clock MULTIPLIER —
@@ -264,14 +294,16 @@ static void renderMenu();   // fwd decl: defined below fireStep()
 
 static void fireStep() {
     if (externalClockActive()) {
-        // External mode: gate length = half of the interpolated step interval.
-        // The interpolated interval has already been computed from the last
-        // measured period in the loop's edge handler; we just use it here.
+        // External mode: derive sub-step timing from the interpolated
+        // interval (one external-clock note's duration). Composes ratchet
+        // on top of the multiplier — multiplier controls how many notes per
+        // pulse, ratchet controls how many gates per note.
         if (extInterpolatedInterval > 0) {
-            gateMs = extInterpolatedInterval / 2;
-            // sanity-clamp so a stale interval can't strand the gate
-            if (gateMs < 5)    gateMs = 5;
-            if (gateMs > 5000) gateMs = 50;
+            recalcSubTiming(extInterpolatedInterval);
+            // sanity-clamp the per-gate length so a stale interval can't
+            // strand the gate
+            if (subGateMs < 5)    subGateMs = 5;
+            if (subGateMs > 5000) subGateMs = 50;
         }
     } else {
         refreshTempoFromPot();
@@ -299,8 +331,10 @@ static void fireStep() {
     analogWrite(PIN_DAC_PWM, cnt);
     gateWrite(true);
     ledWrite(true);
-    gateOn     = true;
-    lastStepMs = millis();
+    gateOn        = true;
+    lastStepMs    = millis();
+    lastSubGateMs = lastStepMs;
+    subGatesFired = 1;             // this fireStep() counts as the first sub-gate
 
     // Live ROOT display: re-render menu if the effective root changed and
     // ROOT is the active param. (Only ROOT depends on CV — Scale/Order don't.)
@@ -310,9 +344,10 @@ static void fireStep() {
 // --------------------------- UI helpers ----------------------------
 static void updateNeoPixel() {
     uint8_t r = 0, g = 0, b = 0;
-    if      (active == Param::Scale) g = 255;
-    else if (active == Param::Order) b = 255;
-    else if (active == Param::Root)  { r = 255; b = 255; } // magenta
+    if      (active == Param::Scale)   g = 255;
+    else if (active == Param::Order)   b = 255;
+    else if (active == Param::Root)    { r = 255; b = 255; } // magenta
+    else if (active == Param::Trigger) { r = 255; g = 200; } // yellow/amber
     pixel.setPixelColor(0, pixel.Color(r, g, b));
     pixel.show();
 }
@@ -334,6 +369,10 @@ static const char* activeValueName() {
                 return buf;
             }
             return name;
+        }
+        case Param::Trigger: {
+            snprintf(buf, sizeof(buf), "%u", (unsigned)ratchet);
+            return buf;
         }
         default: return "?";
     }
@@ -432,6 +471,14 @@ void loop() {
                 rootPC = wrap((int)rootPC + (int)d, 12);
                 Serial.printf("root=%s\n", rootName(rootPC));
                 break;
+            case Param::Trigger: {
+                // Wrap 1..4 by mapping to 0..3, wrapping, then back.
+                int next = wrap((int)ratchet - 1 + (int)d, 4) + 1;
+                ratchet = (uint8_t)next;
+                recalcSubTiming(stepMs);   // immediate effect
+                Serial.printf("ratchet=%u\n", (unsigned)ratchet);
+                break;
+            }
             default: break;
         }
         renderMenu();
@@ -451,10 +498,18 @@ void loop() {
         renderMenu();
     }
 
-    if (gateOn && (now - lastStepMs) >= gateMs) {
+    // Gate-off check: each sub-gate stays HIGH for subGateMs.
+    if (gateOn && (now - lastSubGateMs) >= subGateMs) {
         gateWrite(false);
         ledWrite(false);
         gateOn = false;
+    }
+
+    // Sub-gate fire (ratchet > 1): if more sub-gates remain in this note
+    // and we're past one subStepMs from the last sub-gate's start, fire.
+    if (!gateOn && subGatesFired < ratchet
+        && (now - lastSubGateMs) >= subStepMs) {
+        fireSubGate();
     }
 
     // ---- clock source selection: external if recent edges, else internal ----
