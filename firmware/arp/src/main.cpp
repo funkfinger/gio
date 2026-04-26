@@ -426,24 +426,36 @@ static const screens::Screen* orderScreen(ArpOrder o) {
     }
 }
 
-// Procedural visualization for ArpOrder::Random. Draws 8 vertical bars
-// across the 32-wide portrait canvas, each at a random height — like an
-// EQ meter that jumps every step. Bench-feedback: communicates "this is
-// unpredictable" much better than a static screen could. Story 020.
+// Procedural visualization for ArpOrder::Random. Draws screens::order_random
+// as the static backdrop, then overlays 4 vertical bars at random heights in
+// the inset rectangle defined by:
+//   top margin    19 px (leaves room for header text/logo in the backdrop)
+//   left margin    3 px
+//   right margin   3 px
+//   bottom margin  3 px
+// On a 32×64 portrait canvas this gives a 26×42 drawing region (x: 3..28,
+// y: 19..60). Bars: 5 px wide, 2 px gap → 4·5 + 3·2 = 26 ✓. Heights
+// quantized in 8 levels for a "musical" feel rather than continuous noise.
+// Bench-tuned 2026-04-26 (Story 020). Communicates "this is unpredictable"
+// much better than a static screen could.
 static void drawRandomOrderScreen() {
     if (!ui.ready()) return;
     ui.clear();
-    const int Y_TOP    = 0;
-    const int Y_BOTTOM = 63;
-    const int H_AVAIL  = Y_BOTTOM - Y_TOP;   // 63
-    const int BAR_W    = 4;                   // 4 px per bar slot
-    const int BAR_LIT  = 3;                   // 3 px lit, 1 px gap
-    const int N_BARS   = 32 / BAR_W;          // 8 bars
+    ui.drawScreen(screens::order_random, 0, 0);
+
+    const int X_LEFT   = 3;
+    const int Y_TOP    = 19;
+    const int Y_BOTTOM = 60;        // 64 - 3 - 1 (last lit row)
+    const int H_AVAIL  = Y_BOTTOM - Y_TOP + 1;  // 42
+    const int N_BARS   = 4;
+    const int BAR_W    = 5;
+    const int GAP      = 2;
     const int LEVELS   = 8;
     for (int i = 0; i < N_BARS; ++i) {
-        int level = (std::rand() % LEVELS) + 1;       // 1..LEVELS
+        int level = (std::rand() % LEVELS) + 1;     // 1..LEVELS
         int h = (level * H_AVAIL) / LEVELS;
-        ui.raw().fillRect(i * BAR_W, Y_BOTTOM - h, BAR_LIT, h, SSD1306_WHITE);
+        int x = X_LEFT + i * (BAR_W + GAP);
+        ui.raw().fillRect(x, Y_BOTTOM - h + 1, BAR_W, h, SSD1306_WHITE);
     }
     ui.show();
 }
