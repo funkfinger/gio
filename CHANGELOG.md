@@ -14,6 +14,16 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Story 020 — Order screens + Random + UpDownClosed.** Major arp engine + UI work:
+  - **Engine renames** (clarification, no behaviour change): `ArpOrder::UpDown` → `ArpOrder::UpDownOpen`, `ArpOrder::Skip` → `ArpOrder::SkipUp`. The `SkipUp` rename anticipates a `SkipDown` and other finger-picking patterns.
+  - **`ArpOrder::UpDownClosed`** — palindrome WITH endpoint repeat (`0,1,2,3,3,2,1,0`, period `2N`). Top doubled in middle; bottom doubled across loop boundary.
+  - **`ArpOrder::Random`** — pure random index per step (with replacement). Uses `std::rand()` seeded in `setup()` from `millis()` ⊕ noisy ADC read.
+  - **5 static order screens** auto-exported from `order.aseprite` tags. Bar-chart art: one bar per chord note, height = pitch, position = playback order.
+  - **Procedural random-bars animation** for Random — 8 vertical bars at random heights, redrawn on every step advance when ORDER is the active param. Communicates unpredictability viscerally.
+  - **`docs/decisions.md` §24** documents open vs closed palindrome terminology + Random seeding convention.
+  - 6 new host tests (UpDownClosed × 3, Random × 3) + existing UpDown/Skip tests renamed. **Total: 60 → 66, all green.**
+  - **Future deferred:** highlight active bar in the order-screen diagram per step.
+
 - **Aseprite CLI auto-export pipeline.** New `tools/aseprite-export.js` walks `assets/screens/**/*.aseprite` and exports each tagged frame using Aseprite's built-in `{tag}` placeholder substitution (`aseprite -b file --save-as 'dir/<base>-{tag}.png'`). Single-frame tags produce `<base>-<tag>.png` directly; multi-frame tags (e.g. `Loop` covering all frames) produce `<base>-<tag>1.png`...`<base>-<tag>N.png` which are auto-detected and deleted with a friendly warning telling the user to remove the multi-frame tag in Aseprite. Untagged .aseprite files produce `<base>-.png` (empty-tag artifact) which is also auto-deleted with a warning. Tag-based naming (`key-A.png`) makes the C++ lookup self-documenting (`screens::key_A`). Wired into `npm run build:screens` ahead of `bitmap2header.js`. Aseprite path defaults to the macOS standard install; override via `ASEPRITE_PATH`.
 - `tools/aseprite-list-tags.lua` kept around but **deprecated** — the simpler `{tag}`-substitution approach replaced it. Preserved in case a future task needs richer Aseprite introspection that the standard CLI flags don't expose (1.3.17.1's `--list-tags` and `--data` JSON tag-export return empty even when tags exist).
 - **All 12 keys now graphical.** Auto-exported A through G PNGs from `key.aseprite`'s tags. The `keyNaturalScreen()` lookup maps each pitch class to its natural-note bitmap (sharps to the natural just below — C# uses C, F# uses F, etc.). When the active key is a sharp, an 8×8 `screens::sharp` glyph is composited over the natural at `(24, 18)`–`(31, 25)` (top-right corner flush with the right edge of the 32-wide portrait panel). Bench-tuned position 2026-04-26.
