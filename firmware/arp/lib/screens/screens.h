@@ -29,6 +29,8 @@ extern const Screen key_C;
 extern const Screen key_D;
 extern const Screen key_E;
 extern const Screen key_F;
+extern const Screen key_G;
+extern const Screen sharp;
 extern const Screen splash_screen1;
 extern const Screen splash_screen2;
 extern const Screen splash_screen3;

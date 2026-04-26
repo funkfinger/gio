@@ -4,7 +4,7 @@
   "private": true,
   "description": "Build tools for the gio Eurorack platform module. Converts single-colour bitmaps in assets/screens/ into a C++ screens library consumable by the firmware.",
   "scripts": {
-    "build:screens": "node tools/bitmap2header.js"
+    "build:screens": "node tools/aseprite-export.js && node tools/bitmap2header.js"
   },
   "dependencies": {
     "pngjs": "^7.0.0"

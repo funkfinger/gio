@@ -378,12 +378,61 @@ static const char* activeValueName() {
     }
 }
 
+// Return the natural-note bitmap that anchors pitch class `pc`. For
+// naturals, that's the screen for pc itself; for sharps, the screen for
+// the natural just below (e.g. C# uses C, F# uses F). Returns nullptr if
+// no art exists for the underlying natural — currently only G (pc 7) and
+// therefore also G# (pc 8). The sharp glyph is composed on top by the
+// caller when pcIsSharp() is true.
+static const screens::Screen* keyNaturalScreen(uint8_t pc) {
+    switch (pc) {
+        case 0:  case 1:  return &screens::key_C;  // C, C#
+        case 2:  case 3:  return &screens::key_D;  // D, D#
+        case 4:           return &screens::key_E;  // E
+        case 5:  case 6:  return &screens::key_F;  // F, F#
+        case 7:  case 8:  return &screens::key_G;  // G, G#
+        case 9:  case 10: return &screens::key_A;  // A, A#
+        case 11:          return &screens::key_B;  // B
+        default: return nullptr;
+    }
+}
+
+// True for the five sharp pitch classes (C#, D#, F#, G#, A#).
+static bool pcIsSharp(uint8_t pc) {
+    return pc == 1 || pc == 3 || pc == 6 || pc == 8 || pc == 10;
+}
+
 static void renderMenu() {
     if ((int32_t)(millis() - resetFlashUntilMs) < 0) {
         ui.showLabel("RESET");
         ui.show();
         return;
     }
+
+    // Graphic rendering: when KEY is active and we have art for the current
+    // effective key, draw the natural-note bitmap full-screen, optionally
+    // overlaid with the sharp glyph. Loses the INT/EXT badge while looking
+    // at KEY — acceptable; switch params to re-check clock state.
+    // G and G# fall through to text rendering below (no natural-G art yet).
+    if (active == Param::Key) {
+        int eff = ((int)keyPC + currentCvTranspose);
+        eff = ((eff % 12) + 12) % 12;
+        const screens::Screen* natural = keyNaturalScreen((uint8_t)eff);
+        if (natural) {
+            ui.clear();
+            ui.drawScreen(*natural, 0, 0);
+            if (pcIsSharp((uint8_t)eff)) {
+                // sharp.png is 8×8. Top-left at (24, 18) → top-right at
+                // (31, 18), flush with the right edge of the 32-wide
+                // portrait panel, ~quarter of the way down. Bench-tuned
+                // 2026-04-26.
+                ui.drawScreen(screens::sharp, 24, 18);
+            }
+            ui.show();
+            return;
+        }
+    }
+
     ui.clear();
     ui.raw().setCursor(0, 0);
     ui.raw().setTextSize(1);
