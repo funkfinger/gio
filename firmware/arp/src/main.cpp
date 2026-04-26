@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <cstdlib>
 #include <Adafruit_NeoPixel.h>
 #include "arp.h"
 #include "tempo.h"
@@ -100,11 +101,13 @@ static const char* scaleName(Scale s) {
 }
 static const char* orderName(ArpOrder o) {
     switch (o) {
-        case ArpOrder::Up:     return "Up";
-        case ArpOrder::Down:   return "Down";
-        case ArpOrder::UpDown: return "Up-Down";
-        case ArpOrder::Skip:   return "Skip";
-        default:               return "?";
+        case ArpOrder::Up:           return "Up";
+        case ArpOrder::Down:         return "Down";
+        case ArpOrder::UpDownClosed: return "UpDn-C";
+        case ArpOrder::UpDownOpen:   return "UpDn-O";
+        case ArpOrder::SkipUp:       return "SkipUp";
+        case ArpOrder::Random:       return "Random";
+        default:                     return "?";
     }
 }
 static const char* rootName(uint8_t pitchClass) {
@@ -290,7 +293,8 @@ static bool externalClockActive() {
     return (millis() - extLastEdgeMs) < EXT_CLOCK_TIMEOUT_MS;
 }
 
-static void renderMenu();   // fwd decl: defined below fireStep()
+static void renderMenu();              // fwd decl: defined below fireStep()
+static void drawRandomOrderScreen();   // fwd decl: defined alongside renderMenu()
 
 static void fireStep() {
     if (externalClockActive()) {
@@ -339,6 +343,11 @@ static void fireStep() {
     // Live KEY display: re-render menu if the effective key changed and
     // KEY is the active param. (Only KEY depends on CV — Scale/Order don't.)
     if (cvChanged && active == Param::Key) renderMenu();
+
+    // Live ORDER:Random display: redraw the random bars on every step so
+    // the visual updates per note advance — strong cue that the playback
+    // is unpredictable. Only fires when the user is currently viewing it.
+    if (active == Param::Order && order == ArpOrder::Random) drawRandomOrderScreen();
 }
 
 // --------------------------- UI helpers ----------------------------
@@ -402,6 +411,43 @@ static bool pcIsSharp(uint8_t pc) {
     return pc == 1 || pc == 3 || pc == 6 || pc == 8 || pc == 10;
 }
 
+// Map an arp order to the bitmap that visualizes its playback pattern.
+// Returns nullptr for ArpOrder::Random — that order is rendered procedurally
+// (a fresh set of random vertical bars on every step) by drawRandomOrderScreen().
+static const screens::Screen* orderScreen(ArpOrder o) {
+    switch (o) {
+        case ArpOrder::Up:           return &screens::order_up;
+        case ArpOrder::Down:         return &screens::order_down;
+        case ArpOrder::UpDownClosed: return &screens::order_up_down_closed;
+        case ArpOrder::UpDownOpen:   return &screens::order_up_down_open;
+        case ArpOrder::SkipUp:       return &screens::order_skip_up;
+        case ArpOrder::Random:       return nullptr;     // procedural
+        default:                     return nullptr;
+    }
+}
+
+// Procedural visualization for ArpOrder::Random. Draws 8 vertical bars
+// across the 32-wide portrait canvas, each at a random height — like an
+// EQ meter that jumps every step. Bench-feedback: communicates "this is
+// unpredictable" much better than a static screen could. Story 020.
+static void drawRandomOrderScreen() {
+    if (!ui.ready()) return;
+    ui.clear();
+    const int Y_TOP    = 0;
+    const int Y_BOTTOM = 63;
+    const int H_AVAIL  = Y_BOTTOM - Y_TOP;   // 63
+    const int BAR_W    = 4;                   // 4 px per bar slot
+    const int BAR_LIT  = 3;                   // 3 px lit, 1 px gap
+    const int N_BARS   = 32 / BAR_W;          // 8 bars
+    const int LEVELS   = 8;
+    for (int i = 0; i < N_BARS; ++i) {
+        int level = (std::rand() % LEVELS) + 1;       // 1..LEVELS
+        int h = (level * H_AVAIL) / LEVELS;
+        ui.raw().fillRect(i * BAR_W, Y_BOTTOM - h, BAR_LIT, h, SSD1306_WHITE);
+    }
+    ui.show();
+}
+
 static void renderMenu() {
     if ((int32_t)(millis() - resetFlashUntilMs) < 0) {
         ui.showLabel("RESET");
@@ -409,11 +455,27 @@ static void renderMenu() {
         return;
     }
 
-    // Graphic rendering: when KEY is active and we have art for the current
-    // effective key, draw the natural-note bitmap full-screen, optionally
-    // overlaid with the sharp glyph. Loses the INT/EXT badge while looking
-    // at KEY — acceptable; switch params to re-check clock state.
-    // G and G# fall through to text rendering below (no natural-G art yet).
+    // ORDER param: graphic rendering. Static bitmap for Up/Down/Skip and the
+    // two palindromic variants; procedural random-bars frame for Random,
+    // updated on every step (see fireStep).
+    if (active == Param::Order) {
+        if (order == ArpOrder::Random) {
+            drawRandomOrderScreen();
+            return;
+        }
+        const screens::Screen* s = orderScreen(order);
+        if (s) {
+            ui.clear();
+            ui.drawScreen(*s, 0, 0);
+            ui.show();
+            return;
+        }
+    }
+
+    // KEY param: graphic rendering. When KEY is active and we have art for
+    // the current effective key, draw the natural-note bitmap full-screen,
+    // optionally overlaid with the sharp glyph. Loses the INT/EXT badge
+    // while looking at KEY — acceptable; switch params to re-check clock state.
     if (active == Param::Key) {
         int eff = ((int)keyPC + currentCvTranspose);
         eff = ((eff % 12) + 12) % 12;
@@ -466,6 +528,15 @@ void setup() {
     Serial.begin(115200);
     uint32_t t0 = millis();
     while (!Serial && (millis() - t0) < 2000) { /* wait briefly for USB */ }
+
+    // Seed std::rand() — used by ArpOrder::Random and the procedural
+    // random-bars renderer. Mix millis() with a noisy unconnected ADC read
+    // for a slightly less predictable seed. Story 020 / decisions.md §24.
+    {
+        uint32_t seed = millis();
+        seed ^= (uint32_t)analogRead(PIN_TEMPO) << 16;
+        std::srand(seed);
+    }
 
     Serial.println();
     Serial.println("=== gio Story 010 — clock-in on J1 ===");

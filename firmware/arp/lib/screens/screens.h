@@ -31,6 +31,12 @@ extern const Screen key_E;
 extern const Screen key_F;
 extern const Screen key_G;
 extern const Screen sharp;
+extern const Screen order_down;
+extern const Screen order_random;
+extern const Screen order_skip_up;
+extern const Screen order_up_down_closed;
+extern const Screen order_up_down_open;
+extern const Screen order_up;
 extern const Screen splash_screen1;
 extern const Screen splash_screen2;
 extern const Screen splash_screen3;
@@ -42,6 +48,7 @@ extern const Screen splash_screen8;
 extern const Screen splash_screen9;
 
 extern const Animation key_screen;
+extern const Animation order_screen;
 extern const Animation splash_screen_animation;
 
 } // namespace screens

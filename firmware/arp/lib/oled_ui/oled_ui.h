@@ -55,6 +55,10 @@ public:
     // Escape hatch for code that needs raw GFX access.
     Adafruit_SSD1306& raw() { return display_; }
 
+    // Has begin() succeeded? Helpful for early-bail in callers that draw
+    // outside the standard helpers.
+    bool ready() const { return ready_; }
+
 private:
     Adafruit_SSD1306 display_{OLED_WIDTH, OLED_HEIGHT, &Wire, -1};
     bool             ready_ = false;

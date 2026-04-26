@@ -1,11 +1,14 @@
 #pragma once
 #include <cstdint>
 
+// See decisions.md §24 for the open vs closed palindrome terminology.
 enum class ArpOrder : uint8_t {
     Up = 0,
     Down,
-    UpDown,
-    Skip,        // permutation pattern (1-3-2-4 for 4-note arps). Falls back to Up if count < 4.
+    UpDownClosed,    // palindrome WITH endpoint repeat:    0,1,2,3,3,2,1,0 (period 2*N)
+    UpDownOpen,      // palindrome WITHOUT endpoint repeat: 0,1,2,3,2,1     (period 2*N-2)
+    SkipUp,          // permutation 1-3-2-4 for 4-note arps. Falls back to Up if count < 4.
+    Random,          // pure random index per step (with replacement). Uses std::rand().
     COUNT
 };
 

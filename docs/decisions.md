@@ -267,6 +267,19 @@ Every jack gets the same protection topology, modelled on Mutable's published de
 - **In-stock parts.** BAT43 × 50+; TL072 × 25; standard SMT resistor reels. No exotic parts.
 - **Convention compliance.** Anyone who's worked on Eurorack DIY recognises the topology immediately; review and trust come for free.
 
+### 24. Arp order vocabulary — open vs closed palindromes
+
+Two palindromic arp orders exist (`UpDownOpen`, `UpDownClosed`) and the difference matters: it changes whether endpoints are doubled, which is audibly distinct.
+
+| Order | Sequence (4 notes 0..3) | Period | Endpoint behaviour |
+|---|---|---|---|
+| `UpDownOpen`   | `0,1,2,3,2,1`            | `2N − 2` | Top hit once per cycle; bottom hit once across loop boundary (`…1,0,1…`) |
+| `UpDownClosed` | `0,1,2,3,3,2,1,0`        | `2N`     | Top doubled in middle (`…3,3…`); bottom doubled across loop boundary (`…0,0…`) |
+
+**Naming convention** — applies to any future palindromic order (e.g. a hypothetical `SkipDownThenUp` could come in `Open` and `Closed` flavours): the **open** form has no consecutive endpoint repeats; the **closed** form has both endpoints repeated consecutively.
+
+**Random** is its own order (`ArpOrder::Random`) — pure random index per step (with replacement) using `std::rand()`. Firmware seeds `std::rand()` once in `setup()` from a mix of `millis()` and an unconnected ADC read; tests call `std::srand(seed)` explicitly for determinism.
+
 ### 23. Generic jack labels + dual-purpose jack convention
 
 Panel silkscreen labels jacks by direction only (IN/OUT), not by function (no "TEMPO," "V/OCT," "GATE," "CV IN" labels). The OLED tells the user what each jack is doing in the current app.
