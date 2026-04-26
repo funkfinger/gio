@@ -59,30 +59,30 @@ static const uint8_t MIDI_NOTE_MAX = 96;   // C7 — clamp upper bound (matches 
 static const uint32_t EXT_CLOCK_TIMEOUT_MS = 2000;   // no edges this long → internal
 
 // ----------------------------- music -------------------------------
-// Chord stored as semitone INTERVALS from the active root. Root is added
-// at play-time. Default chord shape: major triad + octave (= power chord-y).
+// Chord stored as semitone INTERVALS from the active key. Key tonic is
+// added at play-time. Default chord shape: major triad + octave.
 static const int8_t CHORD_INTERVALS[] = {0, 4, 7, 12};
 static const uint8_t CHORD_LEN        = 4;
 static const uint8_t SUBDIV           = 4;       // 16th notes
 static const float   GATE_FRAC        = 0.5f;
 
-// Pitch class names for the ROOT menu.
+// Pitch class names for the KEY menu.
 static const char* PITCH_CLASS_NAMES[12] = {
     "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
-// MIDI note number for ROOT pitch-class index 0 (= C). Encoder ROOT pins
-// the chord root inside MIDI octave 3 (C3=48 .. B3=59).
-static const uint8_t ROOT_OCTAVE_BASE_MIDI = 48;
+// MIDI note number for KEY pitch-class index 0 (= C). The encoder KEY param
+// pins the chord/scale tonic inside MIDI octave 3 (C3=48 .. B3=59).
+static const uint8_t KEY_OCTAVE_BASE_MIDI = 48;
 
 // ----------------------------- menu --------------------------------
-enum class Param : uint8_t { Scale = 0, Order, Root, Trigger, COUNT };
+enum class Param : uint8_t { Scale = 0, Order, Key, Trigger, COUNT };
 
 static const char* paramName(Param p) {
     switch (p) {
         case Param::Scale:   return "SCALE";
         case Param::Order:   return "ORDER";
-        case Param::Root:    return "ROOT";
+        case Param::Key:     return "KEY";
         case Param::Trigger: return "TRIG";
         default:             return "?";
     }
@@ -126,7 +126,7 @@ static inline int clampi(int v, int lo, int hi) {
 static Arp           arp;
 static Scale         scale       = Scale::Major;
 static ArpOrder      order       = ArpOrder::Up;
-static uint8_t       rootPC      = 0;             // 0=C, 1=C#, ... 11=B
+static uint8_t       keyPC       = 0;             // 0=C, 1=C#, ... 11=B
 static Param         active      = Param::Scale;
 
 static OledUI        ui;
@@ -314,14 +314,14 @@ static void fireStep() {
     bool cvChanged     = (newCvTranspose != currentCvTranspose);
     currentCvTranspose = newCvTranspose;
 
-    // root_midi = encoder root + CV transpose (semitone-snap + scale-snap baked in).
-    int  encRootMidi = (int)ROOT_OCTAVE_BASE_MIDI + (int)rootPC;
-    int  rootMidi    = encRootMidi + currentCvTranspose;
+    // keyMidi = encoder key + CV transpose (semitone-snap + scale-snap baked in).
+    int  encKeyMidi = (int)KEY_OCTAVE_BASE_MIDI + (int)keyPC;
+    int  keyMidi    = encKeyMidi + currentCvTranspose;
 
     // arp.nextNote() returns one of CHORD_INTERVALS — we registered intervals
     // as the arp's "notes" so we get an interval offset directly.
     int  intervalIdx = arp.nextNote();
-    int  played      = rootMidi + intervalIdx;
+    int  played      = keyMidi + intervalIdx;
     played           = (int)quantize((uint8_t)clampi(played, 0, 127), scale);
     played           = clampi(played, MIDI_NOTE_MIN, MIDI_NOTE_MAX);
 
@@ -336,9 +336,9 @@ static void fireStep() {
     lastSubGateMs = lastStepMs;
     subGatesFired = 1;             // this fireStep() counts as the first sub-gate
 
-    // Live ROOT display: re-render menu if the effective root changed and
-    // ROOT is the active param. (Only ROOT depends on CV — Scale/Order don't.)
-    if (cvChanged && active == Param::Root) renderMenu();
+    // Live KEY display: re-render menu if the effective key changed and
+    // KEY is the active param. (Only KEY depends on CV — Scale/Order don't.)
+    if (cvChanged && active == Param::Key) renderMenu();
 }
 
 // --------------------------- UI helpers ----------------------------
@@ -346,7 +346,7 @@ static void updateNeoPixel() {
     uint8_t r = 0, g = 0, b = 0;
     if      (active == Param::Scale)   g = 255;
     else if (active == Param::Order)   b = 255;
-    else if (active == Param::Root)    { r = 255; b = 255; } // magenta
+    else if (active == Param::Key)     { r = 255; b = 255; } // magenta
     else if (active == Param::Trigger) { r = 255; g = 200; } // yellow/amber
     pixel.setPixelColor(0, pixel.Color(r, g, b));
     pixel.show();
@@ -357,11 +357,11 @@ static const char* activeValueName() {
     switch (active) {
         case Param::Scale: return scaleName(scale);
         case Param::Order: return orderName(order);
-        case Param::Root: {
-            // Show the EFFECTIVE root: encoder rootPC + CV transpose, mod 12.
+        case Param::Key: {
+            // Show the EFFECTIVE key: encoder keyPC + CV transpose, mod 12.
             // Trailing '*' indicates CV is contributing (so encoder rotation
             // alone doesn't fully account for what's playing).
-            int eff = ((int)rootPC + currentCvTranspose);
+            int eff = ((int)keyPC + currentCvTranspose);
             eff = ((eff % 12) + 12) % 12;
             const char* name = rootName((uint8_t)eff);
             if (currentCvTranspose != 0) {
@@ -467,9 +467,9 @@ void loop() {
                 arp.setOrder(order);
                 Serial.printf("order=%s\n", orderName(order));
                 break;
-            case Param::Root:
-                rootPC = wrap((int)rootPC + (int)d, 12);
-                Serial.printf("root=%s\n", rootName(rootPC));
+            case Param::Key:
+                keyPC = wrap((int)keyPC + (int)d, 12);
+                Serial.printf("key=%s\n", rootName(keyPC));
                 break;
             case Param::Trigger: {
                 // Wrap 1..4 by mapping to 0..3, wrapping, then back.
