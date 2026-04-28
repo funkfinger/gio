@@ -14,6 +14,15 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **`docs/decisions.md` §25 — JLCPCB-first BOM strategy + VDD/VREF separation.** Captures the policy now driving Rev 0.1 part selection: prefer JLC Basic parts when an equivalent exists; accept Extended for specialty ICs. Architectural change recorded: VDD (AMS1117 +5 V LDO) is decoupled from VREF (REF3040 4.096 V precision reference) so the 16-bit DAC isn't bottlenecked by the LDO's 1–2 % accuracy. Both DAC8552 and MCP3208 share the REF3040 output. Resolution gains: DAC = 62.5 µV/step exactly; ADC = 1.00 mV/step exactly.
+- **`hardware/bom.md`** — single source of truth for the JLC PCBA BOM. Lists every SMD part with LCSC number, package, Basic/Extended class, and unit price. Through-hole / panel parts (Thonkiconn jacks, encoder, pots, OLED, XIAO sockets) tracked separately as hand-soldered. Includes a vetting checklist for adding future parts.
+- **Vetted JLC parts (vs decisions.md §25):** AMS1117-5.0 (C6187, Basic) for +5 V LDO; REF3040AIDBZR (C19415) for 4.096 V VREF; DAC8552IDGKR (C136020) for the dual 16-bit DAC; MCP3208T-CI/SL (C626764) C-grade for the 8-ch ADC; TL072CDT (C6961, Basic) ×2 for op-amps; BAT54SLT1G (C19726) ×4 for jack clamps (Schottky series-pair, replaces individual BAT43s — same 30 V breakdown, fewer footprints); GZ2012D601TF (C1017, Basic) ×2 for ±12 V rail ferrites.
+
+### Changed
+
+- **Stories 011 / 012 / 013 / 015 updated** to reflect the new architecture: ferrites + AMS1117 LDO + REF3040 precision VREF; output-stage gain bumped from 4 to ≈ 4.88 (R_fb = 48.7 k, R_in = 10 k, R_off = 20 k) so DAC's 4.096 V max swing still produces ±10 V at the jack; input-stage scaling recomputed for ADC's 4.096 V span; clamp diodes specified as BAT54S throughout (was BAT43).
+- **Decisions.md "Deferred" list:** "DAC8552 VREF source" entry resolved — REF3040 is in from Rev 0.1 per §25, not deferred.
+
 - **Story 020 — Order screens + Random + UpDownClosed.** Major arp engine + UI work:
   - **Engine renames** (clarification, no behaviour change): `ArpOrder::UpDown` → `ArpOrder::UpDownOpen`, `ArpOrder::Skip` → `ArpOrder::SkipUp`. The `SkipUp` rename anticipates a `SkipDown` and other finger-picking patterns.
   - **`ArpOrder::UpDownClosed`** — palindrome WITH endpoint repeat (`0,1,2,3,3,2,1,0`, period `2N`). Top doubled in middle; bottom doubled across loop boundary.

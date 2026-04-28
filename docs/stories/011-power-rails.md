@@ -25,17 +25,20 @@ The bespoke regulator + reverse-protection circuit described in the original cri
 
 ### For Rev 0.1 PCB (deferred — not bench-built here)
 
-The PCB will need its own power section, since the Protomato won't be onboard. Reference design captured for that future schematic work:
-- Eurorack 2×5 shrouded header, Doepfer pinout (red stripe = −12V).
-- 1N5818 (Cab-2/Bin-10) reverse-polarity series Schottky on +12V.
-- LM7805 (Cab-3/Bin-23) generates +5V from +12V; 10 µF electrolytic input, 10 µF + 100 nF output.
-- ±12V routed directly to TL072s (no regulation). +5V to DAC8552 / MCP3208 / XIAO 5V-pin (XIAO regulates internally to 3.3V).
-- 100 nF ceramic at every IC supply pin; 10 µF bulk per rail per IC cluster.
+The PCB will need its own power section, since the Protomato won't be onboard. The 10-pin Doepfer Eurorack header carries ±12 V + GND only — no +5 V — so the board must generate +5 V locally from +12 V.
+
+Reference design captured for the schematic:
+- Eurorack 2×5 shrouded header, Doepfer pinout (red stripe = −12 V).
+- Reverse-polarity series Schottky on +12 V (Rev 0.1 PCB-only — Protomato handles this on the bench).
+- **+5 V rail: AMS1117-5.0 (LCSC C6187, JLC Basic, SOT-223)** — 1 A LDO from +12 V. ~1.3 V dropout is fine with 7 V of headroom. Per-board cost negligible (~$0.12) and no JLC feeder fee. See `hardware/bom.md`.
+- ±12 V routed directly to TL072s (no regulation). +5 V to AMS1117 → DAC8552 VDD / MCP3208 VDD / XIAO 5V-pin (XIAO regulates internally to 3.3 V).
+- **VREF (precision 4.096 V): REF3040AIDBZR (LCSC C19415, TI, SOT-23)** — separate from the +5 V supply rail per `decisions.md` §25. Both DAC and ADC tie their VREF pins to this.
+- 100 nF ceramic at every IC supply pin; 10 µF bulk per rail per IC cluster; **600 Ω@100 MHz ferrite bead (GZ2012D601TF, LCSC C1017, JLC Basic) on each ±12 V rail** before the analog cluster.
 - Common ground star point.
 
 ## Notes
 
-- The +5V rail is the critical one — it powers the DAC reference (and therefore sets the V/Oct accuracy ceiling). Once 013 is bench-built, revisit whether to add a precision 4.096V reference IC for VREF; for first bring-up the LM7805 output is fine.
+- The +5V rail powers VDD only — VREF is generated separately by a REF3040 (4.096 V, ±0.2%) per `decisions.md` §25. The LDO's accuracy and noise have no direct path to V/Oct precision. For bench bring-up the Protomato's +5V is fine for VDD; the REF3040 is added on a small breakout for the precision-reference role.
 - We have LM7905 (−5V) in stock if a future story needs a regulated negative low-voltage rail. Not needed for this stack.
 - Eurorack power draw budget for this module (estimated): +12V ~80 mA (XIAO + DAC + ADC + LEDs), −12V ~10 mA (op-amps only), +5V via Eurorack power bus is **not used** — we generate +5V locally from +12V to avoid bus contention.
 

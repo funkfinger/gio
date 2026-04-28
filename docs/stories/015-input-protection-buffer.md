@@ -10,25 +10,25 @@
 
 - [ ] Per-input topology — **inverting summing amplifier** (mirrors the output stage in Story 013, in reverse):
   ```
-  Jack tip ──[R_in = 100k]──┬──[BAT43 to +12V rail]──┐
-                             ├──[BAT43 to −12V rail]──┘
+  Jack tip ──[R_in = 100k]──┬──[BAT54S to ±12V rails]──┐
+                             │   (one SOT-23 per signal)
                              │
-                         [node A]──[R_in2 = 4.7k]──┐
+                         [node A]──[R_in2 = 22k]───┐
                                                     ├──[− input of TL072]
-                            +5V ──[R_off = 9.4k]───┘
+            REF3040 (+4.096V) ──[R_off = 9.4k]──┘
                                             │
                             [R_fb = 4.7k]───┘
                                             │
-                                   [output 0..5V] → MCP3208 channel
+                                [output 0..4.096V] → MCP3208 channel
   ```
-- [ ] Mapping target: jack **+10V → ADC 0V**; **0V → ADC 2.5V**; **−10V → ADC 5V**. (Inverted; firmware compensates.) This gives full ±10V input range mapped to the 0–5V ADC window with 1.22 mV / 24 µV-of-jack-voltage resolution per ADC count.
-- [ ] **First-stage protection** is the 100 kΩ series + BAT43 clamps to ±12V rails. Worst-case clamp current at ±15V: 3V / 100k = 30 µA — well within BAT43's 200 mA rating with a billion-fold safety margin.
-- [ ] **Second-stage scaling** is the inverting summing amp. R values approximate; bench-tune to hit exact target mapping.
+- [ ] Mapping target: jack **+10 V → ADC 0 V**; **0 V → ADC 2.048 V**; **−10 V → ADC 4.096 V**. (Inverted; firmware compensates.) Resolution: 1.00 mV per ADC count → 4.88 mV per LSB at the jack (exactly half the count granularity since gain is ~0.205).
+- [ ] **First-stage protection** is the 100 kΩ series + BAT54S series-pair Schottky to ±12 V rails (LCSC C19726, onsemi). Worst-case clamp current at ±15 V: 3 V / 100k = 30 µA — well within BAT54's 200 mA rating with a billion-fold safety margin.
+- [ ] **Second-stage scaling** is the inverting summing amp with REF3040 (4.096 V) as the offset source — same reference the ADC uses, so any drift cancels. Gain = R_fb/R_in2 ≈ 4.7k/22k ≈ 0.214; bench-tune R_in2 (try 22.6k E96) to hit exact mapping.
 - [ ] Both inputs (J1, J2) get identical circuits — symmetric platform behaviour.
 
 ### Firmware
 
-- [ ] Helper: `inputs.readVolts(channel)` — takes channel index, calls `adc.read()`, applies inverse mapping (`(2.5 − count_volts) × 4` → input volts at jack), returns float volts.
+- [ ] Helper: `inputs.readVolts(channel)` — takes channel index, calls `adc.read()`, applies inverse mapping (`(2.048 − count_volts) × ~4.88` → input volts at jack, with VREF = 4.096 V), returns float volts.
 - [ ] Per-input calibration constants (`gain`, `offset`) — bench-fill from known input voltages.
 
 ### Bench

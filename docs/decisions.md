@@ -280,6 +280,36 @@ Two palindromic arp orders exist (`UpDownOpen`, `UpDownClosed`) and the differen
 
 **Random** is its own order (`ArpOrder::Random`) — pure random index per step (with replacement) using `std::rand()`. Firmware seeds `std::rand()` once in `setup()` from a mix of `millis()` and an unconnected ADC read; tests call `std::srand(seed)` explicitly for determinism.
 
+### 25. JLCPCB-first BOM strategy + VDD/VREF separation
+
+The Rev 0.1 PCB will be manufactured + assembled at JLCPCB. Two consequences cascade through the design:
+
+**(a) Basic-first part selection.** JLC classifies every SMD part as either:
+- **Basic** — perpetually loaded on their pick-and-place. No per-batch setup fee.
+- **Extended** — loaded onto a feeder per job. ~$3 per unique Extended part per batch.
+
+For every BOM line, search JLC's in-stock library and pick a Basic part when one exists with equivalent function. Where no Basic alternative exists (specialty ICs like the DAC8552, MCP3208, REF3040), accept the Extended fee — it amortises across the batch.
+
+**(b) Separate VDD (regulated supply) from VREF (precision reference).** The DAC8552 and MCP3208 both have independent VDD and VREF pins, and a precision converter is wasted if its reference is a 1–2% LDO output. So:
+
+```
++12V ──[AMS1117-5.0]── +5V ─┬── DAC8552 VDD
+                            ├── MCP3208 VDD
+                            └── XIAO 5V
+
++5V ──[REF3040]── 4.096V ─┬── DAC8552 VREF
+                          └── MCP3208 VREF
+```
+
+- **AMS1117-5.0** (Basic) just powers VDD — accuracy and noise irrelevant beyond "not catastrophic"
+- **REF3040** (TI, ±0.2%, 75 ppm/°C) sets the precision reference at 4.096 V — the industry-standard precision-reference value, with clean LSB math (DAC: 62.5 µV/step; ADC: 1.00 mV/step exactly)
+
+The 4.096 V max DAC swing (vs. 5 V) doesn't lose us anything — the inverting summing amp output stage has gain ≈ 4.88 to hit ±10 V at the jack (was gain 4 when VREF = 5 V).
+
+This supersedes the deferred "DAC8552 VREF source" item below — REF3040 is in from Rev 0.1, not deferred.
+
+See `hardware/bom.md` for the BOM table with LCSC part numbers and Basic/Extended class.
+
 ### 23. Generic jack labels + dual-purpose jack convention
 
 Panel silkscreen labels jacks by direction only (IN/OUT), not by function (no "TEMPO," "V/OCT," "GATE," "CV IN" labels). The OLED tells the user what each jack is doing in the current app.
@@ -324,5 +354,5 @@ After PR 5, everything else (encoder menu, OLED display, six scales, CV in, chao
 - **PCB jumper sanity check (lesson from MOD2 build):** the MOD2 Rev A board has a JP2 (solder-bridge across C18 for AC/DC coupling) where the JP2 pads do not actually route to C18's pads — bridging JP2 had no electrical effect. Workaround: solder a wire directly across C18. **Apply to gio Rev 0.1:** during KiCad work, verify every solder-jumper / option-jumper symbol's connections survive the schematic-to-PCB transfer (ERC + DRC + manual eyeball each JP-named net). Cheap insurance.
 - **Second pot for Rev 0.2:** considered and deferred. One-pot UI is workable for many apps via the encoder-menu / pot-modulation convention, but multi-knob apps (LFO with rate + shape, dual-VCA with two gains, etc.) would benefit. Add when the first one-pot-cramps-an-app moment shows up.
 - **NeoPixel light pipe:** mechanical detail of the panel PCB (clear plastic insert vs. clear-resin-fill vs. open pinhole). Pick at panel-design time.
-- **DAC8552 VREF source:** Stories 011–013 use +5V from LM7805 as VREF. Add a precision 4.096V reference IC (REF3040 or similar) only if bench reveals temperature drift > ±1 mV at V/oct. The 16-bit DAC is wasted resolution if VREF is noisy/drifty.
+- ~~**DAC8552 VREF source**~~ — resolved by §25: REF3040 (4.096 V, ±0.2%) is in from Rev 0.1, not deferred.
 - **Trigger output edge speed:** §20 assumes DAC8552 + TL072 produces edges fast enough for downstream gates (Story 014 verifies). If bench reveals some module that double-fires, add a 74HC14 Schmitt buffer (in stock as `sn74hct14n-hex-schmitt-trigger.md`) on the gate-likely outputs.

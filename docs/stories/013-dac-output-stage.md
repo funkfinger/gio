@@ -10,18 +10,21 @@
 
 - [ ] Per-output topology — **inverting summing amplifier** (Mutable house style):
   ```
-  DAC (0..+5V) ──[R_in = 10k]──┐
-                                ├──[− input of TL072]
-  +5V (offset)──[R_off = 10k]──┘
+  DAC (0..+4.096V) ──[R_in = 10k]───┐
+                                     ├──[− input of TL072]
+  REF3040 (+4.096V) ─[R_off = 20k]──┘
                        │
-  [R_fb = 40k]─────────┘
+  [R_fb = 48.7k]───────┘
                        │
-                  [output, 1k series]──[BAT43 to ±12V rails]──[jack tip]
+                  [output, 1k series]──[BAT54S to ±12V rails]──[jack tip]
   ```
-- [ ] Math: `Vout = −(R_fb/R_in) × Vdac + (R_fb/R_off) × (−V_off)`. With R_in = R_off = 10k, R_fb = 40k, V_off = +5V: `Vout = −4×Vdac + (−20V)` → wait, sign error, see notes.
-- [ ] **Practical target:** DAC 0V → +10V out; DAC 2.5V → 0V out; DAC 5V → −10V out. (Inverted, scale ±10V.) Firmware compensates for the inversion in `voltsToDacCount()`.
+- [ ] Math: `Vout = −(R_fb/R_in) × Vdac + (R_fb/R_off) × V_off` (offset goes to + input via divider, or use a unity-gain follower of −V_off into the summing node — bench-tune the topology).
+- [ ] **Practical target:** DAC 0 V → +10 V out; DAC 2.048 V → 0 V out; DAC 4.096 V → −10 V out. (Inverted, scale ±10 V.) Firmware compensates in `voltsToDacCount()`.
+  - Gain = R_fb/R_in = 48.7k/10k = **4.87** (was 4 when VREF was 5 V — see `decisions.md` §25)
+  - Offset contribution = (R_fb/R_off) × 4.096 V = (48.7/20) × 4.096 ≈ **+9.97 V** at DAC = 0
+  - All values are E96-standard; bench-tune to hit exact ±10 V if needed
 - [ ] Power: TL072 on ±12V (Story 011 rails).
-- [ ] Output protection: **1 kΩ series + BAT43 dual Schottky to ±12V rails** at the jack. Caps short-circuit current to ~12V/1k = 12 mA, well within TL072 short-circuit-protected output.
+- [ ] Output protection: **1 kΩ series + BAT54S series-pair Schottky to ±12V rails** at the jack (LCSC C19726, onsemi). One SOT-23 per signal — see `hardware/bom.md`. Caps short-circuit current to ~12V/1k = 12 mA, well within TL072 short-circuit-protected output.
 - [ ] Both DAC channels (OUTA + OUTB) get identical output stages — symmetric I/O for the platform.
 
 ### Firmware
@@ -40,8 +43,8 @@
 ## Notes
 
 - **Why inverting summing amp:** DAC8552 is single-supply 0–5V output; getting bipolar requires offset + gain. The inverting summing amp is the classic minimum-parts way to do this. The inversion is paid for in firmware (`dac_count = midToCount(−v)`) — trivial.
-- **Why R_fb = 40k for gain 4:** trade-off between component count (single resistor) and noise (higher gain = more amplification of input-stage noise). 40k is unobtainium in standard E12; use **39k** (E12) or two 20k in series. Confirm value at bench based on actual swing measured.
-- **Reference voltage:** at Story 012 we tied DAC VREF to +5V (the LM7805 output). If V/Oct calibration drifts > ±1 mV with temperature, add a precision 4.096V reference IC (REF3040 etc) — defer until measured.
+- **Why R_fb = 48.7k for gain ≈ 4.88:** with VREF = 4.096 V from REF3040 (per §25), we need slightly more gain than the old 4× to hit the same ±10 V swing. 48.7k is E96-standard; 47k (E24) is close enough for bench, gives ±9.63 V swing. Bench-tune if exact ±10 V is required.
+- **Reference voltage:** REF3040 (4.096 V, ±0.2%, 75 ppm/°C) shared with the ADC per `decisions.md` §25 — not the +5V supply rail.
 - **Output AC coupling:** not used. V/Oct must be DC. Anyone who wants AC coupling can do it externally.
 
 ## Depends on

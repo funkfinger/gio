@@ -50,8 +50,10 @@ This means our `lib/spi_bus/` doesn't exist; instead `lib/outputs/` and `lib/inp
   - CS_DAC (D3) → DAC8552 /SYNC
   - CS_ADC (D6) → MCP3208 /CS
 - [ ] CS lines pulled high by 10 kΩ to +3.3V at boot (so ICs idle deselected).
-- [ ] **VREF strategy v1:** both ICs use +5V as VREF (tied to VDD). Resolution: DAC = 5V / 65536 = **76 µV/step**; ADC = 5V / 4096 = **1.22 mV/step**.
-- [ ] Decoupling: 100 nF on each IC's VDD; 100 nF on each IC's VREF.
+- [ ] **VREF: 4.096 V from REF3040** (LCSC C19415, TI, SOT-23) — fed from +5V supply, output tied to both DAC8552 VREF and MCP3208 VREF. **Not** tied to VDD. Per `decisions.md` §25.
+  - Resolution: DAC = 4.096 V / 65536 = **62.5 µV/step**; ADC = 4.096 V / 4096 = **exactly 1.00 mV/step**
+  - Both VREF pins share the REF3040 output node with a 100 nF + 1 µF decoupling pair right at the REF3040 output
+- [ ] Decoupling: 100 nF on each IC's VDD; 100 nF + 1 µF on the REF3040 output (shared VREF node).
 
 ### Firmware
 
@@ -81,6 +83,7 @@ This means our `lib/spi_bus/` doesn't exist; instead `lib/outputs/` and `lib/inp
 - **DAC8552 datasheet quirk:** 24-bit serial frame = 8 control + 16 data. Rob Tillaart's library handles all of this — `setValue(channel, value)` is the whole API surface needed.
 - **MCP3208 quirk:** start bit + single/diff + 3 channel bits + null + 12 data. Rob Tillaart's `MCP_ADC` library handles it.
 - **Why both libraries from the same author:** consistency in API style, both MIT-licensed, both actively maintained, both already platform-resolved.
+- **VREF = 4.096 V (not 5 V):** decided in `decisions.md` §25. The 16-bit DAC is wasted resolution if the reference is a 1–2 % LDO output. REF3040 (±0.2%, 75 ppm/°C) gives clean LSB math (62.5 µV / 1.00 mV) and the standard precision-reference value. The DAC's max output is now 4.096 V instead of 5 V; the output stage's gain is bumped to ≈ 4.88 (from 4) to still hit ±10 V at the jack — see Story 013.
 - **Why pre-pull `outputs` / `inputs` HAL into Story 012:** keeps the smoke test from needing to know about the underlying libraries; later stories (013, 015) just deepen the calibration math behind the same interface.
 
 ## Depends on
