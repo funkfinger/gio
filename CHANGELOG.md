@@ -14,6 +14,9 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **`docs/decisions.md` §26 — Pin budget at the limit.** Captures that all 11 castellated XIAO pins (D0–D10) are used after the SPI pivot; back-side pads aren't realistic for a 2 HP form factor. The MCP3208's 6 spare ADC channels (ch 2..ch 7) are the architectural safety valve — any future analog input (extra pots, more CV jacks) routes there at zero XIAO-pin cost. The tempo pot can also move from D0 to MCP3208 if a future app needs a dedicated digital pin. On-board LED + NeoPixel cover status indication without spending edge pins.
+- **Deferred decision — I/O daughterboard / breakout module.** Long-term answer to the pin-budget ceiling: a second small PCB mating to the main board via header, exposing additional jacks/pots/buttons/LEDs. Sketch covers analog expansion (spare MCP3208 channels → extra jacks; possible 2nd DAC8552 on the SPI bus), digital expansion (MCP23017 IO expander on the OLED I²C bus → button matrix / LED grid), and form-factor options (side-mate, daughter-stack, wing). Deferred until a concrete app demands it.
+
 - **Story 012 firmware scaffolding — SPI HAL + smoke test.**
   - `lib/outputs/` wraps DAC8552 with `outputs::write(ch, volts)` / `gate(ch, on)` / `setVRef(v)` / per-channel `setCalibration(gain, offset)`. Defaults are `gain=1.0, offset=0.0` (passthrough) until bench-fitted.
   - `lib/inputs/` wraps MCP3208 with `inputs::readVolts(ch)` / `readRaw(ch)` / `setVRef(v)` / `setCalibration(gain, offset)`. Same calibration shape.

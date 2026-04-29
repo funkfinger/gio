@@ -310,6 +310,34 @@ This supersedes the deferred "DAC8552 VREF source" item below — REF3040 is in 
 
 See `hardware/bom.md` for the BOM table with LCSC part numbers and Basic/Extended class.
 
+### 26. Pin budget at the limit — future expansion via spare MCP3208 channels
+
+The XIAO RP2350 exposes **11 castellated pins (D0–D10)** that can be hand-soldered to a carrier PCB. The back-side pads carry SWD/USB/etc. but are not realistically usable on a 2 HP Eurorack module — they'd require fly-wires and would foul the panel-side mechanicals.
+
+After the SPI-pivot the 11 pins are **fully allocated:**
+
+| Pin | Use |
+|---|---|
+| D0 | Tempo pot (analog) |
+| D1 / D2 / D7 | Encoder A / B / click |
+| D3 | CS_DAC |
+| D4 / D5 | I²C SDA / SCL (OLED) |
+| D6 | CS_ADC |
+| D8 / D9 / D10 | SPI SCK / MISO / MOSI |
+
+**The MCP3208 is the safety valve.** Of its 8 ADC channels we currently use 2 (ch 0 = J1, ch 1 = J2). Channels 2–7 are physically wired to nothing and cost zero GPIO to add. So:
+
+- **Any future analog-style input** (additional pots, additional CV jacks, expression pedal in, photoresistor, etc.) routes to MCP3208 ch 2..ch 7 with no XIAO pin cost.
+- **The tempo pot itself** can move from D0 to MCP3208 ch 2 if a future app needs a dedicated digital pin (clock-sync output, footswitch input, second I²C bus, etc.). That re-architecture frees D0 without touching anything else.
+- **Status indicators are free**: the on-board user LED (`LED_BUILTIN` / GP25) and on-board NeoPixel (GP22 + GP23) are wired internally to the XIAO and don't surface on the edge — we already use them in the arp app.
+
+**What this rules out** (without bigger changes):
+- A second independent SPI peripheral type (would need a 3rd CS line — none free)
+- A second DAC channel beyond what DAC8552 gives us (need either a second DAC IC + CS line, or move to a higher-channel-count DAC)
+- Quadrature for a second encoder (encoders need *digital* pins for edge-rate reasons; ADC sampling is too slow)
+
+This is comfortable headroom for the apps we've scoped, but the constraint is real — see the deferred "I/O daughterboard" item in the still-open list for the long-term answer.
+
 ### 23. Generic jack labels + dual-purpose jack convention
 
 Panel silkscreen labels jacks by direction only (IN/OUT), not by function (no "TEMPO," "V/OCT," "GATE," "CV IN" labels). The OLED tells the user what each jack is doing in the current app.
@@ -352,7 +380,13 @@ After PR 5, everything else (encoder menu, OLED display, six scales, CV in, chao
 - **Chaos design (arp app feature):** deferred from RA4M1 project, still deferred. Independent of platform work.
 - **RNG choice:** `random()` fine for MVP; XORShift or `std::minstd_rand` for reproducible host tests post-MVP.
 - **PCB jumper sanity check (lesson from MOD2 build):** the MOD2 Rev A board has a JP2 (solder-bridge across C18 for AC/DC coupling) where the JP2 pads do not actually route to C18's pads — bridging JP2 had no electrical effect. Workaround: solder a wire directly across C18. **Apply to gio Rev 0.1:** during KiCad work, verify every solder-jumper / option-jumper symbol's connections survive the schematic-to-PCB transfer (ERC + DRC + manual eyeball each JP-named net). Cheap insurance.
-- **Second pot for Rev 0.2:** considered and deferred. One-pot UI is workable for many apps via the encoder-menu / pot-modulation convention, but multi-knob apps (LFO with rate + shape, dual-VCA with two gains, etc.) would benefit. Add when the first one-pot-cramps-an-app moment shows up.
+- **Second pot for Rev 0.2:** considered and deferred. One-pot UI is workable for many apps via the encoder-menu / pot-modulation convention, but multi-knob apps (LFO with rate + shape, dual-VCA with two gains, etc.) would benefit. Add when the first one-pot-cramps-an-app moment shows up. **Cheap to do** — wire the second pot to a spare MCP3208 channel per §26, no XIAO pin cost.
+
+- **I/O daughterboard / breakout module:** longer-term answer to §26's pin-budget ceiling and the inherent 2 HP panel-area limit. Concept: a second small PCB that mates to the main board via a header (or short ribbon) and exposes additional jacks / pots / buttons / LEDs with their own panel cutouts. Two flavours worth thinking about:
+  - **Analog expansion** — break out the spare MCP3208 channels (ch 2..ch 7) to extra jacks or pots on a second 2 HP panel. Zero new ICs needed; just wires, jacks, and a header. Could also add a second DAC8552 on the existing SPI bus with a 3rd CS line through an unused pin (assuming pin budget allows after a re-allocation per §26).
+  - **Digital expansion** — add a button matrix or LED grid via an I²C IO expander (MCP23017, in inventory) on the existing OLED I²C bus — costs zero pins. Useful for sequencer-style apps that want per-step buttons.
+  - **Form factor** — could be a panel-mate (side-by-side 2 HP), a daughter-stack (vertical, behind the main board), or a "wing" (offset). Decide at the time based on which existing module-builder ergonomics feel right.
+  - Defer until a concrete app demands it; the current design is comfortable for the arp + a handful of follow-on apps.
 - **NeoPixel light pipe:** mechanical detail of the panel PCB (clear plastic insert vs. clear-resin-fill vs. open pinhole). Pick at panel-design time.
 - ~~**DAC8552 VREF source**~~ — resolved by §25: REF3040 (4.096 V, ±0.2%) is in from Rev 0.1, not deferred.
 - **Trigger output edge speed:** §20 assumes DAC8552 + TL072 produces edges fast enough for downstream gates (Story 014 verifies). If bench reveals some module that double-fires, add a 74HC14 Schmitt buffer (in stock as `sn74hct14n-hex-schmitt-trigger.md`) on the gate-likely outputs.
