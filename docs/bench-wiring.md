@@ -242,80 +242,261 @@ When the SOT-23 arrives, all of §5 collapses to:
 
 ## 6. DAC output stage (per channel — 2× identical)
 
-Inverting summing amplifier turns the DAC's 0..4.096 V swing into a ±10 V Eurorack-friendly bipolar output. One TL072 channel per DAC output → use the second TL072 IC for both DAC channels.
+Inverting summing amplifier turns the DAC's 0..4.096 V swing into a ±10 V Eurorack-friendly bipolar output, then protects the jack with a 1 kΩ series resistor and a BAT43 clamp pair to ±12 V.
+
+**One TL072 IC handles both channels** — channel A drives DAC OUTA → jack J3; channel B drives DAC OUTB → jack J4. No parking needed because both channels are active.
+
+(See §5 for the TL072 DIP-8 pinout reference. We're using a *second* TL072 IC here — call it TL072 #2.)
+
+### Resistor values (E96 nominals; E12 substitutes in parens)
+
+- **R_in = 10 kΩ** (E12 ✓ — same value works either way)
+- **R_off = 20 kΩ** (E96; or 22 kΩ E12 — gives ~9.07 V offset instead of 9.97 V; either bench-tune R_fb upward to compensate, or accept slightly less than ±10 V swing)
+- **R_fb = 48.7 kΩ** (E96; or 47 kΩ E12 — gives gain ≈ 4.7 instead of 4.87, swing ≈ ±9.6 V at the jack; fine for bench)
+- **R_jack_series = 1 kΩ** (output protection)
+
+### Math
+
+Inverting summing-amp transfer function:
+```
+Vout = (R_fb/R_off)·VREF − (R_fb/R_in)·VDAC
+```
+
+Target mapping (with E96 values, VREF = 4.096 V):
+
+| DAC voltage | Op-amp output | Jack output |
+|---|---|---|
+| 0 V         | +9.97 V  | +9.97 V (≈ +10 V) |
+| 2.048 V     | 0 V      | 0 V |
+| 4.096 V     | −9.97 V  | −9.97 V (≈ −10 V) |
+
+Firmware compensates the inversion in `outputs::write()` calibration (gain = −1, offset = +VREF/2 by default; bench-fit to actual values).
+
+### Wire list — channel A (DAC OUTA → jack J3)
+
+Channel A pins on TL072 #2: pin 1 (1OUT), pin 2 (1IN−), pin 3 (1IN+).
+
+| # | From | To | Notes |
+|---|---|---|---|
+| A1 | TL072 #2 pin 8 (V+) | +12 V rail | Op-amp positive supply (shared by both channels) |
+| A2 | TL072 #2 pin 4 (V−) | −12 V rail | Op-amp negative supply (shared) |
+| A3 | TL072 #2 pin 8 → GND | 100 nF cap | V+ decoupling |
+| A4 | TL072 #2 pin 4 → GND | 100 nF cap | V− decoupling |
+| A5 | TL072 #2 pin 3 (1IN+) | GND rail | Non-inverting input grounded — sets summing-amp virtual-ground reference |
+| A6 | DAC8552 pin 4 (VOUTA) | One end of R_in (10 kΩ) | DAC signal into the summing node via R_in |
+| A7 | Other end of R_in | TL072 #2 pin 2 (1IN−) | "Summing node" — also receives R_off and R_fb |
+| A8 | VREF rail | One end of R_off (20 kΩ) | Reference into the summing node via R_off |
+| A9 | Other end of R_off | TL072 #2 pin 2 (1IN−) | Same summing node |
+| A10 | TL072 #2 pin 1 (1OUT) | One end of R_fb (48.7 kΩ) | Feedback resistor |
+| A11 | Other end of R_fb | TL072 #2 pin 2 (1IN−) | Closes the feedback loop |
+| A12 | TL072 #2 pin 1 (1OUT) | One end of R_jack_series (1 kΩ) | Output isolation resistor |
+| A13 | Other end of R_jack_series | Jack J3 tip | The actual ±10 V output |
+| A14 | BAT43 #1 anode | Jack J3 tip | Clamp diode for positive overshoot |
+| A15 | BAT43 #1 cathode | +12 V rail | When jack > +12 V + Vf, this diode conducts → pulls jack down to +12 V |
+| A16 | BAT43 #2 cathode | Jack J3 tip | Clamp diode for negative overshoot |
+| A17 | BAT43 #2 anode | −12 V rail | When jack < −12 V − Vf, this diode conducts → pulls jack up to −12 V |
+| A18 | Jack J3 sleeve | GND rail | Standard mono-jack ground |
+
+### Wire list — channel B (DAC OUTB → jack J4)
+
+Channel B pins on TL072 #2: pin 5 (2IN+), pin 6 (2IN−), pin 7 (2OUT). Power and decoupling are **shared** with channel A — no need to repeat A1–A4.
+
+| # | From | To | Notes |
+|---|---|---|---|
+| B1 | TL072 #2 pin 5 (2IN+) | GND rail | Non-inverting input grounded |
+| B2 | DAC8552 pin 3 (VOUTB) | One end of R_in (10 kΩ) | New 10 kΩ resistor |
+| B3 | Other end of R_in | TL072 #2 pin 6 (2IN−) | Summing node |
+| B4 | VREF rail | One end of R_off (20 kΩ) | New 20 kΩ resistor |
+| B5 | Other end of R_off | TL072 #2 pin 6 (2IN−) | Same summing node |
+| B6 | TL072 #2 pin 7 (2OUT) | One end of R_fb (48.7 kΩ) | New 48.7 kΩ |
+| B7 | Other end of R_fb | TL072 #2 pin 6 (2IN−) | Closes the loop |
+| B8 | TL072 #2 pin 7 (2OUT) | One end of R_jack_series (1 kΩ) | New 1 kΩ |
+| B9 | Other end of R_jack_series | Jack J4 tip | |
+| B10 | BAT43 #3 anode | Jack J4 tip | Positive clamp |
+| B11 | BAT43 #3 cathode | +12 V rail | |
+| B12 | BAT43 #4 cathode | Jack J4 tip | Negative clamp |
+| B13 | BAT43 #4 anode | −12 V rail | |
+| B14 | Jack J4 sleeve | GND rail | |
+
+> **Diode polarity sanity check:** for the positive clamp, the diode has its **anode at the jack** (the side that might overshoot up) and **cathode at the +12 V rail** (the safe ceiling). When the jack tries to go above +12 V + Vf (~+12.3 V), the diode forward-biases and dumps the excess into the rail. The negative clamp is the mirror image. If you wire a clamp backward, it'll either do nothing (just float reverse-biased forever) or short the rail to GND through the op-amp output — measure carefully before powering up.
+
+### Schematic view (channel A; channel B is identical)
 
 ```
-DAC OUTA (0..4.096V) ──[10k, R_in]──┐
-                                     ├──[− input (pin 2) of TL072 #2A]
-VREF rail (4.096V) ──[20k, R_off]───┘
-                       │
-                  [48.7k, R_fb]──── output (pin 1)
-                       │
-                       └─── 1k series ──┬──── BAT43 anode → +12 V (clamps overshoot above +12)
-                                        ├──── BAT43 cathode → −12 V (clamps below −12; reverse the diode)
-                                        │
-                                        └──── jack tip (J3 = OUT 1)
+  DAC8552 pin 4 (VOUTA, 0..4.096V)              +12V    GND
+            │                                      │      │
+        ┌───┴───┐                                  │      ┴── 100nF
+        │ R_in  │                                  │
+        │ 10kΩ  │                                ┌─┴──┐
+        └───┬───┘                                │ 8  │V+
+            │     ┌───────────────┐              │    │
+   VREF ────┤     │   R_fb 48.7kΩ │              │ 3  │1IN+ ── GND
+   rail     │     └──┬──────┬─────┘              │    │
+   (4.096V) │        │      │                    │    │      ╲
+        ┌───┴────────┴──────┴──── pin 2 (1IN−) ──│ 2  │1IN−   ─── pin 1 (1OUT)
+        │ R_off                                  │    │      ╱       │
+        │ 20kΩ                                   │    │              │
+        └───┬───── ✗  (no — see wire A8/A9)      │ 4  │V−            │
+            │                                    └─┬──┘              │
+           GND                                     │                 │
+                                                  -12V               │
+                                                   │                 │
+                                                   ┴── 100nF         │
+                                                                     │
+                                       ┌───── R_jack_series (1kΩ) ───┘
+                                       │
+                                       ├──[BAT43 anode→J3, cathode→+12V]── (clamp +)
+                                       ├──[BAT43 cathode→J3, anode→−12V]── (clamp −)
+                                       │
+                                       └──── J3 tip (Eurorack OUT 1)
+                                            J3 sleeve → GND
 ```
 
-**Resistor values (E96 nominals; E12 substitutes in parens):**
+### Bench procedure
 
-- R_in = 10 kΩ (E12 ✓)
-- R_off = 20 kΩ (use 22 kΩ E12 — gives ~9.07 V offset instead of 9.97 V, bench-tune R_fb upward to compensate, or just use as-is and accept ±9 V swing)
-- R_fb = 48.7 kΩ (use 47 kΩ E12 — gives gain ≈ 4.7 instead of 4.87, swing ≈ ±9.6 V — fine for bench)
+1. **Build channel A only** (wires A1–A18). Leave the other DAC channel + jack J4 for after channel A passes.
+2. **Power up**, but **don't connect the DAC8552 OUTA wire (A6) yet.** Instead, jumper the R_in input end to GND (i.e., simulate VDAC = 0).
+3. **Meter on jack J3 tip** — should read ≈ +10 V (whatever your R_off / R_fb ratio gives).
+4. Move the jumper from GND to +VREF (i.e., simulate VDAC = 4.096 V).
+5. **Re-meter J3** — should read ≈ −10 V.
+6. Move the jumper to a +2.048 V source (a divider tap, or carefully tap the wiper of the VREF trimpot if accessible).
+7. **Re-meter J3** — should read ≈ 0 V.
+8. **Now connect wire A6 (DAC OUTA)** and run the smoke-test firmware. The triangle wave on the DAC should produce a triangle on J3 with the same amplitude relationship.
+9. Repeat steps 1–8 for channel B → jack J4.
 
-Math: Vout = +(R_fb/R_off)·VREF − (R_fb/R_in)·VDAC, target mapping:
-- DAC = 0 V → out ≈ +10 V (max positive)
-- DAC = 2.048 V → out ≈ 0 V
-- DAC = 4.096 V → out ≈ −10 V
-- Firmware compensates the inversion in `voltsToDacCount()`
+### Calibration
 
-**TL072 #2 channel assignments:**
+Once both channels track linearly, fill in the firmware calibration in `outputs::setCalibration(channel, gain, offset)`:
 
-- #2A → DAC OUTA → jack J3 (OUT 1)
-- #2B → DAC OUTB → jack J4 (OUT 2)
-
-**Output protection:**
-
-- 1 kΩ series resistor between op-amp output and jack tip — limits short-circuit current to ~12 mA
-- Two BAT43 Schottkies at the jack tip:
-  - One with **anode at jack tip, cathode at +12 V rail** — clamps positive overshoot
-  - One with **cathode at jack tip, anode at −12 V rail** — clamps negative overshoot
+- Pick two known DAC voltages (e.g., 1.0 V and 3.0 V), measure the resulting jack voltage with a multimeter
+- Solve the two equations for the actual `gain` (≈ −R_fb/R_in) and `offset` (≈ +(R_fb/R_off)·VREF) per channel
+- Update the `setCalibration()` calls in your firmware
 
 ---
 
 ## 7. Input protection + scaling (per channel — 2× identical)
 
-Mirror of the output stage in reverse: protected, attenuated, biased ±10 V jack input → 0..4.096 V at the ADC. One TL072 channel per ADC input → use the **first TL072 IC's spare channel #1B** for input 1, and a **third TL072** (or second TL074) for input 2 — or just commit a TL074 quad upfront for cleanliness.
+Mirror of the output stage in reverse: a protected, attenuated, biased ±10 V jack input → 0..4.096 V at the ADC.
 
-(For first bench session, wire only **one input channel** through ADC ch 0 to validate the stage; replicate for ch 1 once the loopback test passes.)
+**Topology, in order from jack to ADC:**
+
+1. 100 kΩ series resistor at the jack (limits clamp current under abuse)
+2. BAT43 dual clamp to ±12 V rails right after the series resistor (at "node A")
+3. Inverting summing amplifier (R_in2 in, R_off offset from VREF, R_fb feedback)
+4. Op-amp output → MCP3208 channel pin
+
+**IC allocation:** one TL072 channel per ADC input. We'll use a **third TL072 IC (TL072 #3)** — channel A for input 1, channel B for input 2. (TL072 #1's channel A is the VREF buffer; channel B is parked. TL072 #2 is fully consumed by the DAC outputs.)
+
+**For first bench session: wire input 1 only.** Channel B on TL072 #3 stays parked until you've confirmed input 1 tracks correctly via known voltages.
+
+(See §5 for TL072 DIP-8 pinout.)
+
+### Resistor values (E96 nominals; E12 substitutes in parens)
+
+- **R_series = 100 kΩ** (jack input impedance + clamp current limit; max abuse at ±15 V → 30 µA → BAT43 sees < 0.02 % of its 200 mA rating)
+- **R_in2 = 22 kΩ** (E12 ✓ — sets the inverting-amp gain)
+- **R_off = 9.4 kΩ** (use 9.1 kΩ E12, or two 4.7 kΩ in series — bench-tune R_fb if exact mapping matters)
+- **R_fb = 4.7 kΩ** (E12 ✓)
+
+### Math
 
 ```
-Jack tip (J1 = IN 1)
-   │
-   ├── 100 kΩ series ──┬─── BAT43 anode → −12 V (cathode at node A; clamps negative)
-   │                   ├─── BAT43 cathode → +12 V (anode at node A; clamps positive)
-   │                   │
-   │            (node A) ──── 22 kΩ ────┐
-   │                                     ├──[− input (pin 6) of TL072 #1B]
-   │                  VREF rail (4.096V) ─[9.4k]──┘
-   │                                       │
-   │                                  [4.7k, R_fb]──── output (pin 7) ──── MCP3208 ch 0 (pin 1)
+Vout = (R_fb/R_off)·VREF − (R_fb/R_in2)·Vin
 ```
 
-**Resistor values:**
+With the values above and VREF = 4.096 V:
 
-- R_series = 100 kΩ (sets jack input impedance + clamp current limit; max abuse current ±15 V → 30 µA, BAT43 200 mA rating gives huge margin)
-- R_in2 = 22 kΩ (E12 ✓ — sets gain)
-- R_off = 9.4 kΩ (use 9.1 kΩ E12 or two 4.7 kΩ in series; R_fb may need bench-tune)
-- R_fb = 4.7 kΩ (E12 ✓)
+| Jack input | Op-amp output → ADC | ADC count (12-bit) |
+|---|---|---|
+| +10 V | ≈ 0 V    | ≈ 0 |
+| 0 V   | ≈ 2.048 V | ≈ 2048 |
+| −10 V | ≈ 4.096 V | ≈ 4095 |
 
-Math: Vout = +(R_fb/R_off)·VREF − (R_fb/R_in2)·Vin, target mapping:
-- Jack +10 V → ADC reads 0 V → count 0
-- Jack 0 V → ADC reads 2.048 V → count 2048
-- Jack −10 V → ADC reads 4.096 V → count 4095
-- Firmware reverses the inversion in `inputs.readVolts()`
+Firmware reverses the inversion in `inputs::readVolts()` calibration (gain ≈ −R_in2/R_fb scaled to volts; offset = +(R_in2/R_off)·VREF; bench-fit per channel).
 
-**Input protection:** 100 kΩ first-stage + BAT43 dual clamp directly at the jack — same diode polarity as outputs but mirrored (anode-to-−12 to clamp negative, cathode-to-+12 to clamp positive at node A).
+### Wire list — channel A (jack J1 → MCP3208 ch 0)
+
+Channel A pins on TL072 #3: pin 1 (1OUT), pin 2 (1IN−), pin 3 (1IN+).
+
+| # | From | To | Notes |
+|---|---|---|---|
+| 1 | TL072 #3 pin 8 (V+) | +12 V rail | Op-amp positive supply |
+| 2 | TL072 #3 pin 4 (V−) | −12 V rail | Op-amp negative supply |
+| 3 | TL072 #3 pin 8 → GND | 100 nF cap | V+ decoupling |
+| 4 | TL072 #3 pin 4 → GND | 100 nF cap | V− decoupling |
+| 5 | TL072 #3 pin 3 (1IN+) | GND rail | Non-inverting input grounded — virtual-ground reference for the summing amp |
+| 6 | Jack J1 tip | One end of R_series (100 kΩ) | Jack feeds the protection / scaling chain |
+| 7 | Other end of R_series | "node A" (a free row on the breadboard) | Node A is the input-protection junction point |
+| 8 | BAT43 #5 cathode | Node A | Clamp diode for **negative** undershoot |
+| 9 | BAT43 #5 anode | −12 V rail | When node A < −12 V − Vf, this diode forward-biases and pulls node A back up |
+| 10 | BAT43 #6 anode | Node A | Clamp diode for **positive** overshoot |
+| 11 | BAT43 #6 cathode | +12 V rail | When node A > +12 V + Vf, this diode forward-biases and pulls node A back down |
+| 12 | Node A | One end of R_in2 (22 kΩ) | Signal into the summing-amp input via R_in2 |
+| 13 | Other end of R_in2 | TL072 #3 pin 2 (1IN−) | Summing node |
+| 14 | VREF rail | One end of R_off (9.4 kΩ) | Reference into the summing node via R_off |
+| 15 | Other end of R_off | TL072 #3 pin 2 (1IN−) | Same summing node |
+| 16 | TL072 #3 pin 1 (1OUT) | One end of R_fb (4.7 kΩ) | Feedback resistor |
+| 17 | Other end of R_fb | TL072 #3 pin 2 (1IN−) | Closes the feedback loop |
+| 18 | TL072 #3 pin 1 (1OUT) | MCP3208 pin 1 (CH0) | The buffered, scaled, biased input voltage feeds ADC channel 0 |
+| 19 | Jack J1 sleeve | GND rail | Standard mono-jack ground |
+| **Park unused channel B** | | | |
+| 20 | TL072 #3 pin 5 (2IN+) | GND rail | Channel B input grounded |
+| 21 | TL072 #3 pin 6 (2IN−) | TL072 #3 pin 7 (2OUT) | Channel B unity-gain feedback so output sits at 0 V |
+
+When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 20–21 and add a parallel set of wires repeating 5–18 with channel B's pin numbers (5/6/7) and using MCP3208 pin 2 (CH1) instead of pin 1.
+
+> **Diode polarity sanity check (mirrored from §6):** the input clamps go on **node A**, *after* the 100 kΩ series resistor — not directly at the jack. This is intentional: the series resistor limits clamp current to safe levels (30 µA worst case), and node A is a low-current point where the clamp can hold the voltage without burning the diode out. Polarity at node A is the same logic as §6: anode-to-jack-side / cathode-to-rail for positive overshoot; cathode-to-jack-side / anode-to-rail for negative.
+
+### Schematic view (channel A)
+
+```
+  Jack J1 tip                                +12V        GND
+        │                                      │          │
+   ┌────┴─────┐                                │          ┴── 100nF
+   │ R_series │                                │
+   │  100 kΩ  │                              ┌─┴──┐
+   └────┬─────┘                              │ 8  │V+
+        │ (node A)                           │    │
+        ├──[BAT43 anode → +12V; cathode← ]── │ 3  │1IN+ ── GND
+        ├──[BAT43 cathode → −12V; anode→ ]── │    │
+        │                                    │    │      ╲
+   ┌────┴─────┐                              │ 2  │1IN−   ─── pin 1 (1OUT)
+   │ R_in2    │                              │    │      ╱       │
+   │  22 kΩ   │                              │    │              │
+   └────┬─────┘                              │ 4  │V−            │
+        │                                    └─┬──┘              │
+   VREF ┤                                      │                 │
+   rail │                                     -12V               │
+        │     ┌──── R_fb 4.7kΩ ───┐            │                 │
+        │     │                    │           ┴── 100nF         │
+   ┌────┴─────┴┐                   │                             │
+   │ R_off     │                   │                             │
+   │  9.4 kΩ   │                   │                             │
+   └────┬──────┘                   │                             │
+        │                          │                             │
+        └──── pin 2 (1IN−) ────────┴─────────────────────────────┘
+                                                                 │
+                                                                 │
+                         MCP3208 pin 1 (CH0) ───────────────────┘
+
+   Channel B (unused on first session) — parked as in §5:
+      TL072 #3 pin 5 (2IN+) ── GND
+      TL072 #3 pin 6 (2IN−) ── TL072 #3 pin 7 (2OUT)
+```
+
+### Bench procedure
+
+1. **Wire channel A only** (wires 1–19). Park channel B with wires 20–21.
+2. **Power up.** Confirm ±12 V and the +5 V / VREF rails are still clean (the new IC shouldn't disturb them).
+3. **First test — input grounded.** With nothing connected to jack J1 (or jack J1 tip jumpered to GND), meter on TL072 #3 pin 1 (1OUT). Should read **≈ +2.048 V** (the offset from VREF). If you see something near 0 V or rail-stuck, double-check wires 5 (1IN+ to GND) and 13/15 (summing-node connections).
+4. **Second test — apply +5 V to jack J1 tip** from a bench supply (or through R_series from any +5 V source — be gentle).
+   - Expected output at TL072 #3 pin 1: **≈ +1.02 V** ((9.4/4.7)·4.096 − (22/4.7·)5 → wait, math: math: Vout = (4.7/9.4)·4.096 − (4.7/22)·5 = 2.048 − 1.068 = 0.980 V — close enough; the resistor approximations matter)
+5. **Third test — apply −5 V to jack J1 tip.**
+   - Expected output: **≈ +3.12 V** (Vout = 2.048 − (4.7/22)·(−5) = 2.048 + 1.068 = 3.116 V)
+6. **If steps 4 and 5 give roughly symmetric departures from the 2.048 V midpoint**, the stage is working — even if exact values are off by 5–10 % due to E12 substitutions.
+7. **Run the smoke-test firmware** with input scaling enabled. The reported `adc_v` should track the applied jack voltage (modulo the inversion).
+8. **Calibrate** by applying two known voltages (e.g., +5 V and −5 V), reading the resulting `adc_count`, and computing the per-channel `gain` and `offset` for `inputs::setCalibration()`.
+9. **Once channel A passes**, remove wires 20–21 and replicate 5–18 for channel B → jack J2 → MCP3208 CH1 (pin 2).
 
 ---
 
