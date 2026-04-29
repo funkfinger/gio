@@ -242,35 +242,55 @@ When the SOT-23 arrives, all of §5 collapses to:
 
 ## 6. DAC output stage (per channel — 2× identical)
 
-Inverting summing amplifier turns the DAC's 0..4.096 V swing into a ±10 V Eurorack-friendly bipolar output, then protects the jack with a 1 kΩ series resistor and a BAT43 clamp pair to ±12 V.
+Inverting amplifier (with offset on the non-inverting input) turns the DAC's 0..4.096 V swing into a ±9 V Eurorack-friendly bipolar output, then protects the jack with a 1 kΩ series resistor and a BAT43 clamp pair to ±12 V.
 
 **One TL072 IC handles both channels** — channel A drives DAC OUTA → jack J3; channel B drives DAC OUTB → jack J4. No parking needed because both channels are active.
 
 (See §5 for the TL072 DIP-8 pinout reference. We're using a *second* TL072 IC here — call it TL072 #2.)
 
-### Resistor values (E96 nominals; E12 substitutes in parens)
+### Topology — why offset is on pin 3, not pin 2
 
-- **R_in = 10 kΩ** (E12 ✓ — same value works either way)
-- **R_off = 20 kΩ** (E96; or 22 kΩ E12 — gives ~9.07 V offset instead of 9.97 V; either bench-tune R_fb upward to compensate, or accept slightly less than ±10 V swing)
-- **R_fb = 48.7 kΩ** (E96; or 47 kΩ E12 — gives gain ≈ 4.7 instead of 4.87, swing ≈ ±9.6 V at the jack; fine for bench)
-- **R_jack_series = 1 kΩ** (output protection)
+A naive inverting summing amp with both VDAC and VREF on the inverting input (pin 2) **doesn't work** with a single positive reference: both contributions invert, and `Vout = −(R_fb/R_in)·VDAC − (R_fb/R_off)·VREF` rails to negative for any DAC value (validated empirically 2026-04-29 — see `bench-log.md`).
+
+The fix is to put the offset reference on the **non-inverting input (pin 3)** via a divider. That makes the offset contribution *non-inverting* (positive at the output) while VDAC stays *inverting* (negative-going at the output), giving a real bipolar swing from a single positive reference.
+
+### Resistor values
+
+| Symbol | Where | Value (E96 / E12) | Purpose |
+|---|---|---|---|
+| R_in | DAC pin 4 → pin 2 | **10 kΩ** | Sets gain magnitude with R_fb |
+| R_fb | pin 1 → pin 2 | **48.7 kΩ** (or 47 kΩ E12; or 2× 22 kΩ in series = 44 kΩ) | Feedback resistor — sets gain = R_fb / R_in |
+| R_div_top | VREF rail → pin 3 | **22 kΩ** | Top leg of offset divider |
+| R_div_bot | pin 3 → GND | **15 kΩ** (or 14.7 kΩ E96) | Bottom leg of offset divider |
+| R_jack_series | pin 1 → jack tip | **1 kΩ** | Output isolation / short-circuit current limit |
+
+Divider sets V_pin3 = VREF · R_div_bot/(R_div_top + R_div_bot) ≈ **1.66 V** with the values above.
 
 ### Math
 
-Inverting summing-amp transfer function:
+Inverting amp with non-inverting offset:
+
 ```
-Vout = (R_fb/R_off)·VREF − (R_fb/R_in)·VDAC
+Vout = (1 + R_fb/R_in)·V_pin3 − (R_fb/R_in)·VDAC
 ```
 
-Target mapping (with E96 values, VREF = 4.096 V):
+With R_fb = 44 kΩ (2× 22 kΩ E12), R_in = 10 kΩ, V_pin3 = 1.66 V, VREF = 4.096 V:
 
-| DAC voltage | Op-amp output | Jack output |
-|---|---|---|
-| 0 V         | +9.97 V  | +9.97 V (≈ +10 V) |
-| 2.048 V     | 0 V      | 0 V |
-| 4.096 V     | −9.97 V  | −9.97 V (≈ −10 V) |
+```
+Vout = 5.4·1.66 − 4.4·VDAC ≈ 8.96 − 4.4·VDAC
+```
 
-Firmware compensates the inversion in `outputs::write()` calibration (gain = −1, offset = +VREF/2 by default; bench-fit to actual values).
+Target mapping:
+
+| DAC voltage | Op-amp output (= jack) |
+|---|---|
+| 0 V         | **≈ +8.96 V**  (max positive) |
+| 2.048 V     | **≈ 0 V**      (midpoint) |
+| 4.096 V     | **≈ −9.06 V**  (max negative) |
+
+Firmware compensates the inversion in `outputs::write()` calibration (gain ≈ −1/4.4 scaled to volts; offset ≈ +V_pin3·gain; bench-fit per channel).
+
+If you want closer to the spec'd ±10 V (instead of ±9 V), use R_fb = 48.7 kΩ E96 — gain rises to 4.87, output swing widens proportionally.
 
 ### Wire list — channel A (DAC OUTA → jack J3)
 
@@ -282,95 +302,102 @@ Channel A pins on TL072 #2: pin 1 (1OUT), pin 2 (1IN−), pin 3 (1IN+).
 | A2 | TL072 #2 pin 4 (V−) | −12 V rail | Op-amp negative supply (shared) |
 | A3 | TL072 #2 pin 8 → GND | 100 nF cap | V+ decoupling |
 | A4 | TL072 #2 pin 4 → GND | 100 nF cap | V− decoupling |
-| A5 | TL072 #2 pin 3 (1IN+) | GND rail | Non-inverting input grounded — sets summing-amp virtual-ground reference |
-| A6 | DAC8552 pin 4 (VOUTA) | One end of R_in (10 kΩ) | DAC signal into the summing node via R_in |
-| A7 | Other end of R_in | TL072 #2 pin 2 (1IN−) | "Summing node" — also receives R_off and R_fb |
-| A8 | VREF rail | One end of R_off (20 kΩ) | Reference into the summing node via R_off |
-| A9 | Other end of R_off | TL072 #2 pin 2 (1IN−) | Same summing node |
-| A10 | TL072 #2 pin 1 (1OUT) | One end of R_fb (48.7 kΩ) | Feedback resistor |
-| A11 | Other end of R_fb | TL072 #2 pin 2 (1IN−) | Closes the feedback loop |
-| A12 | TL072 #2 pin 1 (1OUT) | One end of R_jack_series (1 kΩ) | Output isolation resistor |
-| A13 | Other end of R_jack_series | Jack J3 tip | The actual ±10 V output |
-| A14 | BAT43 #1 anode | Jack J3 tip | Clamp diode for positive overshoot |
-| A15 | BAT43 #1 cathode | +12 V rail | When jack > +12 V + Vf, this diode conducts → pulls jack down to +12 V |
-| A16 | BAT43 #2 cathode | Jack J3 tip | Clamp diode for negative overshoot |
-| A17 | BAT43 #2 anode | −12 V rail | When jack < −12 V − Vf, this diode conducts → pulls jack up to −12 V |
-| A18 | Jack J3 sleeve | GND rail | Standard mono-jack ground |
+| A5 | VREF rail | One end of R_div_top (22 kΩ) | Top leg of the pin-3 offset divider |
+| A6 | Other end of R_div_top | TL072 #2 pin 3 (1IN+) | Pin 3 is the divider's mid-point |
+| A7 | TL072 #2 pin 3 (1IN+) | One end of R_div_bot (15 kΩ) | Bottom leg of the divider |
+| A8 | Other end of R_div_bot | GND rail | Closes the divider — V_pin3 ≈ 1.66 V |
+| A9 | DAC8552 pin 4 (VOUTA) | One end of R_in (10 kΩ) | DAC signal into the summing node |
+| A10 | Other end of R_in | TL072 #2 pin 2 (1IN−) | Summing node — also receives R_fb |
+| A11 | TL072 #2 pin 1 (1OUT) | One end of R_fb (44 kΩ via 2× 22 kΩ) | Feedback resistor |
+| A12 | Other end of R_fb | TL072 #2 pin 2 (1IN−) | Closes the feedback loop |
+| A13 | TL072 #2 pin 1 (1OUT) | One end of R_jack_series (1 kΩ) | Output isolation resistor |
+| A14 | Other end of R_jack_series | Jack J3 tip | The actual ±9 V output |
+| A15 | BAT43 #1 anode | Jack J3 tip | Clamp diode for positive overshoot |
+| A16 | BAT43 #1 cathode | +12 V rail | When jack > +12 V + Vf, this diode conducts → pulls jack down to +12 V |
+| A17 | BAT43 #2 cathode | Jack J3 tip | Clamp diode for negative overshoot |
+| A18 | BAT43 #2 anode | −12 V rail | When jack < −12 V − Vf, this diode conducts → pulls jack up to −12 V |
+| A19 | Jack J3 sleeve | GND rail | Standard mono-jack ground |
 
 ### Wire list — channel B (DAC OUTB → jack J4)
 
-Channel B pins on TL072 #2: pin 5 (2IN+), pin 6 (2IN−), pin 7 (2OUT). Power and decoupling are **shared** with channel A — no need to repeat A1–A4.
+Channel B pins on TL072 #2: pin 5 (2IN+), pin 6 (2IN−), pin 7 (2OUT). Power and decoupling are **shared** with channel A — no need to repeat A1–A4. The pin-3 offset divider can also be **shared** with channel A's pin 5: tie pin 5 to pin 3, and skip a separate divider.
 
 | # | From | To | Notes |
 |---|---|---|---|
-| B1 | TL072 #2 pin 5 (2IN+) | GND rail | Non-inverting input grounded |
+| B1 | TL072 #2 pin 5 (2IN+) | TL072 #2 pin 3 (1IN+) | Share channel A's offset divider |
 | B2 | DAC8552 pin 3 (VOUTB) | One end of R_in (10 kΩ) | New 10 kΩ resistor |
 | B3 | Other end of R_in | TL072 #2 pin 6 (2IN−) | Summing node |
-| B4 | VREF rail | One end of R_off (20 kΩ) | New 20 kΩ resistor |
-| B5 | Other end of R_off | TL072 #2 pin 6 (2IN−) | Same summing node |
-| B6 | TL072 #2 pin 7 (2OUT) | One end of R_fb (48.7 kΩ) | New 48.7 kΩ |
-| B7 | Other end of R_fb | TL072 #2 pin 6 (2IN−) | Closes the loop |
-| B8 | TL072 #2 pin 7 (2OUT) | One end of R_jack_series (1 kΩ) | New 1 kΩ |
-| B9 | Other end of R_jack_series | Jack J4 tip | |
-| B10 | BAT43 #3 anode | Jack J4 tip | Positive clamp |
-| B11 | BAT43 #3 cathode | +12 V rail | |
-| B12 | BAT43 #4 cathode | Jack J4 tip | Negative clamp |
-| B13 | BAT43 #4 anode | −12 V rail | |
-| B14 | Jack J4 sleeve | GND rail | |
+| B4 | TL072 #2 pin 7 (2OUT) | One end of R_fb (44 kΩ) | New 44 kΩ (or 47 kΩ E12, or 48.7 kΩ E96) |
+| B5 | Other end of R_fb | TL072 #2 pin 6 (2IN−) | Closes the loop |
+| B6 | TL072 #2 pin 7 (2OUT) | One end of R_jack_series (1 kΩ) | New 1 kΩ |
+| B7 | Other end of R_jack_series | Jack J4 tip | |
+| B8 | BAT43 #3 anode | Jack J4 tip | Positive clamp |
+| B9 | BAT43 #3 cathode | +12 V rail | |
+| B10 | BAT43 #4 cathode | Jack J4 tip | Negative clamp |
+| B11 | BAT43 #4 anode | −12 V rail | |
+| B12 | Jack J4 sleeve | GND rail | |
 
 > **Diode polarity sanity check:** for the positive clamp, the diode has its **anode at the jack** (the side that might overshoot up) and **cathode at the +12 V rail** (the safe ceiling). When the jack tries to go above +12 V + Vf (~+12.3 V), the diode forward-biases and dumps the excess into the rail. The negative clamp is the mirror image. If you wire a clamp backward, it'll either do nothing (just float reverse-biased forever) or short the rail to GND through the op-amp output — measure carefully before powering up.
 
 ### Schematic view (channel A; channel B is identical)
 
 ```
-  DAC8552 pin 4 (VOUTA, 0..4.096V)              +12V    GND
-            │                                      │      │
-        ┌───┴───┐                                  │      ┴── 100nF
-        │ R_in  │                                  │
-        │ 10kΩ  │                                ┌─┴──┐
-        └───┬───┘                                │ 8  │V+
-            │     ┌───────────────┐              │    │
-   VREF ────┤     │   R_fb 48.7kΩ │              │ 3  │1IN+ ── GND
-   rail     │     └──┬──────┬─────┘              │    │
-   (4.096V) │        │      │                    │    │      ╲
-        ┌───┴────────┴──────┴──── pin 2 (1IN−) ──│ 2  │1IN−   ─── pin 1 (1OUT)
-        │ R_off                                  │    │      ╱       │
-        │ 20kΩ                                   │    │              │
-        └───┬───── ✗  (no — see wire A8/A9)      │ 4  │V−            │
-            │                                    └─┬──┘              │
-           GND                                     │                 │
-                                                  -12V               │
-                                                   │                 │
-                                                   ┴── 100nF         │
+  DAC8552 pin 4 (VOUTA, 0..4.096V)            +12V    GND
+            │                                    │      │
+        ┌───┴───┐                                │      ┴── 100nF
+        │ R_in  │                                │
+        │ 10kΩ  │                              ┌─┴──┐
+        └───┬───┘                              │ 8  │V+
+            │            ┌──── R_fb 44kΩ ────┐ │    │
+            │            │                   │ │    │
+            │            │                   └─│ 2  │1IN−   ╲
+            └──────── pin 2 (1IN−) ────────────│    │       ─── pin 1 (1OUT)
+                                               │    │       ╱        │
+                                               │    │                │
+   VREF rail ─[R_div_top 22kΩ]─┐               │    │                │
+                                ├── pin 3 ─────│ 3  │1IN+            │
+                  GND ─[R_div_bot 15kΩ]─┘      │    │                │
+                                               │ 4  │V−              │
+                                               └─┬──┘                │
+                                                 │                   │
+                                                -12V                 │
+                                                 │                   │
+                                                 ┴── 100nF           │
                                                                      │
-                                       ┌───── R_jack_series (1kΩ) ───┘
-                                       │
-                                       ├──[BAT43 anode→J3, cathode→+12V]── (clamp +)
-                                       ├──[BAT43 cathode→J3, anode→−12V]── (clamp −)
-                                       │
-                                       └──── J3 tip (Eurorack OUT 1)
-                                            J3 sleeve → GND
+                                        ┌── R_jack_series (1kΩ) ─────┘
+                                        │
+                                        ├──[BAT43 anode→J3, cathode→+12V]── (clamp +)
+                                        ├──[BAT43 cathode→J3, anode→−12V]── (clamp −)
+                                        │
+                                        └─── J3 tip (Eurorack OUT 1)
+                                             J3 sleeve → GND
+
+  Channel B reuses the same offset divider — pin 5 (2IN+) tied directly to pin 3.
 ```
 
 ### Bench procedure
 
-1. **Build channel A only** (wires A1–A18). Leave the other DAC channel + jack J4 for after channel A passes.
-2. **Power up**, but **don't connect the DAC8552 OUTA wire (A6) yet.** Instead, jumper the R_in input end to GND (i.e., simulate VDAC = 0).
-3. **Meter on jack J3 tip** — should read ≈ +10 V (whatever your R_off / R_fb ratio gives).
-4. Move the jumper from GND to +VREF (i.e., simulate VDAC = 4.096 V).
-5. **Re-meter J3** — should read ≈ −10 V.
-6. Move the jumper to a +2.048 V source (a divider tap, or carefully tap the wiper of the VREF trimpot if accessible).
-7. **Re-meter J3** — should read ≈ 0 V.
-8. **Now connect wire A6 (DAC OUTA)** and run the smoke-test firmware. The triangle wave on the DAC should produce a triangle on J3 with the same amplitude relationship.
-9. Repeat steps 1–8 for channel B → jack J4.
+1. **Build channel A only** (wires A1–A19). Leave channel B + jack J4 for after channel A passes.
+2. **Power up.** First sanity check: meter pin 3 → should read **≈ +1.66 V** (the divider). Then meter pin 2 → should read the same as pin 3 within a few mV (op-amp's "virtual short" via feedback).
+3. **Don't connect DAC8552 pin 4 yet.** Instead, jumper the R_in input end (where DAC pin 4 will land) to **GND** — this simulates VDAC = 0.
+4. **Meter on jack J3 tip** — should read **≈ +9 V** (precise value depends on your divider and R_fb).
+5. Move the jumper from GND to **VREF rail (+4.096 V)** — simulates VDAC = 4.096 V.
+6. **Re-meter J3** — should read **≈ −9 V**.
+7. *(Optional)* Move the jumper to a midpoint voltage near +2 V (any divider tap or matched-resistor pair) — J3 should read **≈ 0 V**.
+8. **Now connect DAC8552 pin 4** to the R_in input end (wire A9). Flash the smoke-test firmware:
+   ```
+   pio run -d firmware/arp -e seeed-xiao-rp2350-smoketest --target upload
+   ```
+   The 1 Hz triangle on the DAC will produce a 1 Hz triangle at J3, swinging ≈ ±9 V.
+9. Once channel A is solid, **remove the channel-B parking wires** (pin 5 to GND, pin 6 to pin 7) and add the channel-B wiring (B1–B12 above).
 
 ### Calibration
 
-Once both channels track linearly, fill in the firmware calibration in `outputs::setCalibration(channel, gain, offset)`:
+Once both channels track linearly, fill in the firmware calibration in `outputs::setCalibration(channel, gain, offset)`. The transfer function is `Vjack = (1 + R_fb/R_in)·V_pin3 − (R_fb/R_in)·VDAC`, so:
 
 - Pick two known DAC voltages (e.g., 1.0 V and 3.0 V), measure the resulting jack voltage with a multimeter
-- Solve the two equations for the actual `gain` (≈ −R_fb/R_in) and `offset` (≈ +(R_fb/R_off)·VREF) per channel
-- Update the `setCalibration()` calls in your firmware
+- Solve for the linear `Vjack = gain·VDAC + offset` per channel
+- The firmware applies the inverse mapping when you call `outputs::write(channel, target_jack_volts)` — it computes the DAC voltage that produces the target jack output
 
 ---
 

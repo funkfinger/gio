@@ -8,21 +8,24 @@
 
 ### Hardware
 
-- [ ] Per-output topology — **inverting summing amplifier** (Mutable house style):
+- [ ] Per-output topology — **inverting amplifier with non-inverting offset** (corrected from initial spec — see Notes):
   ```
-  DAC (0..+4.096V) ──[R_in = 10k]───┐
-                                     ├──[− input of TL072]
-  REF3040 (+4.096V) ─[R_off = 20k]──┘
-                       │
-  [R_fb = 48.7k]───────┘
-                       │
-                  [output, 1k series]──[BAT54S to ±12V rails]──[jack tip]
+  DAC (0..+4.096V) ──[R_in = 10k]── pin 2 (1IN−)
+                                    │            ╲
+                       [R_fb = 48.7k]            ─── pin 1 (1OUT)
+                                    │            ╱       │
+                              pin 1 ─┘                   │
+                                                         │
+  REF3040 (+4.096V) ─[R_div_top = 22k]── pin 3 (1IN+)    │
+                  GND ─[R_div_bot = 15k]┘                │
+                                                         │
+                              [output, 1k series]──[BAT54S to ±12V rails]──[jack tip]
   ```
-- [ ] Math: `Vout = −(R_fb/R_in) × Vdac + (R_fb/R_off) × V_off` (offset goes to + input via divider, or use a unity-gain follower of −V_off into the summing node — bench-tune the topology).
-- [ ] **Practical target:** DAC 0 V → +10 V out; DAC 2.048 V → 0 V out; DAC 4.096 V → −10 V out. (Inverted, scale ±10 V.) Firmware compensates in `voltsToDacCount()`.
-  - Gain = R_fb/R_in = 48.7k/10k = **4.87** (was 4 when VREF was 5 V — see `decisions.md` §25)
-  - Offset contribution = (R_fb/R_off) × 4.096 V = (48.7/20) × 4.096 ≈ **+9.97 V** at DAC = 0
-  - All values are E96-standard; bench-tune to hit exact ±10 V if needed
+- [ ] Math: `Vout = (1 + R_fb/R_in) × V_pin3 − (R_fb/R_in) × VDAC`, where `V_pin3 = VREF × R_div_bot/(R_div_top + R_div_bot) ≈ 1.66 V`.
+- [ ] **Practical target:** DAC 0 V → +9 V out; DAC 2.048 V → 0 V out; DAC 4.096 V → −9 V out. (Inverted, scale ±9 V with these E96 values.) Firmware compensates in `outputs::write()`.
+  - Gain = R_fb/R_in = 48.7k/10k = **4.87**
+  - V_pin3 contribution at output = (1 + 4.87) × 1.66 ≈ **+9.74 V** at DAC = 0
+  - For exact ±10 V target: bench-tune R_div_top / R_div_bot to land V_pin3 right; or accept ±9 V swing (more than enough for V/Oct, plenty of margin on bipolar CV)
 - [ ] Power: TL072 on ±12V (Story 011 rails).
 - [ ] Output protection: **1 kΩ series + BAT54S series-pair Schottky to ±12V rails** at the jack (LCSC C19726, onsemi). One SOT-23 per signal — see `hardware/bom.md`. Caps short-circuit current to ~12V/1k = 12 mA, well within TL072 short-circuit-protected output.
 - [ ] Both DAC channels (OUTA + OUTB) get identical output stages — symmetric I/O for the platform.
@@ -42,8 +45,9 @@
 
 ## Notes
 
-- **Why inverting summing amp:** DAC8552 is single-supply 0–5V output; getting bipolar requires offset + gain. The inverting summing amp is the classic minimum-parts way to do this. The inversion is paid for in firmware (`dac_count = midToCount(−v)`) — trivial.
-- **Why R_fb = 48.7k for gain ≈ 4.88:** with VREF = 4.096 V from REF3040 (per §25), we need slightly more gain than the old 4× to hit the same ±10 V swing. 48.7k is E96-standard; 47k (E24) is close enough for bench, gives ±9.63 V swing. Bench-tune if exact ±10 V is required.
+- **Topology correction (2026-04-29):** the original spec called for an inverting *summing* amp with VREF on R_off feeding pin 2 alongside VDAC. That doesn't work with a single positive reference — both contributions invert, output rails to negative. Bench-validated and corrected; offset now goes to **pin 3 (non-inverting input)** via a divider, making the offset contribution non-inverting (positive at output) while VDAC stays inverting (negative-going). See `bench-log.md` 2026-04-29 entry.
+- **Why inverting topology at all:** DAC8552 is single-supply 0..VREF; getting bipolar requires combining a fixed positive offset with an inverted DAC contribution. The corrected topology is the minimum-parts way (one R_in, one R_fb, two divider resistors). The inversion is paid for in firmware (`dac_count = voltsToCount(−v + offset)`) — trivial.
+- **Why R_fb = 48.7k for gain ≈ 4.87:** with VREF = 4.096 V from REF3040 (per §25), the gain that takes a 4.096 V max DAC swing to a ~10 V output range is ~4.87. 48.7 k is E96-standard; 47 k E24 is close enough; 2× 22 k in series (= 44 k, gives gain 4.4) was used for first bench validation and produces ±9 V — more than acceptable.
 - **Reference voltage:** REF3040 (4.096 V, ±0.2%, 75 ppm/°C) shared with the ADC per `decisions.md` §25 — not the +5V supply rail.
 - **Output AC coupling:** not used. V/Oct must be DC. Anyone who wants AC coupling can do it externally.
 

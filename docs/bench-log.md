@@ -150,3 +150,59 @@ Total bench time on the RP2350-E9 hunt: ~90 minutes. Documented in `decisions.md
 **Result:** gio now correctly tracks external clock from MOD2. EXT badge appears on OLED. LED blinks per pulse. Divider zone hysteresis works. Disconnect cable → falls back to internal tempo within 2 s.
 
 **Deferred:** pitch mode on J1 (needs an ADC pin freed up); BAT43 clamp on J1 input (Rev 0.1 PCB).
+
+---
+
+## 2026-04-29 — Stories 011 + 012 + 013 (channel A): SPI bring-up + DAC output stage
+
+First post-pivot bench session. Goal: validate the entire signal chain from the XIAO firmware through SPI → DAC8552 → inverting summing amp → Eurorack-friendly bipolar jack output, on **channel A only** (channel B and the input stage deferred to next session).
+
+**Setup:**
+- XIAO RP2350 on female socket strips, plugged into Protomato breadboard (rails ±12 V / +5 V / GND verified clean).
+- VREF stand-in: 10 kΩ multi-turn trimpot, divided +5 V → wiper, buffered through TL072 #1 channel A as a unity-gain follower. Channel B parked (pin 5 → GND, pin 6 → pin 7). Buffer output dialled to 4.096 V on the multimeter, locked.
+- DAC8552 (MSOP-8 on a SOT/MSOP → DIP adapter): VDD=+5 V (pin 1), VREF tied to the buffered 4.096 V rail (pin 2), GND (pin 8), 100 nF decoupling at pin 1. SPI to XIAO: SCLK=D8 (pin 6), DIN=D10 (pin 7), /SYNC=D3 (pin 5). VOUTA (pin 4) → output stage. VOUTB (pin 3) not connected.
+- TL072 #2 channel A: inverting summing amp with R_in = 10 kΩ from DAC8552 pin 4, R_fb = 2× 22 kΩ in series = 44 kΩ from pin 1, output through 1 kΩ series → jack J3 tip with BAT43 clamps to ±12 V. Channel B parked. Pin 8 = +12 V, pin 4 = −12 V, 100 nF on each.
+- **Topology correction during the session:** original `bench-wiring.md` §6 had R_off (20 kΩ) feeding VREF into pin 2 alongside the DAC. That makes both contributions inverting → output rails to negative for any DAC value. Reworked to put VREF on **pin 3 (non-inverting)** via a divider — 22 kΩ from VREF to pin 3, 14.7 kΩ from pin 3 to GND. V_pin3 = 4.096·14.7/(22+14.7) ≈ 1.64 V, which gives `Vout = 5.4·V_pin3 − 4.4·VDAC` — a real bipolar swing.
+
+**Static measurements (DAC pin disconnected; jumper into R_in input end):**
+
+| Test | Predicted | Measured | Notes |
+|---|---|---|---|
+| Pin 3 (1IN+) | +1.64 V | **+1.628 V** | Divider correct |
+| Pin 2 (1IN−) | tracks pin 3 (virtual short) | **+1.630 V** | 2 mV input offset, well within TL072 spec |
+| Jumper R_in → GND, jack J3 | +8.86 V | **+8.83 V** | + offset (DAC=0 simulated) |
+| Jumper R_in → VREF rail, jack J3 | −9.17 V | **−9.25 V** | − swing (DAC=4.096 simulated) |
+
+Symmetric ±9 V swing as expected. Slight asymmetry vs. spec is from R_fb being 44 kΩ (2×22 in series) instead of the spec'd 48.7 kΩ — bench-acceptable; full ±10 V can come back when the right resistor is on hand.
+
+**Dynamic measurement (DAC connected, smoke-test firmware running):**
+
+Smoke-test triangle on DAC ch A, 1 Hz, 50 samples per cycle. Probed jack J3 tip on Rigol DS1Z scope, channel 1 = 5 V/div, time = 200 ms/div.
+
+![Channel A bipolar triangle at jack J3](images/bench-channel-a-triangle-jack.png)
+
+| Scope reading | Spec | Measured |
+|---|---|---|
+| Period | 1.000 s | **1.004 s** (0.4 % off — Arduino `millis()` quantization, well within tolerance) |
+| Frequency | 1.000 Hz | **0.996 Hz** |
+| Steps per cycle | 50 | 50 visible in staircase |
+| Shape | clean symmetric triangle | clean, no glitches, no dropped samples |
+| Amplitude | ±9 V | matches the static numbers above (≈ 18 V pp) |
+
+**What this validates:**
+- ✅ SPI bus arbitration (single-CS DAC8552 transaction works in isolation)
+- ✅ DAC8552 24-bit frame protocol via Rob Tillaart lib + `outputs::write()` HAL
+- ✅ Pot+TL072 VREF stand-in is stable enough for the DAC reference
+- ✅ Inverting summing amp with offset divider (corrected topology) produces clean bipolar output
+- ✅ End-to-end: XIAO firmware → SPI → DAC → analog stage → Eurorack-spec jack output
+
+**What's still pending in this story:**
+- Channel B (DAC OUTB → jack J4) — replicate channel A's wiring
+- Bench validation against a real Eurorack VCO V/Oct input (audible test)
+- ADC side: wire MCP3208 + smoke-test loopback (jumper J3 → MCP3208 ch 0)
+- Input stage (Story 015) for J1 → ADC ch 0
+- Calibration: bench-fit `outputs::setCalibration()` constants once channel B is up
+
+**Doc fixes from this session:**
+- `bench-wiring.md` §6 needs the topology correction (offset on pin 3, not pin 2) and resistor-value updates from this build.
+- `decisions.md` and Story 013 likewise reference the original (broken) topology — both need the same sign correction.

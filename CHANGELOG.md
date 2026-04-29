@@ -14,6 +14,15 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **First post-pivot bench session — channel A end-to-end working.** Captured in `bench-log.md` 2026-04-29 entry with scope screenshot. Validates: SPI bus arbitration, DAC8552 24-bit frame protocol via Rob Tillaart lib + `outputs::write()` HAL, pot+TL072 VREF stand-in stable to 4.096 V, inverting amp + non-inverting offset divider produces clean ±9 V bipolar swing at jack J3, end-to-end signal chain (XIAO firmware → SPI → DAC → analog stage → Eurorack-spec jack output) all the way through. Static measurements within 0.4 V of predicted; dynamic 1 Hz triangle on scope shows period 1.004 s and frequency 0.996 Hz vs spec'd 1.000 / 1.000.
+- **`docs/images/bench-channel-a-triangle-jack.png`** — Rigol DS1Z scope capture of the bipolar triangle at jack J3 during the first end-to-end test, linked from `bench-log.md`.
+
+### Fixed
+
+- **DAC output-stage topology (`bench-wiring.md` §6 + Story 013).** Original spec had VREF feeding pin 2 alongside VDAC via R_off — this gives `Vout = −(R_fb/R_in)·VDAC − (R_fb/R_off)·VREF`, which can never produce a bipolar swing from a single positive reference (both contributions invert; output rails to negative). Caught at the bench when the first measurement read −8.90 V instead of the predicted +9 V. Corrected topology puts the offset on **pin 3 (non-inverting input) via a divider** — VREF → 22 kΩ → pin 3 → 15 kΩ → GND. With pin 3 at 1.66 V, the transfer function becomes `Vout = (1 + R_fb/R_in)·V_pin3 − (R_fb/R_in)·VDAC`, giving a clean symmetric ±9 V swing. Channel B's wire list updated to share the divider with channel A (pin 5 ties directly to pin 3 — no second divider needed). Story 013 acceptance criteria + Notes updated to match.
+
+### Added
+
 - **`docs/decisions.md` §26 — Pin budget at the limit.** Captures that all 11 castellated XIAO pins (D0–D10) are used after the SPI pivot; back-side pads aren't realistic for a 2 HP form factor. The MCP3208's 6 spare ADC channels (ch 2..ch 7) are the architectural safety valve — any future analog input (extra pots, more CV jacks) routes there at zero XIAO-pin cost. The tempo pot can also move from D0 to MCP3208 if a future app needs a dedicated digital pin. On-board LED + NeoPixel cover status indication without spending edge pins.
 - **Deferred decision — I/O daughterboard / breakout module.** Long-term answer to the pin-budget ceiling: a second small PCB mating to the main board via header, exposing additional jacks/pots/buttons/LEDs. Sketch covers analog expansion (spare MCP3208 channels → extra jacks; possible 2nd DAC8552 on the SPI bus), digital expansion (MCP23017 IO expander on the OLED I²C bus → button matrix / LED grid), and form-factor options (side-mate, daughter-stack, wing). Deferred until a concrete app demands it.
 
