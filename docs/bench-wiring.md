@@ -97,6 +97,7 @@ Pull-up resistors: **CS_DAC and CS_ADC each get a 10 kΩ to +3.3 V** so both ICs
 `●` = shared bus node (jumper to both ICs).
 
 **MCP3208 power + reference pins:**
+
 | MCP3208 pin | Net |
 |---|---|
 | 9 (DGND) | GND |
@@ -105,6 +106,7 @@ Pull-up resistors: **CS_DAC and CS_ADC each get a 10 kΩ to +3.3 V** so both ICs
 | 16 (VDD) | +5 V |
 
 **DAC8552 power + reference pins:**
+
 | DAC8552 pin | Net |
 |---|---|
 | 3 (GND) | GND |
@@ -138,6 +140,7 @@ GND ──────┴── pot CCW (terminal 3)
 - Power TL072 from ±12 V (pins 8 and 4)
 
 **Bench procedure:**
+
 1. Power up before connecting VREF rail to the DAC/ADC
 2. Meter on the TL072 output, turn pot until reading is **4.096 V ± 5 mV**
 3. Connect VREF rail to DAC8552 pins 1 and 7, and MCP3208 pin 15
@@ -165,6 +168,7 @@ VREF rail (4.096V) ──[20k, R_off]───┘
 ```
 
 **Resistor values (E96 nominals; E12 substitutes in parens):**
+
 - R_in = 10 kΩ (E12 ✓)
 - R_off = 20 kΩ (use 22 kΩ E12 — gives ~9.07 V offset instead of 9.97 V, bench-tune R_fb upward to compensate, or just use as-is and accept ±9 V swing)
 - R_fb = 48.7 kΩ (use 47 kΩ E12 — gives gain ≈ 4.7 instead of 4.87, swing ≈ ±9.6 V — fine for bench)
@@ -176,10 +180,12 @@ Math: Vout = +(R_fb/R_off)·VREF − (R_fb/R_in)·VDAC, target mapping:
 - Firmware compensates the inversion in `voltsToDacCount()`
 
 **TL072 #2 channel assignments:**
+
 - #2A → DAC OUTA → jack J3 (OUT 1)
 - #2B → DAC OUTB → jack J4 (OUT 2)
 
 **Output protection:**
+
 - 1 kΩ series resistor between op-amp output and jack tip — limits short-circuit current to ~12 mA
 - Two BAT43 Schottkies at the jack tip:
   - One with **anode at jack tip, cathode at +12 V rail** — clamps positive overshoot
@@ -207,6 +213,7 @@ Jack tip (J1 = IN 1)
 ```
 
 **Resistor values:**
+
 - R_series = 100 kΩ (sets jack input impedance + clamp current limit; max abuse current ±15 V → 30 µA, BAT43 200 mA rating gives huge margin)
 - R_in2 = 22 kΩ (E12 ✓ — sets gain)
 - R_off = 9.4 kΩ (use 9.1 kΩ E12 or two 4.7 kΩ in series; R_fb may need bench-tune)
