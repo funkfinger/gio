@@ -75,7 +75,7 @@ This means our `lib/spi_bus/` doesn't exist; instead `lib/outputs/` and `lib/inp
 
 - [ ] Loopback test: jumper DAC OUTA → MCP3208 ch 0; OUTB → ch 1. Sweep each DAC channel; verify each ADC channel tracks.
 - [ ] Verify all 8 MCP3208 channels read independently — short each in turn to GND, confirm only that channel reads ~0.
-- [ ] Scope SCK during a transaction; verify clock rate. Start at 1 MHz, push to 4 MHz, confirm correctness.
+- [ ] Scope SCK during a transaction; verify clock rate. Start at 1 MHz, push to 2 MHz max for the MCP3208 (datasheet limit at VDD=5 V — DS21298E p.3). DAC8552 tolerates up to 30 MHz, so the ADC is the bus-speed bottleneck.
 - [ ] Confirm both CS lines toggle independently (scope both during back-to-back transactions).
 
 ## Notes
