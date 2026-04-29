@@ -14,6 +14,16 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Story 012 firmware scaffolding — SPI HAL + smoke test.**
+  - `lib/outputs/` wraps DAC8552 with `outputs::write(ch, volts)` / `gate(ch, on)` / `setVRef(v)` / per-channel `setCalibration(gain, offset)`. Defaults are `gain=1.0, offset=0.0` (passthrough) until bench-fitted.
+  - `lib/inputs/` wraps MCP3208 with `inputs::readVolts(ch)` / `readRaw(ch)` / `setVRef(v)` / `setCalibration(gain, offset)`. Same calibration shape.
+  - `src/main_smoketest.cpp` — dedicated smoke-test entrypoint: triangle wave on DAC ch A (1 s period, 50 samples/cycle), reads MCP3208 ch 0 via 500 µs settle delay, prints `t_ms / dac_v / adc_v / adc_count` to serial. Loopback procedure: jumper DAC OUTA → MCP3208 ch 0; expect linear tracking within a few LSBs.
+  - New `[env:seeed-xiao-rp2350-smoketest]` PlatformIO env uses `build_src_filter` to swap `main.cpp` for `main_smoketest.cpp` — production arp firmware stays untouched until SPI HAL integration in a follow-up. Run: `pio run -e seeed-xiao-rp2350-smoketest --target upload`.
+  - `lib_deps` enabled: `robtillaart/DAC8552`, `robtillaart/MCP_ADC` (both MIT, both auto-resolve to MCP3208 with hardware SPI default).
+  - Smoke-test env: 2.0% RAM, 3.0% flash. Production env still builds. All 66 host tests pass.
+  - Bench expects VREF = 4.096 V; sourced from the pot+TL072 stand-in per `docs/bench-wiring.md` §5 until REF3040 arrives, then drop-in replace.
+- **`docs/bench-wiring.md`** — single-source pin/net/component reference for the breadboard rebuild covering Stories 012 + 013 + 015 in one session. Sections: BOM, power distribution, XIAO pinout w/ encoder migration (D8/D9/D10 → D1/D2/D7), shared SPI bus, pot+TL072 VREF stand-in, output stage with E96/E12 picks, input protection + scaling, OLED + UI hookup, jack assignments, 9-step incremental build/test order.
+
 - **`docs/decisions.md` §25 — JLCPCB-first BOM strategy + VDD/VREF separation.** Captures the policy now driving Rev 0.1 part selection: prefer JLC Basic parts when an equivalent exists; accept Extended for specialty ICs. Architectural change recorded: VDD (AMS1117 +5 V LDO) is decoupled from VREF (REF3040 4.096 V precision reference) so the 16-bit DAC isn't bottlenecked by the LDO's 1–2 % accuracy. Both DAC8552 and MCP3208 share the REF3040 output. Resolution gains: DAC = 62.5 µV/step exactly; ADC = 1.00 mV/step exactly.
 - **`hardware/bom.md`** — single source of truth for the JLC PCBA BOM. Lists every SMD part with LCSC number, package, Basic/Extended class, and unit price. Through-hole / panel parts (Thonkiconn jacks, encoder, pots, OLED, XIAO sockets) tracked separately as hand-soldered. Includes a vetting checklist for adding future parts.
 - **Vetted JLC parts (vs decisions.md §25):** AMS1117-5.0 (C6187, Basic) for +5 V LDO; REF3040AIDBZR (C19415) for 4.096 V VREF; DAC8552IDGKR (C136020) for the dual 16-bit DAC; MCP3208T-CI/SL (C626764) C-grade for the 8-ch ADC; TL072CDT (C6961, Basic) ×2 for op-amps; BAT54SLT1G (C19726) ×4 for jack clamps (Schottky series-pair, replaces individual BAT43s — same 30 V breakdown, fewer footprints); GZ2012D601TF (C1017, Basic) ×2 for ±12 V rail ferrites.
