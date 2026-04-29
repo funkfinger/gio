@@ -168,6 +168,10 @@ Build this as a simple checklist on the breadboard. Every wire goes between exac
 | 8 | 100 nF cap | TL072 pin 8 → GND | Power decoupling, V+ side |
 | 9 | 100 nF cap | TL072 pin 4 → GND | Power decoupling, V− side |
 | 10 | 100 nF cap | VREF rail → GND | Reference decoupling at the buffer output |
+| 11 | TL072 pin 5 (2IN+) | GND rail | **Park unused channel B** — input held at 0 V |
+| 12 | TL072 pin 6 (2IN−) | TL072 pin 7 (2OUT) | **Park unused channel B** — unity-gain feedback so output settles at 0 V |
+
+> **Why wires 11 + 12:** the TL072 is a dual op-amp; if you wire only channel A, the unused channel B's inputs (pins 5 and 6) are floating. Floating CMOS-style inputs pick up noise that puts the IC into uncontrolled saturation or oscillation, and that disturbance couples into channel A through shared substrate and power pins — degrading the VREF you just worked to clean up. Standard fix: tie the unused channel as a grounded unity-gain follower (input to GND, output to inverting input). Two short wires, no extra parts.
 
 ### Schematic view
 
@@ -197,6 +201,13 @@ GND ──[pot CCW, term 1]            ┌────│2 │1IN−   ───
                                                           │
                                                           ├── DAC8552 pin 2 (VREF)
                                                           └── MCP3208 pin 15 (VREF)
+
+   Channel B (unused) — parked as grounded unity-gain follower:
+
+      GND ──── pin 5 (2IN+)
+              ┌─ pin 7 (2OUT) ─── (no external connection — sits at 0 V)
+              │
+              └── pin 6 (2IN−)
 ```
 
 ### Bench procedure
