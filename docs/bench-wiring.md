@@ -57,19 +57,23 @@ Pin assignments after the SPI-pivot. **Encoder moves off D8/D9/D10** (now SPI) *
 | D0 | GP26 | TEMPO_POT_WIPER | input (analog) | Tempo pot wiper |
 | D1 | GP27 | ENCODER_A | input | Encoder A (was D8) |
 | D2 | GP28 | ENCODER_B | input | Encoder B (was D9) |
-| D3 | GP5 | CS_DAC | output | DAC8552 /SYNC, 10 kΩ pull-up to +3.3 V |
+| D3 | GP5 | CS_DAC | output | DAC8552 /SYNC |
 | D4 | GP6 | I2C_SDA | bidir | OLED SDA |
 | D5 | GP7 | I2C_SCL | output | OLED SCL |
-| D6 | GP0 | CS_ADC | output | MCP3208 /CS, 10 kΩ pull-up to +3.3 V |
+| D6 | GP0 | CS_ADC | output | MCP3208 /CS |
 | D7 | GP1 | ENCODER_CLICK | input | Encoder push-switch (was D10) |
 | D8 | GP2 | SPI_SCK | output | Shared SPI0 clock |
 | D9 | GP4 | SPI_MISO | input | Shared SPI0 MISO (from MCP3208 only) |
 | D10 | GP3 | SPI_MOSI | output | Shared SPI0 MOSI |
 | 5V | — | +5 V | input | From Protomato |
-| 3V3 | — | +3.3 V | output | XIAO regulator output (only used for CS pull-ups) |
+| 3V3 | — | +3.3 V | output | XIAO regulator output (unused on the bench; routed on PCB for CS pull-ups) |
 | GND | — | GND | — | |
 
-Pull-up resistors: **CS_DAC and CS_ADC each get a 10 kΩ to +3.3 V** so both ICs are deselected at boot before firmware runs.
+**Pull-ups — bench skips them, PCB adds them:**
+
+- **Encoder (A/B/click)** — no externals needed. `encoder_input.cpp` configures `INPUT_PULLUP` so the RP2350's internal pull-ups (~50–80 kΩ) handle idle state. Same on bench and PCB.
+- **CS_DAC / CS_ADC** — skip on the bench. Adds 2× 10 kΩ to +3.3 V on the PCB as belt-and-suspenders to keep both SPI ICs deselected during the ~200–500 ms power-on → bootloader → firmware-init window. The risk without them is essentially zero (SPI ICs need clocked frames to do anything), but two 0805 resistors cost nothing on the board.
+- **RP2350-E9 errata is irrelevant here** — it only affects pull-*downs*. Every pull on this design is a pull-up.
 
 ---
 
@@ -237,16 +241,16 @@ Math: Vout = +(R_fb/R_off)·VREF − (R_fb/R_in2)·Vin, target mapping:
 | OLED | GND | GND |
 | OLED | SDA | XIAO D4 |
 | OLED | SCL | XIAO D5 |
-| Encoder | A | XIAO D1 (with 10 kΩ pull-up to +3.3 V — but see decisions.md §18 for RP2350-E9: use ≤ 8.2 kΩ) |
-| Encoder | B | XIAO D2 (same pull-up) |
+| Encoder | A | XIAO D1 (no external pull-up — firmware uses `INPUT_PULLUP`) |
+| Encoder | B | XIAO D2 (same — internal pull-up) |
 | Encoder | Common | GND |
-| Encoder switch | One side | XIAO D7 (with 10 kΩ pull-up — same RP2350-E9 caveat applies if it's a pulldown setup) |
+| Encoder switch | One side | XIAO D7 (no external — internal pull-up) |
 | Encoder switch | Other side | GND |
 | Tempo pot | CW | +3.3 V |
 | Tempo pot | Wiper | XIAO D0 |
 | Tempo pot | CCW | GND |
 
-**Note on encoder pull-ups (RP2350-E9):** the silicon errata in `decisions.md` §18 says external pull-downs must be ≤ 8.2 kΩ. Pull-**ups** are unaffected — 10 kΩ is fine for the encoder. Internal pulls in the SDK are usable as-is.
+See §3 for the policy on pull-ups (skipped on the bench, added on the PCB only for CS lines).
 
 ---
 
