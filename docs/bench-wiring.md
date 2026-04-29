@@ -125,31 +125,107 @@ Pin assignments after the SPI-pivot. **Encoder moves off D8/D9/D10** (now SPI) *
 
 Temporary substitute for the REF3040. Lives until the SOT-23 arrives, at which point this whole sub-circuit gets snipped out and the REF3040 drops in at the `VREF rail` node with the same 100 nF decoupling.
 
+### TL072 (DIP-8) pinout reference
+
+The TL072 is a **dual** op-amp — two independent channels in one 8-pin package, plus shared power. We use channel A here for the VREF buffer; channel B is free for other uses (e.g., one of the input/output stages later).
+
 ```
-+5V ──────┬── pot CW (terminal 1)
-          │
-          │   ┌──── pot wiper (terminal 2) ──── + input (pin 3) of TL072 #1A
-          │   │
-          │   │                            ┌──── output (pin 1) ──┬── VREF rail
-          │   │                            │                      ├── 100 nF to GND
-          │   │                            │                      │
-          │   │                  − input (pin 2) ────────────────┘
-          │   │
-GND ──────┴── pot CCW (terminal 3)
+              ┌──┬──┐
+   1OUT (A) ──┤1 ⌣ 8├── V+   (+12 V)
+   1IN− (A) ──┤2   7├── 2OUT (B)
+   1IN+ (A) ──┤3   6├── 2IN− (B)
+        V− ──┤4   5├── 2IN+ (B)
+   (−12 V)   └─────┘
 ```
 
-- TL072 #1A is one of two op-amp channels in the package; the other (#1B) is free for use elsewhere
-- Wire as a unity-gain follower (output tied to inverting input)
-- Power TL072 from ±12 V (pins 8 and 4)
+- **Channel A**: pins 1 (OUT), 2 (IN−), 3 (IN+) — used for VREF buffer below
+- **Channel B**: pins 5 (IN+), 6 (IN−), 7 (OUT) — unused in §5; available
+- **Power**: pin 8 (V+) → +12 V, pin 4 (V−) → −12 V — shared by both channels
 
-**Bench procedure:**
+### Pot terminal convention
 
-1. Power up before connecting VREF rail to the DAC/ADC
-2. Meter on the TL072 output, turn pot until reading is **4.096 V ± 5 mV**
-3. Connect VREF rail to DAC8552 pin 2 and MCP3208 pin 15
-4. Re-meter the buffer output — should not move (that's the whole point of the buffer)
+A standard 3-terminal pot has terminals numbered **1, 2, 3** stamped on the body. Looking at the shaft from the front:
 
-**Why buffered, not a bare divider:** the DAC8552 R-2R ladder draws transient current on VREF as bits switch. Without a buffer, those transients pull VREF around and smear conversion accuracy.
+- **Terminal 1 (CCW end)** — leftmost when shaft is fully counter-clockwise
+- **Terminal 2 (wiper)** — middle pin, voltage scales with shaft position
+- **Terminal 3 (CW end)** — rightmost
+
+For a **multi-turn trimpot** (Bourns 3296 etc.) the terminals are labeled the same. CW direction increases voltage at the wiper when terminal 3 is tied to +5 V.
+
+### Wire list
+
+Build this as a simple checklist on the breadboard. Every wire goes between exactly two named points.
+
+| # | From | To | Notes |
+|---|---|---|---|
+| 1 | +5 V rail | Pot terminal 3 (CW) | Top of divider |
+| 2 | GND rail | Pot terminal 1 (CCW) | Bottom of divider |
+| 3 | Pot terminal 2 (wiper) | TL072 pin 3 (1IN+) | Divided voltage into the buffer's non-inverting input |
+| 4 | TL072 pin 1 (1OUT) | TL072 pin 2 (1IN−) | Feedback wire — makes the buffer unity-gain (output follows input) |
+| 5 | TL072 pin 8 (V+) | +12 V rail | Op-amp positive supply |
+| 6 | TL072 pin 4 (V−) | −12 V rail | Op-amp negative supply |
+| 7 | TL072 pin 1 (1OUT) | **VREF rail** node | The clean, buffered VREF — feed this to DAC8552 pin 2 and MCP3208 pin 15 |
+| 8 | 100 nF cap | TL072 pin 8 → GND | Power decoupling, V+ side |
+| 9 | 100 nF cap | TL072 pin 4 → GND | Power decoupling, V− side |
+| 10 | 100 nF cap | VREF rail → GND | Reference decoupling at the buffer output |
+
+### Schematic view
+
+```
+                                       +12V    GND
+                                         │      │
+                                         │      ┴── 100nF (decoupling, pin 8)
+                                         │
++5V ──[pot CW, term 3]                  ┌┴─┐
+              │                         │ 8│V+
+            [pot]──[wiper, term 2]──────│3 │1IN+ (channel A)
+              │                         │  │      ╲
+GND ──[pot CCW, term 1]            ┌────│2 │1IN−   ─── pin 1 (1OUT)
+                                   │    │  │      ╱       │
+                                   │    │  │              │
+                                   │    │ 4│V−            │
+                                   │    └┬─┘              │
+                                   │     │                │
+                                   │    -12V              │
+                                   │     │                │
+                                   │     ┴── 100nF (decoupling, pin 4)
+                                   │                      │
+                                   └──── feedback ────────┤
+                                       (pin 1 → pin 2)    │
+                                                          │
+                                              VREF rail ──┴── 100nF to GND
+                                                          │
+                                                          ├── DAC8552 pin 2 (VREF)
+                                                          └── MCP3208 pin 15 (VREF)
+```
+
+### Bench procedure
+
+1. **Build with VREF rail disconnected from the DAC/ADC.** Wires 1–6 + 8–9 only at first.
+2. **Power up** the Protomato. Confirm ±12 V and +5 V rails on the multimeter.
+3. **Meter on TL072 pin 1** (the buffer output). Turn the pot's screw until the reading is **4.096 V ± 5 mV**.
+   - If the voltage moves opposite to expectations as you turn, swap pot terminals 1 and 3 — you've got CW and CCW reversed for your particular pot.
+   - Multi-turn trimpots take ~25 turns end-to-end; expect to spin a lot.
+4. **Add wire 7 + cap 10** — connect the buffered VREF to the rail going to DAC8552 pin 2 and MCP3208 pin 15.
+5. **Re-meter the TL072 output.** Should not move from 4.096 V — that's the whole point of the buffer (the IC inputs are high-Z and the buffer absorbs any transient currents).
+6. **Mark the trimpot screw position** with a Sharpie or lock the screw if it has one. Vibration can drift it.
+
+### Why a buffer (not a bare divider into the converter VREF pins)
+
+The DAC8552's R-2R ladder draws transient current on its VREF pin every time the output code changes. With a bare resistor divider, the divider's output impedance (a few kΩ) would let those transients pull VREF around — by tens of millivolts during fast updates. The TL072 follower presents a low-Z source (≈10 Ω at audio rates), absorbs the transient, and keeps the reference rock-stable.
+
+Same logic applies to the MCP3208: each conversion samples a 20 pF capacitor onto VREF for ~1.5 µs. A buffered reference settles cleanly between conversions; a bare divider doesn't.
+
+### Drop-in path for REF3040
+
+When the SOT-23 arrives, all of §5 collapses to:
+
+- Cut wires 1–9 (everything except wire 7 and cap 10)
+- Solder REF3040 onto a SOT-23 → DIP adapter (or directly to the breadboard with fly-wires)
+- Connect: REF3040 pin 1 (GND) → GND; pin 2 (IN) → +5 V; pin 3 (OUT) → **VREF rail node**
+- Wire 7 and cap 10 stay as-is — same node, same decoupling
+- Re-meter the VREF rail; should read 4.096 V ± 8 mV (REF3040 is ±0.2% spec)
+- Free up the TL072's channel A for use in the input/output stages
 
 ---
 
