@@ -84,9 +84,9 @@ Pin assignments after the SPI-pivot. **Encoder moves off D8/D9/D10** (now SPI) *
                 │                                         │
    XIAO         │   DAC8552 (MSOP-8 on breakout)         │
    ─────────    │   ────────────────────────────         │
-   SCK  D8 ────●────── SCLK (pin 4)                      │
-   MOSI D10 ───●────── DIN  (pin 5)                      │
-   CS_DAC D3 ─────────  /SYNC (pin 6)                    │
+   SCK  D8 ────●────── SCLK (pin 6)                      │
+   MOSI D10 ───●────── DIN  (pin 7)                      │
+   CS_DAC D3 ─────────  /SYNC (pin 5)                    │
                                                           │
                 │   MCP3208 (PDIP-16 on breakout)        │
                 │   ─────────────────────────────        │
@@ -109,16 +109,15 @@ Pin assignments after the SPI-pivot. **Encoder moves off D8/D9/D10** (now SPI) *
 | 15 (VREF) | VREF rail (4.096 V — see §5) |
 | 16 (VDD) | +5 V |
 
-**DAC8552 power + reference pins:**
+**DAC8552 power + reference pins** (per TI datasheet SLAS430A, MSOP-8 DGK package):
 
 | DAC8552 pin | Net |
 |---|---|
-| 3 (GND) | GND |
-| 8 (VDD) | +5 V |
-| 7 (VREFB) | VREF rail (4.096 V) |
-| 1 (VREFA) | VREF rail (4.096 V) |
-| 2 (VOUTA) | → input of output-stage A op-amp (§6) |
-| 6 (VOUTB) | → input of output-stage B op-amp (§6) |
+| 1 (VDD) | +5 V |
+| 2 (VREF) | VREF rail (4.096 V) — **single shared reference** for both channels |
+| 3 (VOUTB) | → input of output-stage B op-amp (§6) |
+| 4 (VOUTA) | → input of output-stage A op-amp (§6) |
+| 8 (GND) | GND |
 
 ---
 
@@ -147,7 +146,7 @@ GND ──────┴── pot CCW (terminal 3)
 
 1. Power up before connecting VREF rail to the DAC/ADC
 2. Meter on the TL072 output, turn pot until reading is **4.096 V ± 5 mV**
-3. Connect VREF rail to DAC8552 pins 1 and 7, and MCP3208 pin 15
+3. Connect VREF rail to DAC8552 pin 2 and MCP3208 pin 15
 4. Re-meter the buffer output — should not move (that's the whole point of the buffer)
 
 **Why buffered, not a bare divider:** the DAC8552 R-2R ladder draws transient current on VREF as bits switch. Without a buffer, those transients pull VREF around and smear conversion accuracy.
