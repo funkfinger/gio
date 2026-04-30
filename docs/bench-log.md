@@ -300,3 +300,95 @@ Channel B's square wave also shows up cleanly in the `dac_b_v` column (3.0720 �
 - Story 015: input scaling stage for J1 → MCP3208 ch 0 (TL072 #3, with input 1 active and input 2 deferred)
 - Calibration: bench-fit `outputs::setCalibration()` constants per channel for V/Oct accuracy
 - Re-run loopback through the input scaling stage once it's built (jack J3 → R_series + clamp + summing amp → MCP3208 ch 0) — that's the full signal-chain round-trip
+
+---
+
+## 2026-04-30 (continued) — Story 015 (input scaling) + full-chain loopback
+
+Picking up the same bench rig from earlier today. Built input 1 of the protected/scaled input stage, then closed the loop by patching J3 → J1 with a Eurorack cable and reading the round-trip in the smoke-test serial output.
+
+### Input stage build (TL072 #3, channel A)
+
+Wired per `bench-wiring.md` §7:
+- R_series = 100 kΩ at jack J1
+- BAT43 dual clamp at node A (anode→+12V, cathode→−12V; each diode flipped opposite)
+- R_in2 from node A to TL072 #3 pin 6 (1IN−)... initially with **R_fb = 4.7 kΩ** per the doc
+- Offset divider on pin 3: VREF → 22 kΩ → pin 3 → 14.7 kΩ → GND ≈ 1.66 V
+- Channel B parked (pin 5 → GND, pin 6 → pin 7)
+- TL072 #3 pin 1 (1OUT) → MCP3208 pin 1 (CH0); replaced the previous direct DAC-OUTA → CH0 loopback jumper
+
+### Math error caught at the bench (again)
+
+First static jumper test on the input-stage op-amp output:
+
+| Test | Predicted (with bad math) | Measured |
+|---|---|---|
+| Tip floating | +1.66 V | **+1.643 V** ✓ (matches) |
+| Tip → GND | +2.04 V | **+1.707 V** ✗ |
+| Tip → +5 V | +0.97 V | **+1.515 V** ✗ |
+| Tip → −5 V | +3.11 V | **+1.873 V** ✗ |
+
+Slope ≈ −0.036 V/V vs. predicted −0.214 V/V — about **17 % of expected**. Op-amp output too small.
+
+**The bug:** R_series (100 kΩ) and R_in2 (22 kΩ) are **in series** between the jack and the op-amp's virtual-ground inverting input. They look like a single 122 kΩ input resistor, not separate stages. So the actual gain is `R_fb / (R_series + R_in2) = 4.7/122 = 0.039`, not `R_fb/R_in2 = 0.214` as the doc's math claimed.
+
+### Fix: R_fb 4.7 kΩ → 22 kΩ
+
+Swapped R_fb on TL072 #3 from 4.7 kΩ to 22 kΩ. New gain = 22/122 = 0.180 — reasonable target for ±10 V jack range fitting into 4.096 V ADC range with margin.
+
+Re-ran the static jumper test:
+
+| Test | Predicted (gain 0.180, V_pin3 = 1.66) | Measured |
+|---|---|---|
+| Tip floating | +1.96 V | **+1.949 V** ✓ |
+| Tip → GND | +1.96 V | **+1.947 V** ✓ |
+| Tip → +5 V | +1.06 V | **+1.053 V** ✓ |
+| Tip → −5 V | +2.86 V | **+2.860 V** ✓ |
+
+All four readings within 10 mV of prediction. Slope = (2.860 − 1.053)/(−5 − +5) = **−0.181 V/V** vs predicted −0.180 — within 1 % across ±5 V test range.
+
+### Round-trip loopback test
+
+With input stage validated, patched a Eurorack cable from J3 → J1 to close the full signal chain:
+
+```
+firmware → SPI → DAC8552 → output stage (TL072 #2 ch A) → J3 → cable → J1 →
+                input stage (TL072 #3 ch A) → MCP3208 → SPI → firmware
+```
+
+False start: first attempt with patch cable in J1 killed the J3 sawtooth on the scope. Cause: a leftover GND jumper from the static validation was still pinning J1, so plugging J3 in back-drove the GND jumper. Pulled the jumper, re-tried — sawtooth returns.
+
+Smoke-test serial captured during a triangle cycle:
+
+```
+t_ms    dac_a_v  dac_b_v  adc_v   adc_count
+134506  4.0468   1.0240   3.5529  3551
+134675  2.6706   1.0240   2.4636  2479
+134759  1.9825   1.0240   1.9275  1934
+134991  0.0819   1.0240   0.4141  411
+135244  1.9907   3.0720   1.9365  1950
+```
+
+**Predicted** transfer: `adc_v ≈ 0.378 + 0.792 × dac_a_v` (composing output stage's bipolar swing with the input stage's attenuated read-back). Measured slope = **0.796** vs predicted 0.792 — within 0.5 %. Per-point error ≈ 20–30 mV across the sweep.
+
+### Where the 30 mV residual comes from
+
+Five op-amp channels and ~10 resistors in the round trip, all carrying real-world tolerances:
+
+- VREF dial-in: ~5 mV vs 4.096 V nominal
+- TL072 input offset: spec 3 mV typ × 4 cascaded channels
+- E12 resistor tolerance: ±5 % across 6+ resistors
+
+Most of this stays put once the REF3040 lands — the residual is op-amp + resistor dominated, not VREF dominated. But it'll become **stable across temperature** instead of drifting with bench warmth.
+
+### What this validates (cumulative across both 2026-04-30 sessions)
+
+- ✅ **Story 012** — SPI bus + DAC + ADC sharing the bus
+- ✅ **Story 013** — bipolar output stage on both DAC channels
+- ✅ **Story 015** — input protection + scaling stage on input 1
+
+**The entire post-pivot platform is bench-validated end-to-end.** Next bench session can focus on calibration (bench-fit `outputs::setCalibration()` + `inputs::setCalibration()` constants), then plug J3 into a real Eurorack VCO for the audible V/Oct test.
+
+### Doc fixes from this session
+
+- `bench-wiring.md` §7 has the same math bug as §6 had pre-2026-04-29 — predicted op-amp output values used `gain = R_fb/R_in2`, ignoring R_series in series. Fix by stating the correct effective input resistance and updating the predicted-values table for R_fb = 22 kΩ.

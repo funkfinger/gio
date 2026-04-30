@@ -418,28 +418,43 @@ Mirror of the output stage in reverse: a protected, attenuated, biased ±10 V ja
 
 (See §5 for TL072 DIP-8 pinout.)
 
-### Resistor values (E96 nominals; E12 substitutes in parens)
+### Topology — same offset-on-pin-3 trick as §6, with attenuation
 
-- **R_series = 100 kΩ** (jack input impedance + clamp current limit; max abuse at ±15 V → 30 µA → BAT43 sees < 0.02 % of its 200 mA rating)
-- **R_in2 = 22 kΩ** (E12 ✓ — sets the inverting-amp gain)
-- **R_off = 9.4 kΩ** (use 9.1 kΩ E12, or two 4.7 kΩ in series — bench-tune R_fb if exact mapping matters)
-- **R_fb = 4.7 kΩ** (E12 ✓)
+Mirror of §6's output stage in reverse: a single op-amp inverting stage with the bias offset applied through a divider on the **non-inverting input (pin 3)**, not on the inverting input. The §6 lesson applies — combining VDAC and VREF on a single inverting node with a single positive supply doesn't produce the bipolar mapping we want.
+
+There's also a **second math trap specific to this stage**: R_series and R_in2 are *in series* between the jack and the op-amp's virtual-ground inverting input. They look like a single combined input resistor of value `R_series + R_in2`. The gain is therefore `R_fb / (R_series + R_in2)`, **not** `R_fb / R_in2` — easy to miss when the topology has two distinct-looking resistors. (Caught at the bench 2026-04-30 — see `bench-log.md`.)
+
+### Resistor values
+
+| Symbol | Where | Value (E96 / E12) | Purpose |
+|---|---|---|---|
+| R_series | jack tip → node A | **100 kΩ** | Jack input impedance + clamp current limit (±15 V abuse → 30 µA, BAT43 sees < 0.02 % of its rating) |
+| R_in2 | node A → pin 2 | **22 kΩ** | Second input resistor; sets gain in series with R_series |
+| R_fb | pin 1 → pin 2 | **22 kΩ** | Feedback — sets gain = R_fb / (R_series + R_in2) ≈ 0.180 |
+| R_div_top | VREF → pin 3 | **22 kΩ** | Top leg of offset divider |
+| R_div_bot | pin 3 → GND | **15 kΩ** (or 14.7 kΩ E96) | Bottom leg of offset divider |
+
+Divider sets V_pin3 = VREF · R_div_bot / (R_div_top + R_div_bot) ≈ **1.66 V**.
 
 ### Math
 
 ```
-Vout = (R_fb/R_off)·VREF − (R_fb/R_in2)·Vin
+Vout = (1 + R_fb/(R_series + R_in2)) · V_pin3 − (R_fb/(R_series + R_in2)) · V_jack
+     = 1.180 · 1.66 − 0.180 · V_jack
+     ≈ 1.96 − 0.180 · V_jack
 ```
 
-With the values above and VREF = 4.096 V:
+Target mapping at the ADC (with VREF = 4.096 V):
 
 | Jack input | Op-amp output → ADC | ADC count (12-bit) |
 |---|---|---|
-| +10 V | ≈ 0 V    | ≈ 0 |
-| 0 V   | ≈ 2.048 V | ≈ 2048 |
-| −10 V | ≈ 4.096 V | ≈ 4095 |
+| +10 V  | ≈ +0.16 V | ≈ 160 |
+| +5 V   | ≈ +1.06 V | ≈ 1060 |
+| 0 V    | ≈ +1.96 V | ≈ 1960 |
+| −5 V   | ≈ +2.86 V | ≈ 2860 |
+| −10 V  | ≈ +3.76 V | ≈ 3760 |
 
-Firmware reverses the inversion in `inputs::readVolts()` calibration (gain ≈ −R_in2/R_fb scaled to volts; offset = +(R_in2/R_off)·VREF; bench-fit per channel).
+Uses ~88 % of the ADC range with margin at both ends — preferred over a tighter ±10 V → 0..4.096 V mapping that would risk clipping at the rails. Firmware reverses the inversion + offset in `inputs::readVolts()` calibration; bench-fit per channel.
 
 ### Wire list — channel A (jack J1 → MCP3208 ch 0)
 
@@ -451,60 +466,60 @@ Channel A pins on TL072 #3: pin 1 (1OUT), pin 2 (1IN−), pin 3 (1IN+).
 | 2 | TL072 #3 pin 4 (V−) | −12 V rail | Op-amp negative supply |
 | 3 | TL072 #3 pin 8 → GND | 100 nF cap | V+ decoupling |
 | 4 | TL072 #3 pin 4 → GND | 100 nF cap | V− decoupling |
-| 5 | TL072 #3 pin 3 (1IN+) | GND rail | Non-inverting input grounded — virtual-ground reference for the summing amp |
-| 6 | Jack J1 tip | One end of R_series (100 kΩ) | Jack feeds the protection / scaling chain |
-| 7 | Other end of R_series | "node A" (a free row on the breadboard) | Node A is the input-protection junction point |
-| 8 | BAT43 #5 cathode | Node A | Clamp diode for **negative** undershoot |
-| 9 | BAT43 #5 anode | −12 V rail | When node A < −12 V − Vf, this diode forward-biases and pulls node A back up |
-| 10 | BAT43 #6 anode | Node A | Clamp diode for **positive** overshoot |
-| 11 | BAT43 #6 cathode | +12 V rail | When node A > +12 V + Vf, this diode forward-biases and pulls node A back down |
-| 12 | Node A | One end of R_in2 (22 kΩ) | Signal into the summing-amp input via R_in2 |
-| 13 | Other end of R_in2 | TL072 #3 pin 2 (1IN−) | Summing node |
-| 14 | VREF rail | One end of R_off (9.4 kΩ) | Reference into the summing node via R_off |
-| 15 | Other end of R_off | TL072 #3 pin 2 (1IN−) | Same summing node |
-| 16 | TL072 #3 pin 1 (1OUT) | One end of R_fb (4.7 kΩ) | Feedback resistor |
-| 17 | Other end of R_fb | TL072 #3 pin 2 (1IN−) | Closes the feedback loop |
-| 18 | TL072 #3 pin 1 (1OUT) | MCP3208 pin 1 (CH0) | The buffered, scaled, biased input voltage feeds ADC channel 0 |
-| 19 | Jack J1 sleeve | GND rail | Standard mono-jack ground |
+| 5 | VREF rail | One end of R_div_top (22 kΩ) | Top leg of pin-3 offset divider |
+| 6 | Other end of R_div_top | TL072 #3 pin 3 (1IN+) | Pin 3 is the divider's mid-point |
+| 7 | TL072 #3 pin 3 (1IN+) | One end of R_div_bot (15 kΩ) | Bottom leg of divider |
+| 8 | Other end of R_div_bot | GND rail | Closes the divider — V_pin3 ≈ 1.66 V |
+| 9 | Jack J1 tip | One end of R_series (100 kΩ) | Jack feeds the protection / scaling chain |
+| 10 | Other end of R_series | "node A" (a free row on the breadboard) | Node A is the input-protection junction point |
+| 11 | BAT43 #5 cathode | Node A | Clamp diode for **negative** undershoot |
+| 12 | BAT43 #5 anode | −12 V rail | When node A < −12 V − Vf, this diode forward-biases and pulls node A back up |
+| 13 | BAT43 #6 anode | Node A | Clamp diode for **positive** overshoot |
+| 14 | BAT43 #6 cathode | +12 V rail | When node A > +12 V + Vf, this diode forward-biases and pulls node A back down |
+| 15 | Node A | One end of R_in2 (22 kΩ) | Signal into the summing node via R_in2 |
+| 16 | Other end of R_in2 | TL072 #3 pin 2 (1IN−) | Summing node — also receives R_fb |
+| 17 | TL072 #3 pin 1 (1OUT) | One end of R_fb (22 kΩ) | Feedback resistor |
+| 18 | Other end of R_fb | TL072 #3 pin 2 (1IN−) | Closes the feedback loop |
+| 19 | TL072 #3 pin 1 (1OUT) | MCP3208 pin 1 (CH0) | The buffered, scaled, biased input voltage feeds ADC channel 0 |
+| 20 | Jack J1 sleeve | GND rail | Standard mono-jack ground |
 | **Park unused channel B** | | | |
-| 20 | TL072 #3 pin 5 (2IN+) | GND rail | Channel B input grounded |
-| 21 | TL072 #3 pin 6 (2IN−) | TL072 #3 pin 7 (2OUT) | Channel B unity-gain feedback so output sits at 0 V |
+| 21 | TL072 #3 pin 5 (2IN+) | GND rail | Channel B input grounded |
+| 22 | TL072 #3 pin 6 (2IN−) | TL072 #3 pin 7 (2OUT) | Channel B unity-gain feedback so output sits at 0 V |
 
-When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 20–21 and add a parallel set of wires repeating 5–18 with channel B's pin numbers (5/6/7) and using MCP3208 pin 2 (CH1) instead of pin 1.
+When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 21–22 and add a parallel set of wires repeating the input/feedback portion (wires 9–19 above) using channel B's pin numbers (5/6/7) and routing the output to MCP3208 pin 2 (CH1) instead of pin 1. Channel B can share channel A's offset divider via pin 5 → pin 3 — no second divider needed (mirror of the §6 channel-B trick).
 
 > **Diode polarity sanity check (mirrored from §6):** the input clamps go on **node A**, *after* the 100 kΩ series resistor — not directly at the jack. This is intentional: the series resistor limits clamp current to safe levels (30 µA worst case), and node A is a low-current point where the clamp can hold the voltage without burning the diode out. Polarity at node A is the same logic as §6: anode-to-jack-side / cathode-to-rail for positive overshoot; cathode-to-jack-side / anode-to-rail for negative.
 
 ### Schematic view (channel A)
 
 ```
-  Jack J1 tip                                +12V        GND
-        │                                      │          │
-   ┌────┴─────┐                                │          ┴── 100nF
-   │ R_series │                                │
-   │  100 kΩ  │                              ┌─┴──┐
-   └────┬─────┘                              │ 8  │V+
-        │ (node A)                           │    │
-        ├──[BAT43 anode → +12V; cathode← ]── │ 3  │1IN+ ── GND
-        ├──[BAT43 cathode → −12V; anode→ ]── │    │
-        │                                    │    │      ╲
-   ┌────┴─────┐                              │ 2  │1IN−   ─── pin 1 (1OUT)
-   │ R_in2    │                              │    │      ╱       │
-   │  22 kΩ   │                              │    │              │
-   └────┬─────┘                              │ 4  │V−            │
-        │                                    └─┬──┘              │
-   VREF ┤                                      │                 │
-   rail │                                     -12V               │
-        │     ┌──── R_fb 4.7kΩ ───┐            │                 │
-        │     │                    │           ┴── 100nF         │
-   ┌────┴─────┴┐                   │                             │
-   │ R_off     │                   │                             │
-   │  9.4 kΩ   │                   │                             │
-   └────┬──────┘                   │                             │
-        │                          │                             │
-        └──── pin 2 (1IN−) ────────┴─────────────────────────────┘
-                                                                 │
-                                                                 │
-                         MCP3208 pin 1 (CH0) ───────────────────┘
+  Jack J1 tip                                  +12V        GND
+        │                                        │          │
+   ┌────┴─────┐                                  │          ┴── 100nF
+   │ R_series │                                  │
+   │  100 kΩ  │                                ┌─┴──┐
+   └────┬─────┘                                │ 8  │V+
+        │ (node A)                             │    │
+        ├──[BAT43 anode → +12V; cathode → A]── │    │
+        ├──[BAT43 cathode → −12V; anode → A]── │    │
+        │                                      │    │
+   ┌────┴─────┐                                │    │      ╲
+   │ R_in2    │                                │ 2  │1IN−   ─── pin 1 (1OUT)
+   │  22 kΩ   │                                │    │      ╱       │
+   └────┬─────┘                                │    │              │
+        │                  ┌── R_fb 22kΩ ──┐   │    │              │
+        └──── pin 2 (1IN−) ┤                │   │ 4  │V−            │
+                            │                │   └─┬──┘              │
+                            └── pin 1 (1OUT)─┘     │                 │
+                                                  -12V               │
+                                                   │                 │
+                                                   ┴── 100nF         │
+                                                                     │
+   VREF rail ─[R_div_top 22kΩ]─┐                                     │
+                                ├── pin 3 (1IN+)                     │
+                  GND ─[R_div_bot 15kΩ]─┘                            │
+                                                                     │
+                                              MCP3208 pin 1 (CH0) ───┘
 
    Channel B (unused on first session) — parked as in §5:
       TL072 #3 pin 5 (2IN+) ── GND
@@ -513,17 +528,17 @@ When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 
 
 ### Bench procedure
 
-1. **Wire channel A only** (wires 1–19). Park channel B with wires 20–21.
-2. **Power up.** Confirm ±12 V and the +5 V / VREF rails are still clean (the new IC shouldn't disturb them).
-3. **First test — input grounded.** With nothing connected to jack J1 (or jack J1 tip jumpered to GND), meter on TL072 #3 pin 1 (1OUT). Should read **≈ +2.048 V** (the offset from VREF). If you see something near 0 V or rail-stuck, double-check wires 5 (1IN+ to GND) and 13/15 (summing-node connections).
-4. **Second test — apply +5 V to jack J1 tip** from a bench supply (or through R_series from any +5 V source — be gentle).
-   - Expected output at TL072 #3 pin 1: **≈ +1.02 V** ((9.4/4.7)·4.096 − (22/4.7·)5 → wait, math: math: Vout = (4.7/9.4)·4.096 − (4.7/22)·5 = 2.048 − 1.068 = 0.980 V — close enough; the resistor approximations matter)
+1. **Wire channel A only** (wires 1–20). Park channel B with wires 21–22.
+2. **Power up.** Confirm ±12 V and the +5 V / VREF rails are still clean. Sanity-check pin 3 — should read **≈ +1.66 V** (the divider). Pin 2 should track pin 3 within a few mV (op-amp's "virtual short" via feedback).
+3. **First test — input floating** (or jack J1 tip jumpered to GND). Meter at TL072 #3 pin 1 (1OUT). Should read **≈ +1.96 V** — this is the bias-only output: `(1 + R_fb/(R_series+R_in2)) · V_pin3 = 1.180 · 1.66 = 1.96`.
+4. **Second test — apply +5 V to jack J1 tip** from a bench supply (or through R_series from any +5 V source).
+   - Expected output at TL072 #3 pin 1: **≈ +1.06 V** (`Vout = 1.96 − 0.180·5 = 1.06`).
 5. **Third test — apply −5 V to jack J1 tip.**
-   - Expected output: **≈ +3.12 V** (Vout = 2.048 − (4.7/22)·(−5) = 2.048 + 1.068 = 3.116 V)
-6. **If steps 4 and 5 give roughly symmetric departures from the 2.048 V midpoint**, the stage is working — even if exact values are off by 5–10 % due to E12 substitutions.
-7. **Run the smoke-test firmware** with input scaling enabled. The reported `adc_v` should track the applied jack voltage (modulo the inversion).
+   - Expected output: **≈ +2.86 V** (`Vout = 1.96 − 0.180·(−5) = 2.86`).
+6. **If the slope between the +5 and −5 readings is ≈ −0.18 V per V of input**, the stage is working — even if absolute offsets are off by 5–10 % due to E12 substitutions and pot dial-in.
+7. **Run the smoke-test firmware.** The reported `adc_v` should sit near 1.96 V with no input. Patch a Eurorack cable from J3 → J1 to close the loop, and `adc_v` will sweep predictably with the DAC's triangle (ranging roughly 0.4 V to 3.6 V over each 1-second cycle).
 8. **Calibrate** by applying two known voltages (e.g., +5 V and −5 V), reading the resulting `adc_count`, and computing the per-channel `gain` and `offset` for `inputs::setCalibration()`.
-9. **Once channel A passes**, remove wires 20–21 and replicate 5–18 for channel B → jack J2 → MCP3208 CH1 (pin 2).
+9. **Once channel A passes**, remove wires 21–22 and add the channel-B input/feedback wires per the note above.
 
 ---
 

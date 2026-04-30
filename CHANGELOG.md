@@ -14,6 +14,16 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Third bench session — input scaling stage + full-chain loopback validated.** `bench-log.md` 2026-04-30 (continued) entry. Built TL072 #3 channel A as the input scaling stage for jack J1 → MCP3208 ch 0 (R_series + BAT43 clamps + summing amp + offset divider on pin 3 mirrored from §6). Static jumper test gave op-amp output within 10 mV of prediction across ±5 V input range; slope −0.181 V/V vs predicted −0.180 (1 % error). Round-trip loopback (J3 → cable → J1) tracks within 20–30 mV across full DAC sweep, slope 0.796 vs predicted 0.792 (0.5 % error). **Story 015 acceptance criteria met. The entire post-pivot platform is now bench-validated end-to-end** (Stories 012 + 013 + 015).
+
+### Fixed
+
+- **Input scaling stage topology + math (`bench-wiring.md` §7).** Same shape of bug as the §6 fix earlier in the week:
+  - Original spec had VREF feeding the inverting input via R_off — same single-positive-supply problem as §6 had. Corrected to put the offset on **pin 3 (non-inverting) via a divider** (VREF → 22 kΩ → pin 3 → 15 kΩ → GND ≈ 1.66 V).
+  - Original spec also missed that R_series (100 kΩ) and R_in2 (22 kΩ) are **in series** between the jack and the op-amp's virtual-ground inverting input — they look like a single 122 kΩ input resistor, not separate stages. Predicted-values table assumed `gain = R_fb/R_in2 = 0.214`, but actual gain is `R_fb/(R_series + R_in2) = 0.039` with R_fb = 4.7 kΩ — about 17 % of expected. Caught at the bench when the first measurement gave the right shape but the wrong magnitude.
+  - Fix: bump R_fb from 4.7 kΩ to **22 kΩ** to compensate for the 100 kΩ R_series. New gain = 22/122 = 0.180. Bench-validated with predictions within 1 % across the full sweep.
+  - Wire list, math, schematic, predicted-values table, and bench procedure all updated. Channel-B note updated to share the new offset divider via pin 5 → pin 3, mirroring the §6 trick.
+
 - **Second bench session — channel B + ADC loopback validated.** `bench-log.md` 2026-04-30 entry. Channel B built (47 kΩ R_fb, sharing channel A's offset divider via pin 5 → pin 3); static jumper test gives +9.28 V / −9.91 V, dynamic two-channel scope shows clean independent triangle (J3) + square (J4). MCP3208 wired and brought up; loopback (DAC OUTA → MCP3208 ch 0) tracks within ±15 mV across the full 0..4.096 V sweep — dominated by analog noise + op-amp offset, not converter accuracy. **Story 012 acceptance criteria met on the bench.**
 - **Smoke-test firmware extended to drive both DAC channels.** `src/main_smoketest.cpp` now writes channel A as a 1 Hz triangle (full DAC range) and channel B as a 0.5 Hz square between 1/4·VREF and 3/4·VREF. Different waveforms make channel-independence visually obvious on a 2-channel scope. Serial output gains a `dac_b_v` column.
 
