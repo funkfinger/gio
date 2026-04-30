@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <SPI.h>
 #include <Wire.h>
 #include <cstdlib>
 #include <Adafruit_NeoPixel.h>
@@ -8,28 +9,34 @@
 #include "cv.h"
 #include "oled_ui.h"
 #include "encoder_input.h"
+#include "outputs.h"
+#include "inputs.h"
 
-// Story 010: external clock input on J1, auto-detect mode.
-// Story 009: CV input for V/oct transpose (α-summing).
+// Platform-pivot migration (decisions.md §19–§25): firmware now drives the
+// hardware via the SPI HAL (lib/outputs/ + lib/inputs/) instead of the old
+// PWM-DAC + analog-CV + digital-gate paths. See bench-wiring.md for the
+// breadboard topology this code targets.
 //
-// When a clock signal is detected on J1 (rising edges within the last 2 s),
-// the arp advances on each edge instead of running on the internal tempo.
-// When external clock stops, the module falls back to the tempo pot.
-// Tempo pot acts as a clock divider when external is active (÷1, ÷2, ÷4).
+// Jack roles after the pivot (per decisions.md §23 — generic IN/OUT labels):
+//   J1 (input ch 0)  — CV transpose in (replaces old PIN_CV/A1 analog read)
+//   J2 (input ch 1)  — second CV in (deferred — input scaling stage ch B not yet wired)
+//   J3 (output ch A) — V/Oct out via inverting bipolar output stage (replaces PIN_DAC_PWM)
+//   J4 (output ch B) — gate out via DAC ch B (replaces digital PIN_GATE on D6)
+//
+// External clock-in on J2 is dormant until input ch B is wired (a Schmitt on
+// inputs::readVolts(1) replaces the old digitalRead(D3) edge detector). Until
+// then, the arp runs from the internal tempo pot only.
 
 // ------------------------------ pins -------------------------------
-static const uint8_t  PIN_DAC_PWM    = D2;   // GP28
-static const uint8_t  PIN_GATE       = D6;   // GP0
-static const uint8_t  PIN_TEMPO      = A0;   // D0/GP26
-static const uint8_t  PIN_CV         = A1;   // D1/GP27 — buffered CV in (op-amp B)
-static const uint8_t  PIN_J1         = D3;   // GP5 — clock in (digital). Spec called for
-                                             // GP29/A3 but the XIAO RP2350 doesn't expose
-                                             // GP29. ADC-capable pins are all taken (A0/A1/A2),
-                                             // so J1 is digital-only for now; pitch mode on
-                                             // J1 deferred until an ADC pin is freed.
-static const uint8_t  PIN_ENC_A      = D8;   // GP2
-static const uint8_t  PIN_ENC_B      = D9;   // GP3
-static const uint8_t  PIN_ENC_CLICK  = D10;  // GP4
+static const uint8_t  PIN_TEMPO      = A0;   // D0/GP26 — tempo pot wiper (analog ADC)
+// SPI bus: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3 (handled by SPI.begin())
+static const uint8_t  PIN_CS_DAC     = D3;   // GP5 — DAC8552 /SYNC
+static const uint8_t  PIN_CS_ADC     = D6;   // GP0 — MCP3208 /CS
+// Encoder pins migrated from D8/D9/D10 (now SPI bus) to A1/A2/D7.
+static const uint8_t  PIN_ENC_A      = D1;   // GP27 (was D8/GP2)
+static const uint8_t  PIN_ENC_B      = D2;   // GP28 (was D9/GP3)
+static const uint8_t  PIN_ENC_CLICK  = D7;   // GP1  (was D10/GP4)
+// I²C: D4/D5 — handled by Wire.begin().
 // PIN_LED — GPIO25, active LOW.
 
 // Onboard RGB NeoPixel:
@@ -37,27 +44,23 @@ static const uint8_t PIN_NEOPIXEL_DATA   = 22;
 static const uint8_t PIN_NEOPIXEL_POWER  = 23;
 static const uint8_t NEOPIXEL_BRIGHTNESS = 64;
 
-// ------------------------------ DAC --------------------------------
-static const uint32_t PWM_FREQ_HZ = 36621;
-static const uint16_t PWM_MAX     = 4095;
-static const float    VREF        = 3.3f;
-static const float    GAIN        = 1.26f;     // calibration.md, 2026-04-22
-static const uint16_t ADC_MAX     = 4095;
+// ------------------------------ Analog reference -------------------
+// Bench: pot+TL072 stand-in dialled to 4.096 V. Production: REF3040 at 4.096 V
+// (decisions.md §25). Both DAC8552 and MCP3208 share this VREF so the system
+// is ratiometric — VREF drift cancels across the loop.
+static const float    BENCH_VREF_V  = 4.096f;
+static const uint16_t ADC_MAX       = 4095;     // MCP3208 12-bit full-scale
 
-// ------------------------------ CV ---------------------------------
-// Voltage divider on the CV input: 100 kΩ series + (47 kΩ + 22 kΩ) to GND.
-// Maps 0..8 V at jack → 0..3.27 V at the buffered ADC.
-static const float CV_DIVIDER_RATIO = 69.0f / 169.0f; // = 0.4083
-static const uint8_t MIDI_NOTE_MIN = 24;   // C1 — clamp lower bound for played notes
-static const uint8_t MIDI_NOTE_MAX = 96;   // C7 — clamp upper bound (matches DAC range)
+// Music range
+static const uint8_t MIDI_NOTE_MIN = 24;   // C1
+static const uint8_t MIDI_NOTE_MAX = 96;   // C7
 
 // ------------------------------ Clock-in ---------------------------
-// J1 is wired through a 100 kΩ + 100 kΩ divider (1:2 ratio) to GP5.
-// Eurorack 5..10 V clock pulses → 2.5..5 V at the GPIO. Above ~3.3 V the
-// RP2350's internal clamp + 100 kΩ series limit current safely. The GPIO
-// detects HIGH above ~1.6 V which corresponds to ~3.2 V at the jack — well
-// inside any standard Eurorack gate level (≥4 V).
-static const uint32_t EXT_CLOCK_TIMEOUT_MS = 2000;   // no edges this long → internal
+// External clock detection on J2 is deferred until the input ch B scaling
+// stage is built on the bench (Story 015 channel B). When it lands, this
+// stage will read inputs::readVolts(1) and feed it to a Schmitt trigger
+// (lib/trigger_in/) for edge detection. For now the arp runs internally only.
+static const uint32_t EXT_CLOCK_TIMEOUT_MS = 2000;
 
 // ----------------------------- music -------------------------------
 // Chord stored as semitone INTERVALS from the active key. Key tonic is
@@ -165,30 +168,24 @@ static bool     wasExtModeLast           = false; // for detecting mode transiti
 static float midiToVolts(uint8_t midi) {
     return ((float)midi - 48.0f) / 12.0f;
 }
-static uint16_t voltsToPwmCount(float v) {
-    float vp = v / GAIN;
-    if (vp < 0.0f) vp = 0.0f;
-    if (vp > VREF) vp = VREF;
-    return (uint16_t)((vp / VREF) * (float)PWM_MAX + 0.5f);
-}
 
 // --------------------------- HAL helpers ---------------------------
-static const bool GATE_INVERTED = true;
+// Gate on jack J4 (DAC ch B). outputs::gate() writes VREF for HIGH and 0 V
+// for LOW; with the channel-B output stage's calibration that produces ~+4 V
+// at the jack for HIGH and ~0 V for LOW — well within Eurorack gate spec.
 static inline void gateWrite(bool on) {
-    digitalWrite(PIN_GATE, (on ^ GATE_INVERTED) ? HIGH : LOW);
+    outputs::gate(1, on);
 }
 static inline void ledWrite(bool on) {
     digitalWrite(PIN_LED, on ? LOW : HIGH);
 }
 
 // --------------------------- CV reader -----------------------------
-// Read the CV jack node voltage by reading the ADC on the buffered side and
-// reversing the divider. Returns volts at the jack node (~0..8 V).
+// inputs::readVolts(0) returns calibrated jack-side volts on J1. The cv lib's
+// volts-to-transpose function clamps negatives to 0 and >8 V to 8 V, so we
+// can pass through the full ±10 V span without extra defensive code here.
 static float readCvVolts() {
-    uint16_t raw = analogRead(PIN_CV);
-    if (raw > ADC_MAX) raw = ADC_MAX;
-    float adc_volts = (float)raw / (float)ADC_MAX * VREF;
-    return adc_volts / CV_DIVIDER_RATIO;
+    return inputs::readVolts(0);
 }
 
 // Hysteresis-wrapped transpose: only accept a new snapped value once voltage
@@ -264,27 +261,11 @@ static uint8_t externalMultiplierFromPot() {
     return held;
 }
 
-// Edge detector on PIN_J1 (digitalRead). Returns true on a low→high transition.
-// Debounced: rejects edges within MIN_EDGE_INTERVAL_MS of the previous accepted
-// one. 10 ms = up to 6000 BPM rejected as bounce, well above musical territory.
+// External clock edge detection — DEFERRED until input ch B (J2) scaling
+// stage is built. Once it lands, this function will read inputs::readVolts(1)
+// through a Schmitt trigger (lib/trigger_in/) for edge detection. For now,
+// always returns false — the arp runs from internal tempo only.
 static bool pollExternalClockEdge() {
-    static const uint32_t MIN_EDGE_INTERVAL_MS = 10;
-    bool now = (digitalRead(PIN_J1) == HIGH);
-    if (extClockHigh) {
-        if (!now) extClockHigh = false;
-        return false;
-    }
-    if (now) {
-        uint32_t now_ms = millis();
-        if (extLastEdgeMs != 0 && (now_ms - extLastEdgeMs) < MIN_EDGE_INTERVAL_MS) {
-            extClockHigh = true;     // accept the new state, but don't fire
-            return false;
-        }
-        extClockHigh   = true;
-        extPrevEdgeMs  = extLastEdgeMs;
-        extLastEdgeMs  = now_ms;
-        return true;
-    }
     return false;
 }
 
@@ -329,11 +310,10 @@ static void fireStep() {
     played           = (int)quantize((uint8_t)clampi(played, 0, 127), scale);
     played           = clampi(played, MIDI_NOTE_MIN, MIDI_NOTE_MAX);
 
-    float    volts = midiToVolts((uint8_t)played);
-    uint16_t cnt   = voltsToPwmCount(volts);
+    float volts = midiToVolts((uint8_t)played);
 
-    analogWrite(PIN_DAC_PWM, cnt);
-    gateWrite(true);
+    outputs::write(0, volts);          // V/Oct → jack J3
+    gateWrite(true);                    // gate → jack J4 (DAC ch B)
     ledWrite(true);
     gateOn        = true;
     lastStepMs    = millis();
@@ -524,14 +504,38 @@ static void renderMenu() {
 }
 
 // ------------------------------ setup ------------------------------
+//
+// Bench-fitted calibration constants (2026-04-30) for the breadboard prototype.
+// These are approximate (E12 resistors + pot+TL072 VREF stand-in + cascaded
+// op-amp offsets — musical-grade but not lab-grade). Story 022 will replace
+// them with proper EEPROM-stored fits once Rev 0.1 PCB is in hand.
+//
+// outputs::setCalibration(channel, gain, offset)
+//   actual_dac_volts = gain * target_jack_volts + offset
+//
+//   Channel A (J3 = V/Oct out, R_fb = 44 kΩ):
+//     bench transfer: V_jack ≈ 8.79 - 4.4·V_dac
+//     inverse:        V_dac  ≈ 1.998 - 0.227·V_jack
+//
+//   Channel B (J4 = gate out, R_fb = 47 kΩ):
+//     bench transfer: V_jack ≈ 9.28 - 4.7·V_dac
+//     inverse:        V_dac  ≈ 1.974 - 0.213·V_jack
+//
+// inputs::setCalibration(channel, gain, offset)
+//   jack_volts = gain * adc_volts + offset
+//
+//   Input ch 0 (J1 = transpose CV in):
+//     bench transfer: adc_v ≈ 1.96 - 0.180·V_jack
+//     inverse:        V_jack ≈ 10.89 - 5.56·adc_v
+static const float CAL_OUT_A_GAIN  = -0.227f;
+static const float CAL_OUT_A_OFFSET = +1.998f;
+static const float CAL_OUT_B_GAIN  = -0.213f;
+static const float CAL_OUT_B_OFFSET = +1.974f;
+static const float CAL_IN_0_GAIN   = -5.56f;
+static const float CAL_IN_0_OFFSET = +10.89f;
+
 void setup() {
-    analogWriteResolution(12);
-    analogReadResolution(12);
-    analogWriteFreq(PWM_FREQ_HZ);
-    pinMode(PIN_DAC_PWM, OUTPUT);
-    pinMode(PIN_GATE,    OUTPUT);
-    pinMode(PIN_LED,     OUTPUT);
-    gateWrite(false);
+    pinMode(PIN_LED, OUTPUT);
     ledWrite(false);
 
     Wire.begin();
@@ -540,6 +544,30 @@ void setup() {
     Serial.begin(115200);
     uint32_t t0 = millis();
     while (!Serial && (millis() - t0) < 2000) { /* wait briefly for USB */ }
+
+    // SPI bus shared between DAC8552 and MCP3208. Both Rob Tillaart libs
+    // call SPI.begin() internally on first transaction; explicit call here
+    // makes the clock pin active early so a scope sees something on power-up.
+    SPI.begin();
+
+    // outputs:: HAL — DAC8552 dual SPI DAC. setVRef + per-channel calibration
+    // must come AFTER begin() so they apply to the right object instance.
+    if (!outputs::begin(PIN_CS_DAC)) Serial.println("outputs::begin failed!");
+    outputs::setVRef(BENCH_VREF_V);
+    outputs::setCalibration(0, CAL_OUT_A_GAIN, CAL_OUT_A_OFFSET);
+    outputs::setCalibration(1, CAL_OUT_B_GAIN, CAL_OUT_B_OFFSET);
+    gateWrite(false);                       // park gate at jack J4 = 0 V
+
+    // inputs:: HAL — MCP3208 12-bit 8-channel SPI ADC.
+    if (!inputs::begin(PIN_CS_ADC)) Serial.println("inputs::begin failed!");
+    inputs::setVRef(BENCH_VREF_V);
+    inputs::setCalibration(0, CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
+    // Input ch 1 calibration deferred — input scaling stage ch B not yet wired.
+
+    // Tempo pot still uses the XIAO's native ADC on D0 — see decisions.md §26
+    // (pin budget). Could move to MCP3208 ch 2 in a future rework if D0 needs
+    // to be freed; for now the native ADC is fine for a slow user-actuated pot.
+    analogReadResolution(12);
 
     // Seed std::rand() — used by ArpOrder::Random and the procedural
     // random-bars renderer. Mix millis() with a noisy unconnected ADC read
@@ -551,15 +579,10 @@ void setup() {
     }
 
     Serial.println();
-    Serial.println("=== gio Story 010 — clock-in on J1 ===");
+    Serial.println("=== gio post-pivot firmware (SPI HAL) ===");
     Serial.println("Click=cycle  Rotate=value  Hold=reset");
-    Serial.println("J1 clock auto-detected; tempo pot becomes div (1/2/4) when ext");
+    Serial.println("J3=V/Oct out, J4=gate out, J1=CV transpose in (J2 deferred)");
 
-    // Internal pulldown is enabled belt-and-braces, but on RP2350 it cannot be
-    // relied on alone (silicon errata RP2350-E9). The bench fix is a low-impedance
-    // external divider (10 kΩ + 10 kΩ at J1, ≤ 8.2 kΩ effective pulldown).
-    // See decisions.md §18.
-    pinMode(PIN_J1, INPUT_PULLDOWN);
     if (!ui.begin()) Serial.println("OLED init failed!");
     // Boot splash: frame 1 holds for 3 s, then 100 ms per subsequent frame.
     // Total run time ≈ 3.0 + 8 × 0.1 = 3.8 s. Blocks setup(); fine here.

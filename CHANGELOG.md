@@ -12,6 +12,12 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ## [Unreleased]
 
+### Changed
+
+- **Production firmware migrated to the SPI HAL.** `src/main.cpp` no longer drives the PWM-DAC + analog-CV + digital-gate paths; instead it uses `outputs::write()` (V/Oct on jack J3 via DAC ch A), `outputs::gate()` (gate on jack J4 via DAC ch B), and `inputs::readVolts()` (CV transpose in on jack J1). Pin migration: encoder moved D8/D9/D10 → D1/D2/D7 to free SPI pins; CS_DAC=D3, CS_ADC=D6, SPI bus on D8/D9/D10 (per `bench-wiring.md` §3). Production firmware builds at 2.2 % RAM / 4.6 % flash; smoke-test env still builds; all 66 host tests pass.
+- **Hardcoded calibration constants from the 2026-04-30 bench session** baked into `setup()` via `outputs::setCalibration()` and `inputs::setCalibration()` calls — musical-grade approximations for the breadboard prototype, slated for replacement by Story 022 (calibration app) once Rev 0.1 PCB is in hand.
+- **External clock detection (Story 010) is dormant** — `pollExternalClockEdge()` always returns false until input ch B (jack J2) scaling stage is wired and a Schmitt trigger is integrated. Arp runs from internal tempo only in the meantime. The clock-mode-handling code paths are preserved so the Schmitt integration is a localized change.
+
 ### Added
 
 - **`docs/decisions.md` §27 — Calibration architecture, designed now, built later.** Captures the full design of the calibration story after a focused grilling session: form factor (app within Story 018's app switcher), trigger (auto-on-missing-data + manual via app switcher), loopback method (Eurorack patch cable J3 → J1 / J4 → J2), reference (REF3040 trusted as ±0.2 % absolute, ~5 cents at V/Oct), math (fused output + input pair per channel, 5-point linear fit, REF3040-anchored), one-time-only assumption (hardware doesn't drift), and the EEPROM-emulated-in-flash storage format with magic / version / last-app / calibration block / CRC32. Calibration data survives normal `picotool` re-flash (lives in last 4 KB sector). Sequenced after Rev 0.1 PCB manufacture so we calibrate against the real board, not the breadboard.
