@@ -32,8 +32,24 @@
 ### Persistence
 
 - [ ] **Last-loaded app saved to flash** on app switch. On boot, the saved app loads automatically.
-- [ ] Storage: arduino-pico exposes the RP2350 flash via `EEPROM.h` (emulated EEPROM in flash). Use the simplest possible scheme: 1 byte = app index; magic byte for "valid" check; default to app 0 if invalid.
-- [ ] App-private settings storage: out of scope for this story. Apps that need persistence (e.g. arp's last-selected scale/order/root) get a follow-up story.
+- [ ] Storage: arduino-pico exposes the RP2350 flash via `EEPROM.h` (emulated EEPROM in flash; lives in the last 4 KB sector and survives normal `picotool` re-flash).
+- [ ] **Reserve the full EEPROM layout from `decisions.md` §27**, not just the fields this story uses. Story 022 (calibration app) will fill the calibration block + CRC32 region without needing any storage migration.
+
+  ```
+  Offset  Size  Field                       Owner / written by
+  ------  ----  -------------------------   ----------------------------
+  0x00      4   Magic 'GIO!'                 Story 018 (this story)
+  0x04      2   Layout version (uint16)      Story 018
+  0x06      1   Last loaded app (uint8)      Story 018
+  0x07      1   Reserved                     —
+  0x08     32   Calibration block            Story 022 — zero-padded for now
+  0x28      4   Calibration CRC32            Story 022 — zero for now
+  0x2C    ...   Reserved for future use      —
+  ```
+
+  Boot logic for this story: validate magic + version, read last-app, default to app 0 if invalid. The calibration fields stay untouched (Story 022 owns them).
+
+- [ ] App-private settings storage: out of scope for this story AND no follow-up story planned. Per the `decisions.md` §27 grilling outcome: app-private state is RAM-only, lost on app switch.
 
 ### Bench
 

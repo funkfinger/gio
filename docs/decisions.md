@@ -310,6 +310,46 @@ This supersedes the deferred "DAC8552 VREF source" item below — REF3040 is in 
 
 See `hardware/bom.md` for the BOM table with LCSC part numbers and Basic/Extended class.
 
+### 27. Calibration architecture (designed now, built later as Story 022)
+
+The bench-validated platform has 4 analog channels that need per-channel calibration to produce predictable jack-side voltages: 2 DAC outputs (J3 / J4 via `outputs::setCalibration()`) and 2 ADC inputs (J1 / J2 via `inputs::setCalibration()`). Below are the architecture decisions; implementation is captured as `docs/stories/022-calibration-app.md` and is sequenced **after Rev 0.1 PCB manufacture** so we calibrate against the real board, not the breadboard.
+
+**Form factor — calibration is an *app*, not separate firmware.** Selectable via the Story 018 app switcher alongside `arp`, `clock_out`, etc. Avoids the friction of flash/reflash cycles for re-calibration; reuses platform infrastructure (HAL, OLED, encoder); naturally composable with future apps.
+
+**Trigger — auto on missing data + manual via app switcher.** On boot, firmware checks the EEPROM calibration block. Magic-byte mismatch, version mismatch, or CRC failure all trigger a one-time auto-launch of the calibration app. Otherwise the user can manually re-enter via long-press → app switcher → "Calibrate". No physical PCB jumper or held-button-at-boot mode (re-flash via USB is the universal escape hatch).
+
+**Loopback — external Eurorack patch cable, not internal jumpers.** OLED prompts the user to patch J3 → J1 (then J4 → J2). Eurorack patch cables are the most-available object in the target environment; zero board cost; matches the bench-validated 2026-04-30 setup. Future test-point pads for REF3040 verification are out of scope for v1.
+
+**Reference — REF3040 trusted as absolute (±0.2 %, ~5 cents at V/Oct).** Self-loopback can only calibrate the round-trip transfer function, not separate the output and input contributions absolutely. Anchoring everything to REF3040 (which feeds both DAC8552 VREF and MCP3208 VREF) gives ratiometric stability and "musically correct" V/Oct. Lab-grade absolute V/Oct accuracy would require an external multimeter — explicitly out of scope.
+
+**Math — fused output + input pair (Option A in the §Q2 design discussion).** Calibration treats each (output, input) channel pair as a single linear transfer function: 5-point DAC sweep → ADC reads → least-squares fit → split into per-channel gain/offset by trusting REF3040 as the anchor. The split assumes the DAC8552 itself is ideal (its INL is ±0.25 mV at 16 bits — negligible vs. the cascaded op-amp + resistor errors).
+
+**One-time per module, not periodic.** Hardware doesn't drift meaningfully once it's at temperature. Calibration writes once, reads forever. No nag, no re-calibrate-every-N-hours loop.
+
+**Storage — EEPROM-emulated-in-flash, format frozen at Story 018 to support forward compatibility:**
+
+```
+Offset  Size  Field                        Notes
+------  ----  --------------------------   --------------------------------
+0x00      4   Magic 'GIO!'                  Sanity check
+0x04      2   Layout version (uint16)       Bump on schema change → forces recalibrate
+0x06      1   Last loaded app (uint8)       Story 018
+0x07      1   Reserved
+0x08     32   Calibration block             4 channels × 8 bytes (gain f32 + offset f32)
+              ├─ outputs[0]: gain, offset
+              ├─ outputs[1]: gain, offset
+              ├─ inputs[0]:  gain, offset
+              └─ inputs[1]:  gain, offset
+0x28      4   Calibration CRC32             Detect partial-write corruption
+0x2C    ...   Reserved for future use
+```
+
+Story 018 reserves the full layout (magic, version, last-app, calibration block, CRC) even though only the magic / version / last-app fields are actively written in that story. The calibration block stays as zero-padding until Story 022 fills it. This is the "no-rework migration" property — Story 022 lands without changing any storage layout.
+
+**Calibration data survives normal firmware re-flashes.** arduino-pico's EEPROM emulation lives in the last 4 KB sector; `picotool`'s normal upload doesn't touch it. Drag-and-drop UF2 flashing DOES erase the whole flash — if we ever document that as a recovery path, call out the implication.
+
+**Pre-Rev-0.1 calibration is hardcoded in firmware.** Until Story 022 ships, the production firmware bakes in approximate gain/offset constants from bench measurements. They're musical-grade but not lab-grade — good enough to drive a Eurorack VCO recognisably, not good enough to nail every cent at every octave. This explicitly punts precision to the post-PCB calibration session.
+
 ### 26. Pin budget at the limit — future expansion via spare MCP3208 channels
 
 The XIAO RP2350 exposes **11 castellated pins (D0–D10)** that can be hand-soldered to a carrier PCB. The back-side pads carry SWD/USB/etc. but are not realistically usable on a 2 HP Eurorack module — they'd require fly-wires and would foul the panel-side mechanicals.
@@ -373,10 +413,10 @@ After PR 5, everything else (encoder menu, OLED display, six scales, CV in, chao
 
 ### Still open
 
-- **Calibration storage:** hardcoded `gain` / `offset` constants in Rev 0.1. Move to flash/EEPROM post-platform-skeleton (own story).
+- ~~**Calibration storage:**~~ — resolved by §27: hardcoded constants in firmware until Rev 0.1 PCB; then Story 022 calibrates against the real board and writes to EEPROM-emulated-flash.
 - **OLED rotation strategy:** software rotation (Adafruit GFX `setRotation(1)`) or hardware OLED orientation strap — confirm with the 0.49" 64×32 part in hand.
-- **App-private settings persistence:** Story 018 persists "last loaded app" only. Per-app state (e.g. arp's last scale/order/root) needs a follow-up story with a flash-partition scheme.
-- **Calibration-utility app:** Stories 013/015 use hand-rolled bench calibration via `main.cpp` sweeps. A dedicated calibration app (selectable via app switcher) would be friendlier and could persist constants per channel. Defer until there's a concrete pain point.
+- ~~**App-private settings persistence:**~~ — resolved by §27 grilling outcome: app-private state is RAM-only, lost on app switch. No follow-up story needed.
+- ~~**Calibration-utility app:**~~ — resolved by §27 + Story 022: lands as an app in the Story 018 app switcher, sequenced after Rev 0.1 PCB manufacture so we calibrate against the real board.
 - **Chaos design (arp app feature):** deferred from RA4M1 project, still deferred. Independent of platform work.
 - **RNG choice:** `random()` fine for MVP; XORShift or `std::minstd_rand` for reproducible host tests post-MVP.
 - **PCB jumper sanity check (lesson from MOD2 build):** the MOD2 Rev A board has a JP2 (solder-bridge across C18 for AC/DC coupling) where the JP2 pads do not actually route to C18's pads — bridging JP2 had no electrical effect. Workaround: solder a wire directly across C18. **Apply to gio Rev 0.1:** during KiCad work, verify every solder-jumper / option-jumper symbol's connections survive the schematic-to-PCB transfer (ERC + DRC + manual eyeball each JP-named net). Cheap insurance.

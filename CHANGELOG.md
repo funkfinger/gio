@@ -14,6 +14,14 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **`docs/decisions.md` §27 — Calibration architecture, designed now, built later.** Captures the full design of the calibration story after a focused grilling session: form factor (app within Story 018's app switcher), trigger (auto-on-missing-data + manual via app switcher), loopback method (Eurorack patch cable J3 → J1 / J4 → J2), reference (REF3040 trusted as ±0.2 % absolute, ~5 cents at V/Oct), math (fused output + input pair per channel, 5-point linear fit, REF3040-anchored), one-time-only assumption (hardware doesn't drift), and the EEPROM-emulated-in-flash storage format with magic / version / last-app / calibration block / CRC32. Calibration data survives normal `picotool` re-flash (lives in last 4 KB sector). Sequenced after Rev 0.1 PCB manufacture so we calibrate against the real board, not the breadboard.
+- **`docs/stories/022-calibration-app.md`** — deferred story implementing §27. Acceptance criteria cover app registration, auto-trigger on missing data, full UI flow (welcome → patch prompt → DAC sweep → linear fit → sanity check → confirm + write), EEPROM I/O, bench verification (V/Oct accuracy ±5 cents per octave against multimeter), and host tests (linear fit + CRC + storage round-trip). Hard dependencies: Story 018 + Rev 0.1 PCB. Until Story 022 ships, production firmware uses hardcoded calibration constants from breadboard measurements (musically usable, not lab-grade).
+- **Story 018 updated to reserve the §27 EEPROM layout** — Story 018 only writes the magic / version / last-app fields, but the calibration block + CRC32 region is laid out from the start so Story 022 doesn't need to migrate existing storage when it lands.
+
+### Changed
+
+- **`docs/decisions.md` "Still open" list pruned:** "Calibration storage", "Calibration-utility app", and "App-private settings persistence" all now point at §27 / Story 022 / the §27 grilling outcome (app-private state is RAM-only, no story needed).
+
 - **Third bench session — input scaling stage + full-chain loopback validated.** `bench-log.md` 2026-04-30 (continued) entry. Built TL072 #3 channel A as the input scaling stage for jack J1 → MCP3208 ch 0 (R_series + BAT43 clamps + summing amp + offset divider on pin 3 mirrored from §6). Static jumper test gave op-amp output within 10 mV of prediction across ±5 V input range; slope −0.181 V/V vs predicted −0.180 (1 % error). Round-trip loopback (J3 → cable → J1) tracks within 20–30 mV across full DAC sweep, slope 0.796 vs predicted 0.792 (0.5 % error). **Story 015 acceptance criteria met. The entire post-pivot platform is now bench-validated end-to-end** (Stories 012 + 013 + 015).
 
 ### Fixed
