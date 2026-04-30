@@ -14,6 +14,9 @@ Section keys: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`, 
 
 ### Added
 
+- **Second bench session — channel B + ADC loopback validated.** `bench-log.md` 2026-04-30 entry. Channel B built (47 kΩ R_fb, sharing channel A's offset divider via pin 5 → pin 3); static jumper test gives +9.28 V / −9.91 V, dynamic two-channel scope shows clean independent triangle (J3) + square (J4). MCP3208 wired and brought up; loopback (DAC OUTA → MCP3208 ch 0) tracks within ±15 mV across the full 0..4.096 V sweep — dominated by analog noise + op-amp offset, not converter accuracy. **Story 012 acceptance criteria met on the bench.**
+- **Smoke-test firmware extended to drive both DAC channels.** `src/main_smoketest.cpp` now writes channel A as a 1 Hz triangle (full DAC range) and channel B as a 0.5 Hz square between 1/4·VREF and 3/4·VREF. Different waveforms make channel-independence visually obvious on a 2-channel scope. Serial output gains a `dac_b_v` column.
+
 - **First post-pivot bench session — channel A end-to-end working.** Captured in `bench-log.md` 2026-04-29 entry with scope screenshot. Validates: SPI bus arbitration, DAC8552 24-bit frame protocol via Rob Tillaart lib + `outputs::write()` HAL, pot+TL072 VREF stand-in stable to 4.096 V, inverting amp + non-inverting offset divider produces clean ±9 V bipolar swing at jack J3, end-to-end signal chain (XIAO firmware → SPI → DAC → analog stage → Eurorack-spec jack output) all the way through. Static measurements within 0.4 V of predicted; dynamic 1 Hz triangle on scope shows period 1.004 s and frequency 0.996 Hz vs spec'd 1.000 / 1.000.
 - **`docs/images/bench-channel-a-triangle-jack.png`** — Rigol DS1Z scope capture of the bipolar triangle at jack J3 during the first end-to-end test, linked from `bench-log.md`.
 

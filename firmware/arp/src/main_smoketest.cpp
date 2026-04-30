@@ -10,10 +10,22 @@
 //
 // What this smoke test does:
 //   1. Initializes outputs:: (DAC8552) and inputs:: (MCP3208) HALs over SPI0
-//   2. Walks DAC channel A from 0 → VREF → 0 (1-second triangle)
-//   3. After each DAC write, reads MCP3208 channel 0 and prints both to serial
-//   4. Bench setup: jumper DAC OUTA directly to MCP3208 channel 0
-//   5. Expected: ADC reading tracks DAC value linearly within a few LSBs
+//   2. DAC channel A: 1 Hz triangle (0 → VREF → 0), 50 samples per cycle
+//      → at jack J3 (after the inverting output stage) this appears as a
+//        clean ±9 V symmetric triangle, also at 1 Hz
+//   3. DAC channel B: 0.5 Hz square wave alternating between 1.024 V and
+//      3.072 V on the DAC. Through the inverting output stage that becomes
+//      an alternation between roughly +4.5 V and −4.5 V at jack J4. The
+//      slower rate + different waveform makes it visually obvious on a
+//      2-channel scope that A and B are independent (no crosstalk, no
+//      CS-line crossover).
+//   4. After each loop iteration, reads MCP3208 channel 0 (intended to
+//      track DAC OUTA via jumper) and prints t_ms / dac_a_v / dac_b_v /
+//      adc_v / adc_count to serial.
+//
+// Bench setup: jumper DAC OUTA directly to MCP3208 channel 0 (skipping
+// the input scaling stage). Expected: ADC reading tracks DAC OUTA value
+// linearly within a few LSBs.
 //
 // Pin assignments per docs/bench-wiring.md §3 + §4 (SPI-pivot map):
 //     SPI: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3
@@ -32,11 +44,22 @@ static constexpr uint8_t PIN_CS_ADC = D6;  // GP0 — MCP3208 /CS
 // Re-measure with a multimeter and update if needed.
 static constexpr float BENCH_VREF_V = 4.096f;
 
-// Triangle parameters.
+// Channel A — 1 Hz triangle (full DAC range)
 static constexpr uint32_t TRIANGLE_PERIOD_MS = 1000;  // full cycle (up + down)
 static constexpr uint32_t STEP_MS            = 20;    // ~50 samples per cycle
-static constexpr uint8_t  DAC_CHANNEL        = 0;     // A
+static constexpr uint8_t  DAC_CHANNEL_A      = 0;
 static constexpr uint8_t  ADC_CHANNEL        = 0;     // jumper OUTA → ch0
+
+// Channel B — 0.5 Hz square between 1/4 and 3/4 of VREF.
+// Through the inverting output stage these DAC voltages map to roughly
+// +4.5 V and −4.5 V at jack J4 — a clearly different waveform from
+// channel A's triangle when both are scoped together.
+static constexpr uint32_t SQUARE_PERIOD_MS = 2000;
+static constexpr uint8_t  DAC_CHANNEL_B    = 1;
+// DAC voltages computed from VREF in setup() so they track the actual
+// bench-dialled VREF rather than a compile-time constant.
+static float g_square_low_v  = 0.0f;
+static float g_square_high_v = 0.0f;
 
 void setup() {
     Serial.begin(115200);
@@ -68,18 +91,27 @@ void setup() {
     }
     inputs::setVRef(BENCH_VREF_V);
 
+    // Park channel-B endpoints at 1/4 and 3/4 of the actual VREF
+    // (so the absolute voltages adjust if the bench VREF drifts).
+    g_square_low_v  = outputs::getVRef() * 0.25f;
+    g_square_high_v = outputs::getVRef() * 0.75f;
+
     Serial.println(F("Setup complete. Streaming DAC,ADC pairs..."));
-    Serial.println(F("# t_ms  dac_v   adc_v   adc_count"));
+    Serial.println(F("# t_ms  dac_a_v  dac_b_v  adc_v   adc_count"));
 }
 
 void loop() {
-    // Phase: 0..1 across one period, then mirrored to make a triangle.
-    uint32_t t = millis() % TRIANGLE_PERIOD_MS;
-    float phase = static_cast<float>(t) / static_cast<float>(TRIANGLE_PERIOD_MS);
-    float tri   = (phase < 0.5f) ? (phase * 2.0f) : ((1.0f - phase) * 2.0f);
-    float dac_v = tri * outputs::getVRef();
+    // ---- Channel A: triangle, full DAC range, 1 Hz ----
+    uint32_t t_a = millis() % TRIANGLE_PERIOD_MS;
+    float phase_a = static_cast<float>(t_a) / static_cast<float>(TRIANGLE_PERIOD_MS);
+    float tri     = (phase_a < 0.5f) ? (phase_a * 2.0f) : ((1.0f - phase_a) * 2.0f);
+    float dac_a_v = tri * outputs::getVRef();
+    outputs::write(DAC_CHANNEL_A, dac_a_v);
 
-    outputs::write(DAC_CHANNEL, dac_v);
+    // ---- Channel B: square between 1/4·VREF and 3/4·VREF, 0.5 Hz ----
+    uint32_t t_b   = millis() % SQUARE_PERIOD_MS;
+    float dac_b_v  = (t_b < SQUARE_PERIOD_MS / 2) ? g_square_low_v : g_square_high_v;
+    outputs::write(DAC_CHANNEL_B, dac_b_v);
 
     // Tiny settle delay for the analog node — RC of the breadboard wiring +
     // ADC sample-and-hold is well under 1 ms, but a few hundred µs is cheap
@@ -91,7 +123,9 @@ void loop() {
 
     Serial.print(millis());
     Serial.print('\t');
-    Serial.print(dac_v, 4);
+    Serial.print(dac_a_v, 4);
+    Serial.print('\t');
+    Serial.print(dac_b_v, 4);
     Serial.print('\t');
     Serial.print(adc_v, 4);
     Serial.print('\t');

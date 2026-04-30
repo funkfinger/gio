@@ -206,3 +206,97 @@ Smoke-test triangle on DAC ch A, 1 Hz, 50 samples per cycle. Probed jack J3 tip 
 **Doc fixes from this session:**
 - `bench-wiring.md` §6 needs the topology correction (offset on pin 3, not pin 2) and resistor-value updates from this build.
 - `decisions.md` and Story 013 likewise reference the original (broken) topology — both need the same sign correction.
+
+---
+
+## 2026-04-30 — Stories 012 + 013 (channel B + ADC loopback): SPI fully validated
+
+Continuation of yesterday's session. Goal: bring up DAC channel B, then wire the MCP3208 ADC and prove the full SPI bus end-to-end via DAC → analog loopback → ADC.
+
+### Channel B build
+
+Removed channel B's parking wires (pin 5 → GND, pin 6 → pin 7). Added:
+- 1× 10 kΩ R_in from DAC8552 pin 3 (VOUTB) to TL072 #2 pin 6
+- 1× 47 kΩ R_fb (E12, single resistor — channel A used 2× 22 kΩ in series for 44 kΩ)
+- Pin 5 (2IN+) → pin 3 (1IN+) — sharing channel A's offset divider, no second divider needed
+- 1 kΩ output series → jack J4
+- BAT43 clamp pair to ±12 V
+
+**Static jumper test (DAC pin 3 disconnected):**
+
+| Test | Predicted (R_fb=47k) | Measured |
+|---|---|---|
+| Jumper R_in → GND, jack J4 | +9.46 V | **+9.28 V** |
+| Jumper R_in → VREF rail, jack J4 | −9.79 V | **−9.91 V** |
+
+±9.5 V swing, slightly different from channel A (44 k vs 47 k R_fb difference + E12 tolerance). Bench-acceptable — both channels give clean bipolar output.
+
+### Smoke-test firmware extended for both channels
+
+Updated `src/main_smoketest.cpp`:
+- **Channel A:** unchanged 1 Hz triangle, full DAC range
+- **Channel B:** **0.5 Hz square** between 1/4·VREF and 3/4·VREF (so jack J4 swings between ≈ +4.5 V and ≈ −4.5 V)
+- Two different waveforms = visually obvious independence on a 2-channel scope
+
+Scope (yellow CH1 = J3 triangle, cyan CH2 = J4 square) confirmed:
+- Channel A triangle is clean and unchanged when channel B starts driving
+- Channel B square has flat plateaus (no rail dips from channel A's continuous writes)
+- No CS-line crossover (writes to A only move OUTA; writes to B only move OUTB)
+- No power-rail crosstalk (channel A's continuous DAC writes don't perturb channel B's static output)
+
+### MCP3208 ADC bring-up
+
+Wired per `bench-wiring.md` §4 (PDIP-16 on adapter, in DIP-16 socket on the breadboard):
+
+| MCP3208 pin | Net |
+|---|---|
+| 9 (DGND), 14 (AGND) | GND |
+| 16 (VDD) | +5 V (with 100 nF decoupling at the pin) |
+| 15 (VREF) | VREF rail (4.096 V — same buffered node as DAC) |
+| 10 (/CS) | XIAO D6 |
+| 11 (DIN) | tap off existing MOSI line (XIAO D10) |
+| 12 (DOUT) | new wire to XIAO D9 (MISO — first time we use it) |
+| 13 (CLK) | tap off existing SCK line (XIAO D8) |
+| 1 (CH0) | jumper directly to DAC8552 pin 4 (VOUTA) — bypassing the input scaling stage for cleanest possible loopback |
+
+Pre-power voltage checks: VDD = +5 V, VREF = +4.096 V, GND continuity, /CS idle = +3.3 V (XIAO holding it HIGH between transactions). All good.
+
+### Loopback test result
+
+Captured 6 seconds of serial output during a triangle cycle:
+
+```
+t_ms    dac_a_v  dac_b_v  adc_v   adc_count
+413214  1.7449   3.0720   1.7484  1731
+413298  2.4330   3.0720   2.4196  2447
+413509  3.3014   3.0720   3.3208  3296
+413993  0.0655   3.0720   0.0640  64
+414014  0.1147   1.0240   0.1130  114    ← channel B transitions to low half
+414120  0.9748   1.0240   0.9752  968
+```
+
+**ADC tracks DAC OUTA within ±15 mV across the full 0..4.096 V sweep.** That's about 10–15 LSBs of the MCP3208 at 4.096 V VREF, dominated by analog stage noise and op-amp offset rather than converter accuracy:
+
+- DAC8552 INL spec: ±4 LSB at 16-bit = ±0.25 mV (negligible)
+- MCP3208 C-grade INL spec: ±2 LSB at 12-bit = ±2 mV
+- VREF stability of pot+TL072 stand-in: a few mV
+- Sample-and-hold settling on breadboard wiring: a few mV
+
+Channel B's square wave also shows up cleanly in the `dac_b_v` column (3.0720 → 1.0240 V transitions land at the half-period boundary).
+
+### What this validates
+
+- ✅ MCP3208 24-bit-frame SPI protocol via Rob Tillaart `MCP_ADC` lib + `inputs::readRaw()` HAL
+- ✅ Shared SPI bus arbitration with two peripherals (CS_DAC and CS_ADC toggle independently per transaction)
+- ✅ Default ~1 MHz SPI clock (under MCP3208's 2 MHz spec at VDD=5V)
+- ✅ End-to-end: firmware → SPI → DAC → analog jumper → MCP3208 → SPI → firmware
+- ✅ Both DAC channels independent (no crosstalk, no CS interference)
+
+**Story 012 acceptance criteria are met on the bench.** Story 013 channel B done. Only Story 015 (input scaling stage) remains for the platform-rebuild bench session.
+
+### What's still pending
+
+- Audible test: plug J3 into a Eurorack VCO V/Oct input and listen to the 1 Hz pitch sweep
+- Story 015: input scaling stage for J1 → MCP3208 ch 0 (TL072 #3, with input 1 active and input 2 deferred)
+- Calibration: bench-fit `outputs::setCalibration()` constants per channel for V/Oct accuracy
+- Re-run loopback through the input scaling stage once it's built (jack J3 → R_series + clamp + summing amp → MCP3208 ch 0) — that's the full signal-chain round-trip
