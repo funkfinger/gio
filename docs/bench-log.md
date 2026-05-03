@@ -392,3 +392,76 @@ Most of this stays put once the REF3040 lands — the residual is op-amp + resis
 ### Doc fixes from this session
 
 - `bench-wiring.md` §7 has the same math bug as §6 had pre-2026-04-29 — predicted op-amp output values used `gain = R_fb/R_in2`, ignoring R_series in series. Fix by stating the correct effective input resistance and updating the predicted-values table for R_fb = 22 kΩ.
+
+---
+
+## 2026-05-02 — Bench rebuild after voltage misconfiguration; tempo pot moves to MCP3208
+
+**Setup:** XIAO RP2350 #1 fried by a power-supply misconfiguration that pushed wrong voltages onto the breadboard, taking out the original MCP3208 and at least one TL072 along with it. Replaced the XIAO and brought up the analog chain piece by piece using the smoke-test firmware (1 Hz triangle on DAC OUTA, 0.5 Hz square on DAC OUTB, MCP3208 ch 0 read every loop).
+
+### Bring-up sequence
+
+1. **New XIAO + smoke-test flash.** Confirmed CDC enumeration on `/dev/cu.usbmodem20401`; serial stream showed `dac_a_v` triangle and `dac_b_v` square commanding correct firmware-side values. Board alive. ✓
+2. **DAC8552 + VREF + output op-amps survived.** Probed DAC8552 pin 4 (VOUTA) and pin 3 (VOUTB) — both tracked the firmware's commanded values cleanly. VREF rail steady at 4.096 V. TL072 #1 (VREF buffer) and TL072 #2 (output stages) intact. Jacks J3 and J4 produce the expected ±9 V swings.
+3. **First MCP3208 replacement was DOA.** Soldered a fresh chip onto a spare DIP-16 breakout. Smoke-test reads stayed at `adc_v = 0.0000, adc_count = 0` regardless of CH0 jumper position (GND, VREF rail, DAC pin 4 loopback). Disambiguating test with a known-bad chip (the previously-fried original) read identically — proving the failure mode was repeatable and chip-localized.
+4. **Second MCP3208 replacement worked.** Same wiring as #3 above; immediately read clean GND→0, VREF→4095, and locked DAC OUTA loopback within ~5 mV across the full 0..4.096 V sweep. Diagnostic of #3's failure inconclusive — possibly a soldering defect or a marginal chip; tossed.
+5. **Input scaling stage (§7) rebuilt.** Replaced TL072 #3 (input op-amp). Initial bring-up readings at pin 3 came in wrong:
+   - First reading: 1.022 V (expected 1.66 V). Math suggested ~7 kΩ of parallel load on pin 3.
+   - After divider rewiring: 0.528 V — even worse, suggesting the op-amp itself was clamping (likely fried by the same event that took the ADC).
+   - Replaced TL072 #3 with a fresh chip → pin 3 = **1.643 V** (1 % off the 1.66 V design target, all from E96/E12 resistor tolerance).
+
+### Input-stage characterization (TL072 #3 channel A, J1 → MCP3208 ch 0)
+
+Four-point sweep at jack J1 tip; metered TL072 #3 pin 1 (1OUT):
+
+| Jack input | Predicted pin 1 | Measured pin 1 |
+|---|---|---|
+| floating | 1.66 V (no current → no offset gain) | **1.650 V** ✓ |
+| GND | 1.96 V | **1.948 V** ✓ |
+| +5 V (stiff supply) | 1.06 V | **1.056 V** ✓ |
+| −5 V (stiff supply, *not* 100 kΩ pot — that sagged due to source impedance) | 2.86 V | **2.851 V** ✓ |
+
+Three-point linear fit (excluding floating, which is the no-current degenerate case): `V_pin1 = 1.952 − 0.1795 · V_jack`. Slope agrees with design (−0.180) to better than 1 %. Inverted for firmware:
+
+```
+CAL_IN_0_GAIN   = -5.57  (existing constant in main.cpp: -5.56)
+CAL_IN_0_OFFSET = +10.88 (existing constant: +10.89)
+```
+
+**New silicon matches old silicon to <0.2 %.** No firmware change required — existing calibration constants stand.
+
+### Full-loop validation (J3 → patch cable → J1, end-to-end)
+
+Smoke-test firmware running, J3 tip patched into J1 tip, MCP3208 ch 0 wired to TL072 #3 pin 1. Sample row at the negative peak of the DAC triangle:
+
+```
+dac_a_v = 4.080  →  J3 ≈ -9.0 V (output stage gain ≈ -4.4)
+                 →  J1 = -9.0 V (patch cable)
+                 →  pin 1 ≈ +3.57 V (input stage gain ≈ -0.18)
+                 →  adc_v = 3.597 V  ✓ (predicted 3.566 V; 30 mV agreement)
+```
+
+ADC tracks DAC across the full ±9 V swing within ~30 mV per point. Composite slope on the DAC↔ADC transfer matches predicted within 0.5 %.
+
+### Tempo pot moved to MCP3208 CH1
+
+Decided during this session to relocate the tempo pot off XIAO D0 (native ADC) onto MCP3208 CH1 (precision ADC through REF3040). Rationale:
+
+- All analog inputs now share one reference (REF3040, ±0.2 %, 75 ppm/°C) — uniform calibration story, no mixing of XIAO native ADC and external ADC.
+- **Frees D0** for J1 clock/gate digital edge detection (per `decisions.md` §23, J1 is dual-purpose: CV in *or* clock-trigger). Edge detection wants a true digital pin.
+- Cost: one extra SPI read per loop (microseconds) and one breadboard wire change (pot CW from +3.3 V → VREF rail).
+
+Updated:
+- `bench-wiring.md` §3 (D0 reassigned), §8 (pot wiring), §9 (J2 moves to ch 2 since ch 1 is now tempo)
+- `decisions.md` §26 (pin budget table)
+- `firmware/arp/src/main.cpp`: removed `PIN_TEMPO`; added `ADC_CH_TEMPO = 1`; replaced 3× `analogRead(PIN_TEMPO)` with `inputs::readRaw(ADC_CH_TEMPO)`. Build still 2.2 % RAM / 4.6 % flash; all 66 host tests pass.
+
+### Doc fixes from this session
+
+- `bench-wiring.md` §7 step 3 used to say "input floating ≈ +1.96 V." That's wrong — with the jack truly floating, no current flows through R_series + R_in2, no offset gain develops, and pin 1 sits at V_pin3 ≈ +1.66 V instead. The +1.96 V reading only appears when the jack is **actively grounded**. Caught when the freshly-replaced TL072 #3 read 1.65 V on pin 1 with the jack floating — the doc said this should be 1.96 V, but the chip was actually behaving correctly. Doc updated.
+
+### Lessons captured
+
+- **Voltage misconfiguration on the bench will cascade-kill ICs.** Always meter the rails *before* energizing the analog chain after any wiring change.
+- **Pot voltage sources have non-trivial output impedance.** The 100 kΩ pot used as a stand-in for −5 V sagged badly (~−4 V at the loaded node) because it was sourcing into 100 kΩ R_series. Fix is either a buffered source (op-amp follower) or a stiff bench supply. This is exactly why the tempo pot uses a 10 kΩ part — low source impedance, can drive an ADC sample-and-hold cleanly.
+- **MISO read of "0" is ambiguous on SPI** — it could mean "alive ADC reading 0 V" or "dead chip not driving DOUT." Pull-up trick on MISO disambiguates: live chip pulls low through driven 0; dead chip lets the pull-up float MISO high → reads 4095. Worth remembering for next time.

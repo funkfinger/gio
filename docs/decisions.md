@@ -354,21 +354,21 @@ Story 018 reserves the full layout (magic, version, last-app, calibration block,
 
 The XIAO RP2350 exposes **11 castellated pins (D0–D10)** that can be hand-soldered to a carrier PCB. The back-side pads carry SWD/USB/etc. but are not realistically usable on a 2 HP Eurorack module — they'd require fly-wires and would foul the panel-side mechanicals.
 
-After the SPI-pivot the 11 pins are **fully allocated:**
+After the SPI-pivot the 11 pins are **fully allocated** (with D0 freed 2026-05-02 by moving tempo pot to the MCP3208):
 
 | Pin | Use |
 |---|---|
-| D0 | Tempo pot (analog) |
+| D0 | Reserved — J1 clock/gate digital edge detection (freed when tempo pot moved to MCP3208 CH1) |
 | D1 / D2 / D7 | Encoder A / B / click |
 | D3 | CS_DAC |
 | D4 / D5 | I²C SDA / SCL (OLED) |
 | D6 | CS_ADC |
 | D8 / D9 / D10 | SPI SCK / MISO / MOSI |
 
-**The MCP3208 is the safety valve.** Of its 8 ADC channels we currently use 2 (ch 0 = J1, ch 1 = J2). Channels 2–7 are physically wired to nothing and cost zero GPIO to add. So:
+**The MCP3208 is the safety valve.** Of its 8 ADC channels we currently use 3 (ch 0 = J1 CV in, **ch 1 = tempo pot**, ch 2 = J2 CV in when wired). Channels 3–7 are physically wired to nothing and cost zero GPIO to add. So:
 
-- **Any future analog-style input** (additional pots, additional CV jacks, expression pedal in, photoresistor, etc.) routes to MCP3208 ch 2..ch 7 with no XIAO pin cost.
-- **The tempo pot itself** can move from D0 to MCP3208 ch 2 if a future app needs a dedicated digital pin (clock-sync output, footswitch input, second I²C bus, etc.). That re-architecture frees D0 without touching anything else.
+- **Any future analog-style input** (additional pots, additional CV jacks, expression pedal in, photoresistor, etc.) routes to MCP3208 ch 3..ch 7 with no XIAO pin cost.
+- **Tempo pot moved to MCP3208 CH1 on 2026-05-02** — unifies analog inputs under the precision REF3040 reference (no mixing with XIAO native ADC) and frees D0 for J1 clock/gate digital edge detection. Pot CW now ties to the VREF rail (not +5 V) so the wiper sweeps cleanly across 0..4.096 V.
 - **Status indicators are free**: the on-board user LED (`LED_BUILTIN` / GP25) and on-board NeoPixel (GP22 + GP23) are wired internally to the XIAO and don't surface on the edge — we already use them in the arp app.
 
 **What this rules out** (without bigger changes):

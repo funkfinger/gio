@@ -28,7 +28,10 @@
 // then, the arp runs from the internal tempo pot only.
 
 // ------------------------------ pins -------------------------------
-static const uint8_t  PIN_TEMPO      = A0;   // D0/GP26 — tempo pot wiper (analog ADC)
+// Tempo pot moved off D0 onto MCP3208 CH1 on 2026-05-02 — see decisions.md §26.
+// D0 is now reserved for J1 clock/gate digital edge detection.
+static const uint8_t  ADC_CH_TEMPO   = 1;    // MCP3208 ch 1 — tempo pot wiper (replaces D0)
+static const uint8_t  ADC_CH_CV_IN   = 0;    // MCP3208 ch 0 — J1 CV input through input scaling stage
 // SPI bus: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3 (handled by SPI.begin())
 static const uint8_t  PIN_CS_DAC     = D3;   // GP5 — DAC8552 /SYNC
 static const uint8_t  PIN_CS_ADC     = D6;   // GP0 — MCP3208 /CS
@@ -219,7 +222,7 @@ static void recalcSubTiming(uint32_t noteMs) {
 }
 
 static void refreshTempoFromPot() {
-    uint16_t raw = analogRead(PIN_TEMPO);
+    uint16_t raw = inputs::readRaw(ADC_CH_TEMPO);
     if (raw > ADC_MAX) raw = ADC_MAX;
     float pot = (float)raw / (float)ADC_MAX;
     float bpm = tempo::potToBpm(pot);
@@ -252,7 +255,7 @@ static uint8_t externalMultiplierFromPot() {
     static const uint16_t LOW_BOUND  = ADC_MAX / 3;       // ~1365
     static const uint16_t HIGH_BOUND = (2 * ADC_MAX) / 3; // ~2730
     static const uint16_t HYST       = 100;
-    uint16_t raw = analogRead(PIN_TEMPO);
+    uint16_t raw = inputs::readRaw(ADC_CH_TEMPO);
     if (raw > ADC_MAX) raw = ADC_MAX;
     if (held == 1 && raw > LOW_BOUND  + HYST) held = 2;
     if (held == 2 && raw < LOW_BOUND  - HYST) held = 1;
@@ -564,17 +567,18 @@ void setup() {
     inputs::setCalibration(0, CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
     // Input ch 1 calibration deferred — input scaling stage ch B not yet wired.
 
-    // Tempo pot still uses the XIAO's native ADC on D0 — see decisions.md §26
-    // (pin budget). Could move to MCP3208 ch 2 in a future rework if D0 needs
-    // to be freed; for now the native ADC is fine for a slow user-actuated pot.
+    // Tempo pot moved to MCP3208 CH1 on 2026-05-02 (decisions.md §26) — all
+    // analog inputs now share the precision REF3040 reference, and D0 is freed
+    // for J1 clock/gate digital edge detection. analogReadResolution() is no
+    // longer needed for the pot, but keep it set for any future native-ADC use.
     analogReadResolution(12);
 
     // Seed std::rand() — used by ArpOrder::Random and the procedural
-    // random-bars renderer. Mix millis() with a noisy unconnected ADC read
-    // for a slightly less predictable seed. Story 020 / decisions.md §24.
+    // random-bars renderer. Mix millis() with a noisy ADC read for a slightly
+    // less predictable seed. Story 020 / decisions.md §24.
     {
         uint32_t seed = millis();
-        seed ^= (uint32_t)analogRead(PIN_TEMPO) << 16;
+        seed ^= (uint32_t)inputs::readRaw(ADC_CH_TEMPO) << 16;
         std::srand(seed);
     }
 

@@ -54,7 +54,7 @@ Pin assignments after the SPI-pivot. **Encoder moves off D8/D9/D10** (now SPI) *
 
 | XIAO pin | GPIO | Net | Direction | Notes |
 |---|---|---|---|---|
-| D0 | GP26 | TEMPO_POT_WIPER | input (analog) | Tempo pot wiper |
+| D0 | GP26 | CLOCK_IN (digital) | input | Reserved for J1 clock/gate edge detection. **Freed 2026-05-02** when tempo pot moved to MCP3208 CH1. |
 | D1 | GP27 | ENCODER_A | input | Encoder A (was D8) |
 | D2 | GP28 | ENCODER_B | input | Encoder B (was D9) |
 | D3 | GP5 | CS_DAC | output | DAC8552 /SYNC |
@@ -530,7 +530,7 @@ When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 
 
 1. **Wire channel A only** (wires 1–20). Park channel B with wires 21–22.
 2. **Power up.** Confirm ±12 V and the +5 V / VREF rails are still clean. Sanity-check pin 3 — should read **≈ +1.66 V** (the divider). Pin 2 should track pin 3 within a few mV (op-amp's "virtual short" via feedback).
-3. **First test — input floating** (or jack J1 tip jumpered to GND). Meter at TL072 #3 pin 1 (1OUT). Should read **≈ +1.96 V** — this is the bias-only output: `(1 + R_fb/(R_series+R_in2)) · V_pin3 = 1.180 · 1.66 = 1.96`.
+3. **First test — jack J1 tip jumpered to GND.** Meter at TL072 #3 pin 1 (1OUT). Should read **≈ +1.96 V** — this is the bias-only output: `(1 + R_fb/(R_series+R_in2)) · V_pin3 = 1.180 · 1.66 = 1.96`. **Note:** with the jack truly floating, no current can flow through R_series + R_in2, so no offset gain develops and pin 1 sits at V_pin3 ≈ +1.66 V instead. The +1.96 V reading only appears when the jack is **actively grounded** — that's the test condition. (Caught 2026-05-02 — see `bench-log.md`.)
 4. **Second test — apply +5 V to jack J1 tip** from a bench supply (or through R_series from any +5 V source).
    - Expected output at TL072 #3 pin 1: **≈ +1.06 V** (`Vout = 1.96 − 0.180·5 = 1.06`).
 5. **Third test — apply −5 V to jack J1 tip.**
@@ -555,9 +555,11 @@ When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 
 | Encoder | Common | GND |
 | Encoder switch | One side | XIAO D7 (no external — internal pull-up) |
 | Encoder switch | Other side | GND |
-| Tempo pot | CW | +3.3 V |
-| Tempo pot | Wiper | XIAO D0 |
+| Tempo pot | CW | **VREF rail** (4.096 V) — *not* +3.3 V; routes through MCP3208 |
+| Tempo pot | Wiper | **MCP3208 pin 2 (CH1)** — *not* XIAO D0 (changed 2026-05-02) |
 | Tempo pot | CCW | GND |
+
+**Why tempo on the MCP3208 instead of XIAO D0:** unifies all analog inputs through the precision REF3040 reference (one calibration story, no mixing of XIAO native ADC + external ADC), and frees D0 for J1 clock/gate edge detection. Cost: one extra SPI read per loop (microseconds — negligible). Pot CW must tie to **VREF**, not +5 V or +3.3 V, so the wiper's full sweep maps cleanly to the ADC's 0..VREF range without clipping.
 
 See §3 for the policy on pull-ups (skipped on the bench, added on the PCB only for CS lines).
 
@@ -568,7 +570,7 @@ See §3 for the policy on pull-ups (skipped on the bench, added on the PCB only 
 | Jack | Direction | Bench connection | App use (arp) |
 |---|---|---|---|
 | J1 | IN 1 | Input stage ch 1 → MCP3208 ch 0 | CV in / clock-trigger |
-| J2 | IN 2 | Input stage ch 2 → MCP3208 ch 1 | CV in (transpose) |
+| J2 | IN 2 | Input stage ch 2 → MCP3208 ch 2 | CV in (transpose). *Note: ch 1 on the MCP3208 is the tempo pot wiper — see §8 — so J2 takes ch 2.* |
 | J3 | OUT 1 | Output stage ch A ← DAC OUTA | V/Oct |
 | J4 | OUT 2 | Output stage ch B ← DAC OUTB | Gate |
 
