@@ -97,7 +97,7 @@ void setup() {
     g_square_high_v = outputs::getVRef() * 0.75f;
 
     Serial.println(F("Setup complete. Streaming DAC,ADC pairs..."));
-    Serial.println(F("# t_ms  dac_a_v  dac_b_v  adc_v   adc_count"));
+    Serial.println(F("# t_ms  dac_a_v  dac_b_v  adc_v   adc_count  tempo_v  tempo_count"));
 }
 
 void loop() {
@@ -118,8 +118,10 @@ void loop() {
     // insurance against transient capture during the SPI transaction.
     delayMicroseconds(500);
 
-    uint16_t adc_count = inputs::readRaw(ADC_CHANNEL);
-    float adc_v        = inputs::readVolts(ADC_CHANNEL);
+    uint16_t adc_count   = inputs::readRaw(ADC_CHANNEL);
+    float    adc_v       = inputs::readVolts(ADC_CHANNEL);
+    uint16_t tempo_count = inputs::readRaw(1);   // CH1 = tempo pot wiper
+    float    tempo_v     = inputs::readVolts(1);
 
     Serial.print(millis());
     Serial.print('\t');
@@ -129,7 +131,11 @@ void loop() {
     Serial.print('\t');
     Serial.print(adc_v, 4);
     Serial.print('\t');
-    Serial.println(adc_count);
+    Serial.print(adc_count);
+    Serial.print('\t');
+    Serial.print(tempo_v, 4);
+    Serial.print('\t');
+    Serial.println(tempo_count);
 
     delay(STEP_MS);
 }

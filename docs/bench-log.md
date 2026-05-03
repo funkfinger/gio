@@ -465,3 +465,15 @@ Updated:
 - **Voltage misconfiguration on the bench will cascade-kill ICs.** Always meter the rails *before* energizing the analog chain after any wiring change.
 - **Pot voltage sources have non-trivial output impedance.** The 100 kΩ pot used as a stand-in for −5 V sagged badly (~−4 V at the loaded node) because it was sourcing into 100 kΩ R_series. Fix is either a buffered source (op-amp follower) or a stiff bench supply. This is exactly why the tempo pot uses a 10 kΩ part — low source impedance, can drive an ADC sample-and-hold cleanly.
 - **MISO read of "0" is ambiguous on SPI** — it could mean "alive ADC reading 0 V" or "dead chip not driving DOUT." Pull-up trick on MISO disambiguates: live chip pulls low through driven 0; dead chip lets the pull-up float MISO high → reads 4095. Worth remembering for next time.
+
+### Tempo pot validation (continued, same session)
+
+After the tempo-pot relocation commit, re-flashed the smoke test (now extended to also stream `tempo_v` / `tempo_count` from MCP3208 CH1 alongside the existing CH0 columns) and swept the pot:
+
+| Position | tempo_count | tempo_v |
+|---|---|---|
+| Fully CCW | **0** | **0.0000 V** |
+| Mid-sweep | smooth, monotonic | linear with rotation |
+| Fully CW | **4090** | **4.0950 V** (5 LSB shy of full-scale 4095) |
+
+Full 12-bit range, no jitter, no dropouts. Pot is ready for the production firmware to drive tempo selection without any further bench work.
