@@ -63,7 +63,13 @@ static constexpr float BENCH_VREF_V = 4.096f;
 static constexpr uint32_t TRIANGLE_PERIOD_MS = 1000;  // full cycle (up + down)
 static constexpr uint32_t STEP_MS            = 20;    // ~50 samples per cycle
 static constexpr uint8_t  DAC_CHANNEL_A      = 0;
-static constexpr uint8_t  ADC_CHANNEL        = 0;     // jumper OUTA → ch0
+// MCP3208 channel layout (decisions.md §26): CH0 = pot, CH1 = J1, CH2 = J2.
+// "Loopback" channel for the OUTA-to-ADC test is now CH1 (= J1's input op-amp
+// output). To validate the raw DAC->ADC path without the input stage, jumper
+// DAC OUTA directly to MCP3208 pin 2 (CH1), bypassing the op-amp.
+static constexpr uint8_t  ADC_CH_POT         = 0;     // CH0 — primary pot wiper
+static constexpr uint8_t  ADC_CH_J1          = 1;     // CH1 — J1 input op-amp output
+static constexpr uint8_t  ADC_CH_J2          = 2;     // CH2 — J2 input op-amp output
 
 // Channel B — 0.5 Hz square between 1/4 and 3/4 of VREF.
 // Through the inverting output stage these DAC voltages map to roughly
@@ -88,7 +94,7 @@ void setup() {
     Serial.print(F("VREF (assumed): "));
     Serial.print(BENCH_VREF_V, 4);
     Serial.println(F(" V"));
-    Serial.println(F("Loopback: jumper DAC OUTA → MCP3208 ch 0"));
+    Serial.println(F("Loopback: J3 (DAC OUTA via op-amp) → J1 → MCP3208 CH1"));
     Serial.println();
 
     // SPI bus shared between DAC8552 and MCP3208. Both Rob Tillaart libs call
@@ -125,7 +131,7 @@ void setup() {
     g_square_high_v = outputs::getVRef() * 0.75f;
 
     Serial.println(F("Setup complete. Streaming DAC,ADC pairs..."));
-    Serial.println(F("# t_ms  dac_a_v  dac_b_v  adc_v   adc_count  tempo_v  tempo_count  enc_count  click  long"));
+    Serial.println(F("# t_ms  dac_a_v  dac_b_v  pot_v  pot_count  j1_v  j1_count  j2_v  j2_count  enc_count  click  long"));
 }
 
 void loop() {
@@ -146,10 +152,12 @@ void loop() {
     // insurance against transient capture during the SPI transaction.
     delayMicroseconds(500);
 
-    uint16_t adc_count   = inputs::readRaw(ADC_CHANNEL);
-    float    adc_v       = inputs::readVolts(ADC_CHANNEL);
-    uint16_t tempo_count = inputs::readRaw(1);   // CH1 = tempo pot wiper
-    float    tempo_v     = inputs::readVolts(1);
+    uint16_t pot_count = inputs::readRaw(ADC_CH_POT);
+    float    pot_v     = inputs::readVolts(ADC_CH_POT);
+    uint16_t j1_count  = inputs::readRaw(ADC_CH_J1);
+    float    j1_v      = inputs::readVolts(ADC_CH_J1);
+    uint16_t j2_count  = inputs::readRaw(ADC_CH_J2);
+    float    j2_v      = inputs::readVolts(ADC_CH_J2);
 
     // Encoder + click. Poll once per loop iteration. delta() returns net ticks
     // since the last call (positive = CW, negative = CCW); reading clears it.
@@ -164,13 +172,17 @@ void loop() {
     Serial.print('\t');
     Serial.print(dac_b_v, 4);
     Serial.print('\t');
-    Serial.print(adc_v, 4);
+    Serial.print(pot_v, 4);
     Serial.print('\t');
-    Serial.print(adc_count);
+    Serial.print(pot_count);
     Serial.print('\t');
-    Serial.print(tempo_v, 4);
+    Serial.print(j1_v, 4);
     Serial.print('\t');
-    Serial.print(tempo_count);
+    Serial.print(j1_count);
+    Serial.print('\t');
+    Serial.print(j2_v, 4);
+    Serial.print('\t');
+    Serial.print(j2_count);
     Serial.print('\t');
     Serial.print(g_enc_count);
     Serial.print('\t');

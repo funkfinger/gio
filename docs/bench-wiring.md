@@ -54,7 +54,7 @@ Pin assignments after the SPI-pivot. **Encoder moves off D8/D9/D10** (now SPI) *
 
 | XIAO pin | GPIO | Net | Direction | Notes |
 |---|---|---|---|---|
-| D0 | GP26 | CLOCK_IN (digital) | input | Reserved for J1 clock/gate edge detection. **Freed 2026-05-02** when tempo pot moved to MCP3208 CH1. |
+| D0 | GP26 | CLOCK_IN (digital) | input | Reserved for J1 clock/gate edge detection. Freed 2026-05-02 when tempo pot moved to the MCP3208 (CH0 per the 2026-05-03 channel-layout convention). |
 | D1 | GP27 | ENCODER_A | input | Encoder A (was D8) |
 | D2 | GP28 | ENCODER_B | input | Encoder B (was D9) |
 | D3 | GP5 | CS_DAC | output | DAC8552 /SYNC |
@@ -456,7 +456,7 @@ Target mapping at the ADC (with VREF = 4.096 V):
 
 Uses ~88 % of the ADC range with margin at both ends — preferred over a tighter ±10 V → 0..4.096 V mapping that would risk clipping at the rails. Firmware reverses the inversion + offset in `inputs::readVolts()` calibration; bench-fit per channel.
 
-### Wire list — channel A (jack J1 → MCP3208 ch 0)
+### Wire list — channel A (jack J1 → MCP3208 CH1)
 
 Channel A pins on TL072 #3: pin 1 (1OUT), pin 2 (1IN−), pin 3 (1IN+).
 
@@ -480,13 +480,13 @@ Channel A pins on TL072 #3: pin 1 (1OUT), pin 2 (1IN−), pin 3 (1IN+).
 | 16 | Other end of R_in2 | TL072 #3 pin 2 (1IN−) | Summing node — also receives R_fb |
 | 17 | TL072 #3 pin 1 (1OUT) | One end of R_fb (22 kΩ) | Feedback resistor |
 | 18 | Other end of R_fb | TL072 #3 pin 2 (1IN−) | Closes the feedback loop |
-| 19 | TL072 #3 pin 1 (1OUT) | MCP3208 pin 1 (CH0) | The buffered, scaled, biased input voltage feeds ADC channel 0 |
+| 19 | TL072 #3 pin 1 (1OUT) | **MCP3208 pin 2 (CH1)** | J1 lives at CH1 per the 2026-05-03 channel-layout convention (CH0 = pot, CH1/CH2 = jacks). |
 | 20 | Jack J1 sleeve | GND rail | Standard mono-jack ground |
 | **Park unused channel B** | | | |
 | 21 | TL072 #3 pin 5 (2IN+) | GND rail | Channel B input grounded |
 | 22 | TL072 #3 pin 6 (2IN−) | TL072 #3 pin 7 (2OUT) | Channel B unity-gain feedback so output sits at 0 V |
 
-When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 21–22 and add a parallel set of wires repeating the input/feedback portion (wires 9–19 above) using channel B's pin numbers (5/6/7) and routing the output to MCP3208 pin 2 (CH1) instead of pin 1. Channel B can share channel A's offset divider via pin 5 → pin 3 — no second divider needed (mirror of the §6 channel-B trick).
+When you're ready to add **channel B** (jack J2 → **MCP3208 CH2**, pin 3), remove wires 21–22 and add a parallel set of wires repeating the input/feedback portion (wires 9–19 above) using channel B's pin numbers (5/6/7) and routing the output to **MCP3208 pin 3 (CH2)**. Channel B can share channel A's offset divider via pin 5 → pin 3 — no second divider needed (mirror of the §6 channel-B trick).
 
 > **Diode polarity sanity check (mirrored from §6):** the input clamps go on **node A**, *after* the 100 kΩ series resistor — not directly at the jack. This is intentional: the series resistor limits clamp current to safe levels (30 µA worst case), and node A is a low-current point where the clamp can hold the voltage without burning the diode out. Polarity at node A is the same logic as §6: anode-to-jack-side / cathode-to-rail for positive overshoot; cathode-to-jack-side / anode-to-rail for negative.
 
@@ -519,7 +519,7 @@ When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 
                                 ├── pin 3 (1IN+)                     │
                   GND ─[R_div_bot 15kΩ]─┘                            │
                                                                      │
-                                              MCP3208 pin 1 (CH0) ───┘
+                                              MCP3208 pin 2 (CH1) ───┘
 
    Channel B (unused on first session) — parked as in §5:
       TL072 #3 pin 5 (2IN+) ── GND
@@ -558,7 +558,7 @@ When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 
 
 > **Encoder A/B swap (caught 2026-05-02):** the firmware assignment was originally A→D1, B→D2. The bench encoder reads **CW as a negative delta** with that wiring; swapping A/B in firmware (`PIN_ENC_A = D2`, `PIN_ENC_B = D1`) fixes it cleanly. The table above already reflects the corrected mapping. If a future encoder reads the opposite direction, swap the constants in `src/main.cpp` rather than re-routing the breadboard.
 | Tempo pot | CW | **VREF rail** (4.096 V) — *not* +3.3 V; routes through MCP3208 |
-| Tempo pot | Wiper | **MCP3208 pin 2 (CH1)** — *not* XIAO D0 (changed 2026-05-02) |
+| Tempo pot | Wiper | **MCP3208 pin 1 (CH0)** — *not* XIAO D0 (changed 2026-05-02; landed at CH0 per the 2026-05-03 channel-layout convention) |
 | Tempo pot | CCW | GND |
 
 **Why tempo on the MCP3208 instead of XIAO D0:** unifies all analog inputs through the precision REF3040 reference (one calibration story, no mixing of XIAO native ADC + external ADC), and frees D0 for J1 clock/gate edge detection. Cost: one extra SPI read per loop (microseconds — negligible). Pot CW must tie to **VREF**, not +5 V or +3.3 V, so the wiper's full sweep maps cleanly to the ADC's 0..VREF range without clipping.
@@ -571,8 +571,10 @@ See §3 for the policy on pull-ups (skipped on the bench, added on the PCB only 
 
 | Jack | Direction | Bench connection | App use (arp) |
 |---|---|---|---|
-| J1 | IN 1 | Input stage ch 1 → MCP3208 ch 0 | CV in / clock-trigger |
-| J2 | IN 2 | Input stage ch 2 → MCP3208 ch 2 | CV in (transpose). *Note: ch 1 on the MCP3208 is the tempo pot wiper — see §8 — so J2 takes ch 2.* |
+| J1 | IN 1 | Input stage ch A → MCP3208 **CH1** | CV in / clock-trigger |
+| J2 | IN 2 | Input stage ch B → MCP3208 **CH2** | CV in (transpose) / clock-trigger |
+
+**MCP3208 channel layout** (per `decisions.md` §26): CH0 = pot, CH1 = J1, CH2 = J2, CH3–CH7 = expansion.
 | J3 | OUT 1 | Output stage ch A ← DAC OUTA | V/Oct |
 | J4 | OUT 2 | Output stage ch B ← DAC OUTB | Gate |
 
@@ -588,9 +590,9 @@ Wire in this sequence — test at each step before moving on:
 2. **XIAO socketed + powered** — flash the `Blink` example via USB to confirm board is alive
 3. **VREF stand-in (§5)** — wire pot + TL072 buffer, dial to 4.096 V on meter
 4. **SPI bus + DAC8552 (§4 + §6)** — load `lib/outputs/`, run smoke test, scope OUTA for triangle wave
-5. **MCP3208 (§4)** — load `lib/inputs/`, jumper DAC OUTA → MCP3208 ch 0 directly (skip the input scaling), confirm count tracks DAC value
+5. **MCP3208 (§4)** — load `lib/inputs/`, jumper DAC OUTA directly to any free MCP3208 channel (skip the input scaling stage), confirm count tracks DAC value
 6. **Output stage (§6)** — insert TL072 + resistors between DAC and J3, confirm ±10 V swing at jack
-7. **Input scaling (§7)** — wire jack J1 through input stage to MCP3208 ch 0; bench-supply known voltages, confirm `inputs.readVolts()` is within tolerance
+7. **Input scaling (§7)** — wire jack J1 through input stage to MCP3208 **CH1**; bench-supply known voltages, confirm `inputs.readVolts()` is within tolerance
 8. **OLED + encoder + tempo pot (§8)** — re-attach UI; verify menu navigation works on the new pin assignments
 9. **Loopback** — jumper J3 → J1, run a sweep, confirm closed-loop accuracy
 

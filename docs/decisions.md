@@ -358,17 +358,26 @@ After the SPI-pivot the 11 pins are **fully allocated** (with D0 freed 2026-05-0
 
 | Pin | Use |
 |---|---|
-| D0 | Reserved — J1 clock/gate digital edge detection (freed when tempo pot moved to MCP3208 CH1) |
+| D0 | Reserved — J1 clock/gate digital edge detection (freed when tempo pot moved to MCP3208 CH0) |
 | D1 / D2 / D7 | Encoder A / B / click |
 | D3 | CS_DAC |
 | D4 / D5 | I²C SDA / SCL (OLED) |
 | D6 | CS_ADC |
 | D8 / D9 / D10 | SPI SCK / MISO / MOSI |
 
-**The MCP3208 is the safety valve.** Of its 8 ADC channels we currently use 3 (ch 0 = J1 CV in, **ch 1 = tempo pot**, ch 2 = J2 CV in when wired). Channels 3–7 are physically wired to nothing and cost zero GPIO to add. So:
+**MCP3208 channel layout** (finalized 2026-05-03 — internal controls at low channels, jacks contiguous after, expansion at high channels):
 
-- **Any future analog-style input** (additional pots, additional CV jacks, expression pedal in, photoresistor, etc.) routes to MCP3208 ch 3..ch 7 with no XIAO pin cost.
-- **Tempo pot moved to MCP3208 CH1 on 2026-05-02** — unifies analog inputs under the precision REF3040 reference (no mixing with XIAO native ADC) and frees D0 for J1 clock/gate digital edge detection. Pot CW now ties to the VREF rail (not +5 V) so the wiper sweeps cleanly across 0..4.096 V.
+| Channel | Use |
+|---|---|
+| **CH0** | Primary pot (tempo today; "primary pot" generically) |
+| **CH1** | J1 input |
+| **CH2** | J2 input |
+| CH3–CH7 | Reserved for expansion / I/O daughterboard |
+
+**The MCP3208 is the safety valve.** Of its 8 channels we currently use 3 (CH0 pot + CH1 J1 + CH2 J2). Channels 3–7 cost zero GPIO to add. So:
+
+- **Any future analog-style input** (additional pots, additional CV jacks, expression pedal in, photoresistor, etc.) routes to MCP3208 CH3..CH7 with no XIAO pin cost.
+- **Tempo pot moved to MCP3208 CH0 on 2026-05-03** — unifies analog inputs under the precision REF3040 reference (no mixing with XIAO native ADC) and frees D0 for J1 clock/gate digital edge detection. Pot CW now ties to the VREF rail (not +5 V) so the wiper sweeps cleanly across 0..4.096 V. (Earlier intermediate state on 2026-05-02 had the pot on CH1; it moved to CH0 once we settled the convention of "internal controls first, jacks contiguous after.")
 - **Status indicators are free**: the on-board user LED (`LED_BUILTIN` / GP25) and on-board NeoPixel (GP22 + GP23) are wired internally to the XIAO and don't surface on the edge — we already use them in the arp app.
 
 **What this rules out** (without bigger changes):

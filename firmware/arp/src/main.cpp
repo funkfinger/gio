@@ -18,20 +18,26 @@
 // breadboard topology this code targets.
 //
 // Jack roles after the pivot (per decisions.md §23 — generic IN/OUT labels):
-//   J1 (input ch 0)  — CV transpose in (replaces old PIN_CV/A1 analog read)
-//   J2 (input ch 1)  — second CV in (deferred — input scaling stage ch B not yet wired)
-//   J3 (output ch A) — V/Oct out via inverting bipolar output stage (replaces PIN_DAC_PWM)
-//   J4 (output ch B) — gate out via DAC ch B (replaces digital PIN_GATE on D6)
+//   J1 (MCP3208 CH1) — CV transpose in (replaces old PIN_CV/A1 analog read)
+//   J2 (MCP3208 CH2) — second CV in (deferred — input scaling stage ch B not yet wired)
+//   J3 (DAC ch A)    — V/Oct out via inverting bipolar output stage (replaces PIN_DAC_PWM)
+//   J4 (DAC ch B)    — gate out via DAC ch B (replaces digital PIN_GATE on D6)
 //
 // External clock-in on J2 is dormant until input ch B is wired (a Schmitt on
-// inputs::readVolts(1) replaces the old digitalRead(D3) edge detector). Until
+// inputs::readVolts(ADC_CH_CV_IN_2) replaces the old digitalRead(D3) edge detector). Until
 // then, the arp runs from the internal tempo pot only.
 
 // ------------------------------ pins -------------------------------
-// Tempo pot moved off D0 onto MCP3208 CH1 on 2026-05-02 — see decisions.md §26.
-// D0 is now reserved for J1 clock/gate digital edge detection.
-static const uint8_t  ADC_CH_TEMPO   = 1;    // MCP3208 ch 1 — tempo pot wiper (replaces D0)
-static const uint8_t  ADC_CH_CV_IN   = 0;    // MCP3208 ch 0 — J1 CV input through input scaling stage
+// MCP3208 channel layout (decisions.md §26, finalized 2026-05-03):
+//   CH0 = primary pot (tempo today; "primary pot" generically)
+//   CH1 = J1 input (CV / trigger / audio — interpretation per app)
+//   CH2 = J2 input (same flexibility)
+//   CH3–CH7 = expansion / daughterboard
+// Conventionally: pots/internal controls at low channels, jacks contiguous
+// after, expansion at high channels.
+static const uint8_t  ADC_CH_POT     = 0;    // MCP3208 CH0 — primary pot wiper (tempo in this app)
+static const uint8_t  ADC_CH_CV_IN_1 = 1;    // MCP3208 CH1 — J1 input
+static const uint8_t  ADC_CH_CV_IN_2 = 2;    // MCP3208 CH2 — J2 input (when scaling stage built)
 // SPI bus: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3 (handled by SPI.begin())
 static const uint8_t  PIN_CS_DAC     = D3;   // GP5 — DAC8552 /SYNC
 static const uint8_t  PIN_CS_ADC     = D6;   // GP0 — MCP3208 /CS
@@ -64,7 +70,7 @@ static const uint8_t MIDI_NOTE_MAX = 96;   // C7
 // ------------------------------ Clock-in ---------------------------
 // External clock detection on J2 is deferred until the input ch B scaling
 // stage is built on the bench (Story 015 channel B). When it lands, this
-// stage will read inputs::readVolts(1) and feed it to a Schmitt trigger
+// stage will read inputs::readVolts(ADC_CH_CV_IN_2) and feed it to a Schmitt trigger
 // (lib/trigger_in/) for edge detection. For now the arp runs internally only.
 static const uint32_t EXT_CLOCK_TIMEOUT_MS = 2000;
 
@@ -187,11 +193,12 @@ static inline void ledWrite(bool on) {
 }
 
 // --------------------------- CV reader -----------------------------
-// inputs::readVolts(0) returns calibrated jack-side volts on J1. The cv lib's
-// volts-to-transpose function clamps negatives to 0 and >8 V to 8 V, so we
-// can pass through the full ±10 V span without extra defensive code here.
+// inputs::readVolts(ADC_CH_CV_IN_1) returns calibrated jack-side volts on J1.
+// The cv lib's volts-to-transpose function clamps negatives to 0 and >8 V to
+// 8 V, so we can pass through the full ±10 V span without extra defensive
+// code here.
 static float readCvVolts() {
-    return inputs::readVolts(0);
+    return inputs::readVolts(ADC_CH_CV_IN_1);
 }
 
 // Hysteresis-wrapped transpose: only accept a new snapped value once voltage
@@ -225,7 +232,7 @@ static void recalcSubTiming(uint32_t noteMs) {
 }
 
 static void refreshTempoFromPot() {
-    uint16_t raw = inputs::readRaw(ADC_CH_TEMPO);
+    uint16_t raw = inputs::readRaw(ADC_CH_POT);
     if (raw > ADC_MAX) raw = ADC_MAX;
     float pot = (float)raw / (float)ADC_MAX;
     float bpm = tempo::potToBpm(pot);
@@ -258,7 +265,7 @@ static uint8_t externalMultiplierFromPot() {
     static const uint16_t LOW_BOUND  = ADC_MAX / 3;       // ~1365
     static const uint16_t HIGH_BOUND = (2 * ADC_MAX) / 3; // ~2730
     static const uint16_t HYST       = 100;
-    uint16_t raw = inputs::readRaw(ADC_CH_TEMPO);
+    uint16_t raw = inputs::readRaw(ADC_CH_POT);
     if (raw > ADC_MAX) raw = ADC_MAX;
     if (held == 1 && raw > LOW_BOUND  + HYST) held = 2;
     if (held == 2 && raw < LOW_BOUND  - HYST) held = 1;
@@ -268,7 +275,7 @@ static uint8_t externalMultiplierFromPot() {
 }
 
 // External clock edge detection — DEFERRED until input ch B (J2) scaling
-// stage is built. Once it lands, this function will read inputs::readVolts(1)
+// stage is built. Once it lands, this function will read inputs::readVolts(ADC_CH_CV_IN_2)
 // through a Schmitt trigger (lib/trigger_in/) for edge detection. For now,
 // always returns false — the arp runs from internal tempo only.
 static bool pollExternalClockEdge() {
@@ -567,8 +574,10 @@ void setup() {
     // inputs:: HAL — MCP3208 12-bit 8-channel SPI ADC.
     if (!inputs::begin(PIN_CS_ADC)) Serial.println("inputs::begin failed!");
     inputs::setVRef(BENCH_VREF_V);
-    inputs::setCalibration(0, CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
-    // Input ch 1 calibration deferred — input scaling stage ch B not yet wired.
+    // CH0 = pot wiper (no calibration; raw 0..VREF is what the pot delivers).
+    // CH1 = J1 input scaling stage. CH2 = J2 input scaling stage (calibration
+    // deferred until ch B scaling is wired).
+    inputs::setCalibration(ADC_CH_CV_IN_1, CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
 
     // Tempo pot moved to MCP3208 CH1 on 2026-05-02 (decisions.md §26) — all
     // analog inputs now share the precision REF3040 reference, and D0 is freed
@@ -581,7 +590,7 @@ void setup() {
     // less predictable seed. Story 020 / decisions.md §24.
     {
         uint32_t seed = millis();
-        seed ^= (uint32_t)inputs::readRaw(ADC_CH_TEMPO) << 16;
+        seed ^= (uint32_t)inputs::readRaw(ADC_CH_POT) << 16;
         std::srand(seed);
     }
 
