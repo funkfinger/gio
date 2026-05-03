@@ -496,3 +496,31 @@ After the tempo-pot validation, wired the PEC11R encoder per `bench-wiring.md` �
 | One long press (~1 s) | **0 click pulses, 1 long pulse** (long-press correctly suppresses the short-click for the same gesture) ✓ |
 
 **Lesson for the bench-wiring doc:** §8 should explicitly call out "encoder common pin must go to GND" and the A/B swap (since this encoder reads inverted with the spec'd assignment). Both updates pending the next doc-fix pass.
+
+### OLED bring-up + encoder switched to interrupts (continued, same session)
+
+Wired the 0.49" 64×32 SSD1306 OLED per `bench-wiring.md` §8: VCC→3V3, GND→GND, SDA→D4, SCL→D5. On-board pull-ups handle the I²C bus.
+
+Extended the smoke-test firmware to probe for the display at boot (`OledUI::begin()` returns false if no ACK at 0x3C) and refresh "ENC = N" at 10 Hz reflecting the live encoder count. **Result:** OLED detected immediately, splash + parameter display both render correctly.
+
+**However**, the OLED revealed a polling-rate limitation: rotating the encoder fast through ~20 detents only registered ~7 in the count display. The mathertel/RotaryEncoder library was being called from `EncoderInput::poll()` once per main-loop iteration (~50 Hz), but the loop was now doing more work per iteration (DAC writes + ADC reads + tempo read + encoder poll + serial print + 5 ms OLED I²C blast every 100 ms). Combined loop time pushed past the encoder's per-detent transition window during fast rotation.
+
+**Fix:** switched `EncoderInput` to interrupt-driven decoding. Both A and B pins now have CHANGE ISRs that call `RotaryEncoder::tick()` the moment any transition occurs — the loop's per-iteration work no longer matters. `poll()` still calls `tick()` as belt-and-suspenders.
+
+**Validation after the switch:** rotated the encoder fast through ~20 detents; serial captured **+21 with 22 unique values seen** (every count appears in the trace, no skipped detents). OLED tracks the count smoothly. Fast rotations now register correctly.
+
+This change benefits the production firmware too — same `EncoderInput` library, so future arp UI menus stay responsive even when the OLED is being drawn.
+
+**Bench platform validation status (cumulative across all 2026-04-29 → 2026-05-02 sessions):**
+
+- ✅ XIAO RP2350 + USB CDC + smoke-test firmware
+- ✅ SPI bus arbitration (DAC8552 + MCP3208 sharing SCK/MOSI/MISO + per-chip CS)
+- ✅ DAC8552 + output op-amps + jacks J3/J4 (±9 V swing, both channels)
+- ✅ MCP3208 + input op-amp + jack J1 (±9 V → 0..4.096 V → ADC counts within 0.5 % of design)
+- ✅ Tempo pot on MCP3208 CH1 (full 12-bit range, smooth)
+- ✅ Encoder + click + long-press, interrupt-driven (no missed detents at any speed)
+- ✅ OLED on I²C at 0x3C (live updates at 10 Hz)
+- ✅ VREF rail (REF3040 stand-in via TL072 buffer at 4.096 V)
+- ⏸ Channel B input (J2) scaling stage — wires planned, not built (out of scope until Story 010 external clock or a second CV use case lands)
+
+**The bench platform is complete enough to host the production firmware end-to-end.** Next bench session: flash production firmware and do the audible-VCO test (J3 → external Eurorack VCO, listen).

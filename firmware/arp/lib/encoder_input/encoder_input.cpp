@@ -12,6 +12,17 @@ static const uint32_t CLICK_DEBOUNCE_MS = 50;
 
 namespace {
 RotaryEncoder* gEnc = nullptr;
+
+// Interrupt handler — called from CHANGE ISRs on both A and B pins so the
+// state machine never misses a transition, even if the main loop is busy
+// driving the OLED, SPI, or serial. mathertel/RotaryEncoder::tick() is
+// short and reentrant-safe (just reads two pins + updates internal state).
+// arduino-pico places ISRs in flash by default; no IRAM attribute needed
+// (the RP2350 instruction cache handles flash-resident ISR latency fine
+// for a hand-turned encoder).
+void gEncIsr() {
+    if (gEnc) gEnc->tick();
+}
 } // namespace
 
 void EncoderInput::begin(uint8_t pinA, uint8_t pinB, uint8_t pinClick) {
@@ -25,6 +36,12 @@ void EncoderInput::begin(uint8_t pinA, uint8_t pinB, uint8_t pinClick) {
     static RotaryEncoder s_enc(pinA, pinB, RotaryEncoder::LatchMode::FOUR3);
     gEnc = &s_enc;
     impl_ = gEnc;
+
+    // Attach CHANGE ISRs on both quadrature pins so the decoder never misses
+    // a transition. tick() is still called from poll() too as a belt-and-
+    // suspenders safety (cheap; just reads pins + updates state).
+    attachInterrupt(digitalPinToInterrupt(pinA), gEncIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(pinB), gEncIsr, CHANGE);
 
     lastPos_         = gEnc->getPosition();
     pending_         = 0;

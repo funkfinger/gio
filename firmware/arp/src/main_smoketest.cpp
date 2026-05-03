@@ -36,6 +36,7 @@
 
 #include "encoder_input.h"
 #include "inputs.h"
+#include "oled_ui.h"
 #include "outputs.h"
 
 static constexpr uint8_t PIN_CS_DAC    = D3;  // GP5 — DAC8552 /SYNC
@@ -49,6 +50,10 @@ static constexpr uint8_t PIN_ENC_CLICK = D7;  // GP1
 
 static EncoderInput g_encoder;
 static int32_t      g_enc_count = 0;
+
+static OledUI       g_oled;
+static uint32_t     g_last_oled_ms = 0;
+static const uint32_t OLED_REFRESH_MS = 100;  // ~10 Hz; I2C bandwidth-friendly
 
 // Bench substitution: VREF supplied by the pot+TL072 buffer at ~4.096 V.
 // Re-measure with a multimeter and update if needed.
@@ -102,6 +107,17 @@ void setup() {
     inputs::setVRef(BENCH_VREF_V);
 
     g_encoder.begin(PIN_ENC_A, PIN_ENC_B, PIN_ENC_CLICK);
+
+    // OLED probe — Wire.begin() is called inside Adafruit_SSD1306; begin()
+    // returns false if the I2C device doesn't ACK at OLED_I2C_ADDR (0x3C).
+    if (g_oled.begin()) {
+        Serial.println(F("OLED: detected at 0x3C, ready"));
+        g_oled.clear();
+        g_oled.showLabel("gio");
+        g_oled.show();
+    } else {
+        Serial.println(F("OLED: NOT detected at 0x3C — check wiring (SDA=D4, SCL=D5, VCC=3V3)"));
+    }
 
     // Park channel-B endpoints at 1/4 and 3/4 of the actual VREF
     // (so the absolute voltages adjust if the bench VREF drifts).
@@ -161,6 +177,15 @@ void loop() {
     Serial.print(click ? 1 : 0);
     Serial.print('\t');
     Serial.println(long_click ? 1 : 0);
+
+    // Refresh the OLED at ~10 Hz with the live encoder count. Keeps the I2C
+    // bus mostly idle (a 64×32 framebuffer push is ~700 µs at 400 kHz I2C).
+    if (g_oled.ready() && (millis() - g_last_oled_ms) >= OLED_REFRESH_MS) {
+        g_last_oled_ms = millis();
+        g_oled.clear();
+        g_oled.showParameter("ENC", g_enc_count);
+        g_oled.show();
+    }
 
     delay(STEP_MS);
 }
