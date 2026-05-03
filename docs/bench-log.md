@@ -477,3 +477,22 @@ After the tempo-pot relocation commit, re-flashed the smoke test (now extended t
 | Fully CW | **4090** | **4.0950 V** (5 LSB shy of full-scale 4095) |
 
 Full 12-bit range, no jitter, no dropouts. Pot is ready for the production firmware to drive tempo selection without any further bench work.
+
+### Encoder bring-up (continued, same session)
+
+After the tempo-pot validation, wired the PEC11R encoder per `bench-wiring.md` §8: A→D1, B→D2, common→GND, click→D7+GND. Internal pull-ups handle idle state.
+
+**First test:** no count change at all over a 6 s rotation window. Cause: encoder common pin not wired to GND (the middle pin on the 3-pin side). Without GND on common, A and B sit at indeterminate voltages and the decoder sees no transitions. Re-wired.
+
+**Second test:** count moved smoothly but **CW reads as a negative delta** (got −7 over a CW rotation that should read +7). Tried physically swapping the wires twice; CW remained negative either way. **Fix in firmware:** swap `PIN_ENC_A` and `PIN_ENC_B` in both `src/main.cpp` and `src/main_smoketest.cpp` (A→D2, B→D1). Rebuilt + re-flashed. CW now reads +13 as expected.
+
+**Final validation matrix:**
+
+| Test | Result |
+|---|---|
+| Rotate CW ~13 detents | `enc_count` delta = **+13** ✓ |
+| Rotate CCW ~7 detents | `enc_count` delta = **−7** ✓ |
+| Three quick taps | **3 click pulses, 0 long pulses** (debouncer verified honest — one tap = one pulse) ✓ |
+| One long press (~1 s) | **0 click pulses, 1 long pulse** (long-press correctly suppresses the short-click for the same gesture) ✓ |
+
+**Lesson for the bench-wiring doc:** §8 should explicitly call out "encoder common pin must go to GND" and the A/B swap (since this encoder reads inverted with the spec'd assignment). Both updates pending the next doc-fix pass.

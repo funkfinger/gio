@@ -550,11 +550,13 @@ When you're ready to add **channel B** (jack J2 → MCP3208 ch 1), remove wires 
 | OLED | GND | GND |
 | OLED | SDA | XIAO D4 |
 | OLED | SCL | XIAO D5 |
-| Encoder | A | XIAO D1 (no external pull-up — firmware uses `INPUT_PULLUP`) |
-| Encoder | B | XIAO D2 (same — internal pull-up) |
-| Encoder | Common | GND |
+| Encoder | A | XIAO **D2** (no external pull-up — firmware uses `INPUT_PULLUP`) |
+| Encoder | B | XIAO **D1** (same — internal pull-up) |
+| Encoder | Common | **GND** — required; without it, A and B float and the decoder sees no transitions |
 | Encoder switch | One side | XIAO D7 (no external — internal pull-up) |
 | Encoder switch | Other side | GND |
+
+> **Encoder A/B swap (caught 2026-05-02):** the firmware assignment was originally A→D1, B→D2. The bench encoder reads **CW as a negative delta** with that wiring; swapping A/B in firmware (`PIN_ENC_A = D2`, `PIN_ENC_B = D1`) fixes it cleanly. The table above already reflects the corrected mapping. If a future encoder reads the opposite direction, swap the constants in `src/main.cpp` rather than re-routing the breadboard.
 | Tempo pot | CW | **VREF rail** (4.096 V) — *not* +3.3 V; routes through MCP3208 |
 | Tempo pot | Wiper | **MCP3208 pin 2 (CH1)** — *not* XIAO D0 (changed 2026-05-02) |
 | Tempo pot | CCW | GND |

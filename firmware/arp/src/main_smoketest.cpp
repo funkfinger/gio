@@ -34,11 +34,21 @@
 #include <Arduino.h>
 #include <SPI.h>
 
+#include "encoder_input.h"
 #include "inputs.h"
 #include "outputs.h"
 
-static constexpr uint8_t PIN_CS_DAC = D3;  // GP5 — DAC8552 /SYNC
-static constexpr uint8_t PIN_CS_ADC = D6;  // GP0 — MCP3208 /CS
+static constexpr uint8_t PIN_CS_DAC    = D3;  // GP5 — DAC8552 /SYNC
+static constexpr uint8_t PIN_CS_ADC    = D6;  // GP0 — MCP3208 /CS
+// Encoder A/B swapped vs the doc: bench encoder reads CW as negative when
+// wired with A→D1, B→D2; flipping the firmware assignment is cleaner than
+// fighting the breadboard. Production firmware mirrors this.
+static constexpr uint8_t PIN_ENC_A     = D2;  // GP28 (was D1)
+static constexpr uint8_t PIN_ENC_B     = D1;  // GP27 (was D2)
+static constexpr uint8_t PIN_ENC_CLICK = D7;  // GP1
+
+static EncoderInput g_encoder;
+static int32_t      g_enc_count = 0;
 
 // Bench substitution: VREF supplied by the pot+TL072 buffer at ~4.096 V.
 // Re-measure with a multimeter and update if needed.
@@ -91,13 +101,15 @@ void setup() {
     }
     inputs::setVRef(BENCH_VREF_V);
 
+    g_encoder.begin(PIN_ENC_A, PIN_ENC_B, PIN_ENC_CLICK);
+
     // Park channel-B endpoints at 1/4 and 3/4 of the actual VREF
     // (so the absolute voltages adjust if the bench VREF drifts).
     g_square_low_v  = outputs::getVRef() * 0.25f;
     g_square_high_v = outputs::getVRef() * 0.75f;
 
     Serial.println(F("Setup complete. Streaming DAC,ADC pairs..."));
-    Serial.println(F("# t_ms  dac_a_v  dac_b_v  adc_v   adc_count  tempo_v  tempo_count"));
+    Serial.println(F("# t_ms  dac_a_v  dac_b_v  adc_v   adc_count  tempo_v  tempo_count  enc_count  click  long"));
 }
 
 void loop() {
@@ -123,6 +135,13 @@ void loop() {
     uint16_t tempo_count = inputs::readRaw(1);   // CH1 = tempo pot wiper
     float    tempo_v     = inputs::readVolts(1);
 
+    // Encoder + click. Poll once per loop iteration. delta() returns net ticks
+    // since the last call (positive = CW, negative = CCW); reading clears it.
+    g_encoder.poll();
+    g_enc_count += g_encoder.delta();
+    bool click      = g_encoder.pressed();
+    bool long_click = g_encoder.pressedLong();
+
     Serial.print(millis());
     Serial.print('\t');
     Serial.print(dac_a_v, 4);
@@ -135,7 +154,13 @@ void loop() {
     Serial.print('\t');
     Serial.print(tempo_v, 4);
     Serial.print('\t');
-    Serial.println(tempo_count);
+    Serial.print(tempo_count);
+    Serial.print('\t');
+    Serial.print(g_enc_count);
+    Serial.print('\t');
+    Serial.print(click ? 1 : 0);
+    Serial.print('\t');
+    Serial.println(long_click ? 1 : 0);
 
     delay(STEP_MS);
 }

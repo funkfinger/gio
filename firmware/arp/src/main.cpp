@@ -35,9 +35,12 @@ static const uint8_t  ADC_CH_CV_IN   = 0;    // MCP3208 ch 0 — J1 CV input thr
 // SPI bus: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3 (handled by SPI.begin())
 static const uint8_t  PIN_CS_DAC     = D3;   // GP5 — DAC8552 /SYNC
 static const uint8_t  PIN_CS_ADC     = D6;   // GP0 — MCP3208 /CS
-// Encoder pins migrated from D8/D9/D10 (now SPI bus) to A1/A2/D7.
-static const uint8_t  PIN_ENC_A      = D1;   // GP27 (was D8/GP2)
-static const uint8_t  PIN_ENC_B      = D2;   // GP28 (was D9/GP3)
+// Encoder pins migrated from D8/D9/D10 (now SPI bus) to D1/D2/D7. A/B are
+// swapped vs the original assignment so CW rotation reads as a positive delta
+// on the bench encoder (caught 2026-05-02 — bench-log.md). Wiring on the
+// breadboard: encoder pin A → XIAO D2, encoder pin B → XIAO D1.
+static const uint8_t  PIN_ENC_A      = D2;   // GP28 (was D1, then D9/GP3)
+static const uint8_t  PIN_ENC_B      = D1;   // GP27 (was D2, then D8/GP2)
 static const uint8_t  PIN_ENC_CLICK  = D7;   // GP1  (was D10/GP4)
 // I²C: D4/D5 — handled by Wire.begin().
 // PIN_LED — GPIO25, active LOW.
