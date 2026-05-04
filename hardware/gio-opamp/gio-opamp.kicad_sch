@@ -9090,6 +9090,3429 @@
 			)
 		)
 	)
+	(junction
+		(at 72.39 136.8300)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c1f461d1-1efe-42c5-83c7-552a4d5b26c6")
+	)
+	(junction
+		(at 95.25 127.9400)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5f125430-c5a8-41c2-9028-8b665cffbb6a")
+	)
+	(junction
+		(at 62.23 149.5300)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b14c39f5-1594-41fa-ab6c-4764954f12b3")
+	)
+	(junction
+		(at 76.2 136.8300)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f660f83c-7234-41eb-af0f-16b346cad585")
+	)
+	(junction
+		(at 34.29 126.6700)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e09a51c5-79e1-435e-88cc-7c1862b86381")
+	)
+	(junction
+		(at 34.29 144.4500)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "909b6bb0-45a8-48bc-a8f7-3b4c70406c46")
+	)
+	(junction
+		(at 76.2 157.1500)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a356c75a-7d2c-475d-899a-861f300546c5")
+	)
+	(junction
+		(at 62.23 129.2100)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "36913542-f3ff-473f-9944-49920e1f912a")
+	)
+	(junction
+		(at 95.25 148.2600)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "05b8f558-f598-4e90-b9ca-5fe5618710f6")
+	)
+	(junction
+		(at 72.39 149.5300)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "11457a71-697a-40cf-a437-ae3de5b0538f")
+	)
+	(junction
+		(at 34.29 129.2100)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0762d68f-d067-4c0d-b821-0fa2250b8592")
+	)
+	(junction
+		(at 72.39 129.2100)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c38ee028-e083-4581-b3c6-773b035043a9")
+	)
+	(junction
+		(at 72.39 157.1500)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a68cb6d6-8aad-4955-bcea-eed8f9c5165c")
+	)
+	(wire
+		(pts
+			(xy 21.59 134.2900) (xy 21.59 135.5600)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9f462571-71b0-470e-a415-6e04dc9106b8")
+	)
+	(wire
+		(pts
+			(xy 76.2 157.1500) (xy 76.2 159.6900)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "065db393-e7c4-4712-8723-069173a4dfb9")
+	)
+	(wire
+		(pts
+			(xy 76.2 159.6900) (xy 99.06 159.6900)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ab7fef41-8068-441f-8836-c8442a3944d9")
+	)
+	(wire
+		(pts
+			(xy 106.68 148.2600) (xy 111.76 148.2600)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4b44e9f7-aca7-4fef-927b-7b8bc41819d4")
+	)
+	(wire
+		(pts
+			(xy 106.68 127.9400) (xy 111.76 127.9400)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6c6c4947-ab8f-410d-980e-efc43e29be46")
+	)
+	(wire
+		(pts
+			(xy 76.2 139.3700) (xy 99.06 139.3700)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "61df0a01-d782-4062-b352-86b84ac8eb6e")
+	)
+	(wire
+		(pts
+			(xy 87.63 157.1500) (xy 76.2 157.1500)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e434718-a2e2-42c1-8587-a5e8fe4e266f")
+	)
+	(wire
+		(pts
+			(xy 95.25 127.9400) (xy 99.06 127.9400)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "55253135-1e69-4cf5-ae33-d9522d6e3d1d")
+	)
+	(wire
+		(pts
+			(xy 34.29 144.4500) (xy 34.29 148.2600)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d86a59e8-b00e-4c50-a217-d8d838270048")
+	)
+	(wire
+		(pts
+			(xy 95.25 127.9400) (xy 95.25 136.8300)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6b1a586-7f18-4c8d-865e-60c3dd7f1ff1")
+	)
+	(wire
+		(pts
+			(xy 76.2 150.8000) (xy 78.74 150.8000)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d242b0e8-7ba3-47a4-a533-5484c9681257")
+	)
+	(wire
+		(pts
+			(xy 62.23 157.1500) (xy 72.39 157.1500)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5658b719-e142-4395-86bc-e838f44caef8")
+	)
+	(wire
+		(pts
+			(xy 34.29 129.2100) (xy 39.37 129.2100)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cdd142b8-4a8c-4ae5-b8d2-257e3d9df87f")
+	)
+	(wire
+		(pts
+			(xy 72.39 145.7200) (xy 78.74 145.7200)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e664d6ed-ea58-4630-a23c-5035482e68e6")
+	)
+	(wire
+		(pts
+			(xy 39.37 144.4500) (xy 34.29 144.4500)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1de09868-3aa8-47ab-9285-3f55a0715a74")
+	)
+	(wire
+		(pts
+			(xy 62.23 136.8300) (xy 72.39 136.8300)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7166b0e9-7bd7-400f-9c9d-6ef95ff4a2cd")
+	)
+	(wire
+		(pts
+			(xy 93.98 127.9400) (xy 95.25 127.9400)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "64d39c18-93cc-4f75-ab55-de9d12b4e1cc")
+	)
+	(wire
+		(pts
+			(xy 76.2 136.8300) (xy 76.2 139.3700)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8486a858-43be-4e5a-8fde-74f57c1a09eb")
+	)
+	(wire
+		(pts
+			(xy 106.68 159.6900) (xy 111.76 159.6900)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c83ff520-a1ad-42ef-9972-83ebfbbe6353")
+	)
+	(wire
+		(pts
+			(xy 76.2 130.4800) (xy 78.74 130.4800)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "35ee46c0-9c2d-47e2-9e43-f18f170774ff")
+	)
+	(wire
+		(pts
+			(xy 95.25 148.2600) (xy 95.25 157.1500)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6633ee7f-fae2-4923-b3b5-938ef0107521")
+	)
+	(wire
+		(pts
+			(xy 72.39 149.5300) (xy 72.39 145.7200)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1de73217-1d94-4abe-9470-e30285458a70")
+	)
+	(wire
+		(pts
+			(xy 39.37 129.2100) (xy 39.37 133.0200)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "26ed1454-7aab-46f2-9e72-2a7765f883aa")
+	)
+	(wire
+		(pts
+			(xy 21.59 152.0700) (xy 21.59 153.3400)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9aa7ffb6-7239-459a-bb5e-f6133bb917d9")
+	)
+	(wire
+		(pts
+			(xy 72.39 125.4000) (xy 78.74 125.4000)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "554a5ffa-1bcb-476a-809a-b2f27c9e8876")
+	)
+	(wire
+		(pts
+			(xy 72.39 125.4000) (xy 72.39 129.2100)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "be8025fb-eed8-4039-b7c1-8a9d6a342405")
+	)
+	(wire
+		(pts
+			(xy 76.2 136.8300) (xy 76.2 130.4800)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f44c9996-90c9-445d-a5da-03bc8d54825a")
+	)
+	(wire
+		(pts
+			(xy 62.23 129.2100) (xy 72.39 129.2100)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4a8f9663-c714-492c-aece-cae36f1d5366")
+	)
+	(wire
+		(pts
+			(xy 95.25 148.2600) (xy 99.06 148.2600)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "02f7a137-17a7-4598-b758-f020956a5c36")
+	)
+	(wire
+		(pts
+			(xy 76.2 136.8300) (xy 87.63 136.8300)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3a4c3dd9-1c73-436f-bb7d-d48c74e9994f")
+	)
+	(wire
+		(pts
+			(xy 34.29 124.1300) (xy 34.29 126.6700)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d266dc71-dd4d-4514-8e2a-82885b045e89")
+	)
+	(wire
+		(pts
+			(xy 93.98 148.2600) (xy 95.25 148.2600)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76dc6df6-0a88-4e7a-9728-3bffa15e2e91")
+	)
+	(wire
+		(pts
+			(xy 106.68 139.3700) (xy 111.76 139.3700)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "907769ef-f08f-4fb6-9dbf-cdf90c8fdf2b")
+	)
+	(wire
+		(pts
+			(xy 39.37 140.6400) (xy 39.37 144.4500)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71bc7660-6eb3-4076-b40f-bb0299d1da6c")
+	)
+	(wire
+		(pts
+			(xy 60.96 129.2100) (xy 62.23 129.2100)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "394c8b8f-c882-4d62-becf-75f9322181a7")
+	)
+	(wire
+		(pts
+			(xy 53.34 145.7200) (xy 53.34 149.5300)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7973cb33-5828-472a-b0ba-6ad34ed7da20")
+	)
+	(wire
+		(pts
+			(xy 60.96 149.5300) (xy 62.23 149.5300)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5b6014e5-1fd2-47a6-8dbe-a12e5093bd51")
+	)
+	(wire
+		(pts
+			(xy 21.59 126.6700) (xy 34.29 126.6700)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "41710249-838d-42b5-9005-306a08641f2d")
+	)
+	(wire
+		(pts
+			(xy 34.29 126.6700) (xy 34.29 129.2100)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8b1ccf6e-bfc5-438a-bd79-72dd884bb817")
+	)
+	(wire
+		(pts
+			(xy 76.2 157.1500) (xy 76.2 150.8000)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "974dc86f-ffd8-474d-94ec-a3010a27c7da")
+	)
+	(wire
+		(pts
+			(xy 62.23 149.5300) (xy 72.39 149.5300)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0779056f-01c7-4177-b0a4-83fd8077d1c8")
+	)
+	(wire
+		(pts
+			(xy 53.34 125.4000) (xy 53.34 129.2100)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "90c5135c-bd2d-4df0-abbb-71c880117832")
+	)
+	(wire
+		(pts
+			(xy 21.59 144.4500) (xy 34.29 144.4500)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f2ba64d-85ce-4437-8ed6-c64098b72f9a")
+	)
+	(label "out_b"
+		(at 111.76 148.2600 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "38ac5c26-28ee-4fea-a47f-9cd41a76961f")
+	)
+	(label "vref"
+		(at 53.34 125.4000 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "10c90fe8-c312-43fa-ad68-33ca8a6301f3")
+	)
+	(label "dac_b"
+		(at 111.76 159.6900 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4e64a937-01f2-466f-a8d8-7ce7a3f8e3bf")
+	)
+	(label "dac_a"
+		(at 111.76 139.3700 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a964510d-0f4d-4831-aec2-210800dd75a2")
+	)
+	(label ""
+		(at 77.47 138.1000 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1d6199c0-7d68-41ac-ae9e-c36af2268d51")
+	)
+	(label "vref"
+		(at 53.34 145.7200 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "41facfb1-7936-465f-bc22-5c9901a8ba8d")
+	)
+	(label "out_a"
+		(at 111.76 127.9400 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a87b53db-1682-45d7-9fe5-a7e169acb5f5")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 57.15 149.5300 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "266adefd-ad4d-4007-b92a-8bf39e758053")
+		(property "Reference" "R18"
+			(at 57.15 143.1800 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22k"
+			(at 57.15 145.7200 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 57.15 147.7520 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 57.15 149.5300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 57.15 149.5300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "ae32576a-67bd-44fe-987a-0fd0e461a2e5")
+		)
+		(pin "1"
+			(uuid "cc76cc3a-d729-43b8-b92d-c94dfba74212")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R18")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 21.59 130.4800 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a7346fd1-a528-4bb1-b029-65ac25e0df4f")
+		(property "Reference" "C7"
+			(at 25.4 129.2099 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 25.4 131.7499 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 22.5552 134.2900 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 21.59 130.4800 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 21.59 130.4800 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "4340ed51-5829-4e33-afbf-8b3da77494ca")
+		)
+		(pin "1"
+			(uuid "f433f6af-14cf-4620-af27-801f3f6788ea")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 72.39 136.8300 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "fde6d633-0ea4-481d-ae00-3cb414b9adba")
+		(property "Reference" "#PWR022"
+			(at 72.39 143.1800 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 72.39 141.9100 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 72.39 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 72.39 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "13d34495-09d9-4ffd-b022-8b5396a1610a")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR022")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 62.23 153.3400 0)
+		(mirror y)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "35feea6b-6e63-42f0-84e2-1fec71946a90")
+		(property "Reference" "C9"
+			(at 58.42 152.0699 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 58.42 154.6099 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 61.2648 157.1500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 62.23 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 62.23 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "2473f60e-52d7-4cbd-a3d5-994b0a3852c6")
+		)
+		(pin "1"
+			(uuid "43fc4ca4-15e0-407b-98a1-8b8e40d79e91")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 102.87 127.9400 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "19d3f73e-d8c0-479d-a6b7-e24559ba8b60")
+		(property "Reference" "R15"
+			(at 102.87 121.5900 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 102.87 124.1300 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 102.87 126.1620 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 102.87 127.9400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 102.87 127.9400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9db15e7f-9f79-470d-8754-e7e7776995f5")
+		)
+		(pin "2"
+			(uuid "e6852787-b4e0-488d-bc7d-be1cad7cf6a2")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 72.39 157.1500 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d0949731-b94c-4672-aabb-8ad0c7748cc9")
+		(property "Reference" "#PWR023"
+			(at 72.39 163.5000 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 72.39 162.2300 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 72.39 157.1500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 157.1500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 72.39 157.1500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bede5713-0fbd-474c-a466-224cac636d80")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR023")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 21.59 153.3400 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b67ce06a-f3a4-4aee-806e-82e35b8dc133")
+		(property "Reference" "#PWR024"
+			(at 21.59 159.6900 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 21.59 158.4200 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 21.59 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 21.59 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 21.59 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bfc746cd-7ac1-4b24-a2fa-7054e8251751")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+12V")
+		(at 34.29 124.1300 0)
+		(mirror y)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b001de98-2f25-41db-9473-bb9dd5cc66f8")
+		(property "Reference" "#PWR025"
+			(at 34.29 127.9400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+12V"
+			(at 34.29 119.0500 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 34.29 124.1300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 34.29 124.1300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+12V\""
+			(at 34.29 124.1300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f8f3e8c5-2b9b-42b4-ac6f-a853a040e816")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR025")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 102.87 148.2600 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e1a6e8cc-e6c2-41b3-814f-acebbc516bbc")
+		(property "Reference" "R16"
+			(at 102.87 141.9100 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 102.87 144.4500 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 102.87 146.4820 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 102.87 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 102.87 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0693554b-a1f4-43dc-a3f1-bf7f0a894338")
+		)
+		(pin "2"
+			(uuid "6c284f20-d553-4acd-90c6-939590ae46ae")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:TL072")
+		(at 86.36 148.2600 0)
+		(unit 2)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "43a5ad14-f2d8-4cf1-a784-23531ffe4fe1")
+		(property "Reference" "U5"
+			(at 86.36 138.1000 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TL072"
+			(at 86.36 140.6400 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tl071.pdf"
+			(at 86.36 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Dual Low-Noise JFET-Input Operational Amplifiers, DIP-8/SOIC-8"
+			(at 86.36 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "b454be5a-e6ef-480a-829b-c5e12434c8bc")
+		)
+		(pin "4"
+			(uuid "93bbba69-76aa-4bd5-b18a-12e680620ced")
+		)
+		(pin "6"
+			(uuid "240e54fd-aac4-4759-9a09-428e065e2854")
+		)
+		(pin "1"
+			(uuid "623f4641-f9e0-4220-969c-3e50dc4f7e39")
+		)
+		(pin "8"
+			(uuid "11ec880b-20a8-486c-ad43-9379fba947d9")
+		)
+		(pin "7"
+			(uuid "d2dda596-fa19-4fa1-bb3d-cf0eb3b331ef")
+		)
+		(pin "5"
+			(uuid "8c80af51-20b5-4d5c-8dbf-8c528d37d34c")
+		)
+		(pin "3"
+			(uuid "2e7dc3d9-eeeb-4f13-beb1-5aa7f634c9a8")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "U5")
+					(unit 2)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 21.59 135.5600 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "25524e2b-3131-4630-987a-81444500b50a")
+		(property "Reference" "#PWR026"
+			(at 21.59 141.9100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 21.59 140.6400 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 21.59 135.5600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 21.59 135.5600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 21.59 135.5600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1ed21cb0-ff22-4828-9a12-995dfe0b0082")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR026")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:-12V")
+		(at 34.29 148.2600 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a6d86351-2272-41e7-9f36-c412049bef21")
+		(property "Reference" "#PWR027"
+			(at 34.29 144.4500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "-12V"
+			(at 34.29 153.3400 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 34.29 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 34.29 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"-12V\""
+			(at 34.29 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "d6f68f19-0e39-47e5-9001-dfa32bf19a6e")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR027")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 57.15 129.2100 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "34a127ec-b01f-4447-b090-597c0829c0e5")
+		(property "Reference" "R17"
+			(at 57.15 122.8600 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22k"
+			(at 57.15 125.4000 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 57.15 127.4320 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 57.15 129.2100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 57.15 129.2100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "51db73ca-ebf6-49b3-a7f3-ded9ffbf4d81")
+		)
+		(pin "1"
+			(uuid "7f89ef7b-5260-4f70-a345-75663e376482")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R17")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 102.87 159.6900 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1e2b38c1-1acd-4f56-9595-a8cdde620e92")
+		(property "Reference" "R22"
+			(at 102.87 153.3400 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 102.87 155.8800 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 102.87 157.9120 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 102.87 159.6900 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 102.87 159.6900 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "4ecd8eea-337b-41d2-992c-bb6ed43a1029")
+		)
+		(pin "2"
+			(uuid "bae86062-d835-461d-a92a-77131aab5ace")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R22")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 62.23 133.0200 0)
+		(mirror y)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "c9a00a99-be54-41eb-a0ee-6b11cc290617")
+		(property "Reference" "C8"
+			(at 58.42 131.7499 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 58.42 134.2899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 61.2648 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 62.23 133.0200 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 62.23 133.0200 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "5714c473-df9c-4d64-8ece-89bb4469beb4")
+		)
+		(pin "1"
+			(uuid "a9ceeecf-fb3f-4d85-a1f4-d63b7862203d")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 91.44 136.8300 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ee0a813b-4587-439c-b058-1db2a19f8942")
+		(property "Reference" "R13"
+			(at 91.44 130.4800 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "47k"
+			(at 91.44 133.0200 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 91.44 135.0520 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 91.44 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 91.44 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "66cf9180-4324-4a9a-9aff-e4aca5517a08")
+		)
+		(pin "1"
+			(uuid "7f659061-b1c7-4ca7-88a9-b3de56736dd1")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:TL072")
+		(at 31.75 136.8300 0)
+		(mirror y)
+		(unit 3)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c38b58a6-b387-4e4d-8ac9-b89009504947")
+		(property "Reference" "U5"
+			(at 33.02 135.5599 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TL072"
+			(at 33.02 138.0999 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 31.75 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tl071.pdf"
+			(at 31.75 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Dual Low-Noise JFET-Input Operational Amplifiers, DIP-8/SOIC-8"
+			(at 31.75 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "da150fb2-a3ef-4101-8f22-d1c87fdb0dad")
+		)
+		(pin "4"
+			(uuid "17e81166-7ffb-4b9a-bfc2-2d1757c45b03")
+		)
+		(pin "6"
+			(uuid "d5664dea-e30f-4cbd-85b3-bf8368ca29b6")
+		)
+		(pin "1"
+			(uuid "34ae81f7-81fe-4740-9ab5-45898f4957f7")
+		)
+		(pin "8"
+			(uuid "8aef1e0b-07d9-4235-9add-db4b46b295c8")
+		)
+		(pin "7"
+			(uuid "85a9b528-7bee-462e-9d7c-f2c7f0bff96a")
+		)
+		(pin "5"
+			(uuid "12e01cc3-5a7e-4134-9c8b-780edfdf3657")
+		)
+		(pin "3"
+			(uuid "d8e03096-adf7-4e4b-8d3c-c9243e34696f")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "U5")
+					(unit 3)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 102.87 139.3700 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "97e2efd9-2553-4349-9b01-0fb0adfabbb4")
+		(property "Reference" "R21"
+			(at 102.87 133.0200 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 102.87 135.5600 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 102.87 137.5920 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 102.87 139.3700 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 102.87 139.3700 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b654f15b-ca6d-406c-ae6f-2910802b2e85")
+		)
+		(pin "2"
+			(uuid "0930f3bb-322b-4ad2-9d88-c1b816e58675")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R21")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 21.59 148.2600 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f1b82767-708d-4a7e-bf55-996904af5233")
+		(property "Reference" "C6"
+			(at 25.4 146.9899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 25.4 149.5299 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 22.5552 152.0700 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 21.59 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 21.59 148.2600 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "f4a5b153-8ae4-4302-8e9f-ab5926925d94")
+		)
+		(pin "1"
+			(uuid "6b6c541f-265b-499b-ae10-25b317b81f28")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 39.37 136.8300 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a4098cb1-1b59-4af3-bc20-77df4fa2f12c")
+		(property "Reference" "C10"
+			(at 43.18 135.5599 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 43.18 138.0999 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 40.3352 140.6400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 39.37 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 39.37 136.8300 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "59dd3d56-ac56-46d3-92a0-b55f237b48b0")
+		)
+		(pin "1"
+			(uuid "cf2e2133-0f9e-41e8-abe6-2d01703ff2b3")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "C10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 72.39 133.0200 0)
+		(mirror x)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ef0f9f27-094a-4f1c-b929-9b63023ea9c2")
+		(property "Reference" "R20"
+			(at 69.85 131.7499 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "14.7k"
+			(at 69.85 134.2899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 70.612 133.0200 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 133.0200 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 72.39 133.0200 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "fd57b769-2b12-497c-a2fe-ef4ac6851cf6")
+		)
+		(pin "1"
+			(uuid "43eee86c-ac40-4beb-867f-cf03271258a0")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:TL072")
+		(at 86.36 127.9400 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cb65dd93-04c7-4942-97d5-078bc7f272cb")
+		(property "Reference" "U5"
+			(at 86.36 117.7800 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TL072"
+			(at 86.36 120.3200 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 127.9400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tl071.pdf"
+			(at 86.36 127.9400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Dual Low-Noise JFET-Input Operational Amplifiers, DIP-8/SOIC-8"
+			(at 86.36 127.9400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "cb44b501-f3ea-491c-8a6f-eb8bd7b5562c")
+		)
+		(pin "4"
+			(uuid "ed9a1c1b-3537-4d03-9f7e-f1552a025370")
+		)
+		(pin "6"
+			(uuid "10c08b56-7873-4f2e-925d-0b474f8fcfe1")
+		)
+		(pin "1"
+			(uuid "e3cc46f3-c98f-487e-b5f7-4de2dfb84b24")
+		)
+		(pin "8"
+			(uuid "c587575f-c35d-4f2f-8b98-b97a856f521e")
+		)
+		(pin "7"
+			(uuid "2233f637-c9d0-4403-979a-37a31b4b76be")
+		)
+		(pin "5"
+			(uuid "c712a996-edd3-4d54-a6de-a85ceef8a054")
+		)
+		(pin "3"
+			(uuid "f792114d-1f0b-4ca5-b296-4fe7c5a29e9b")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 72.39 153.3400 0)
+		(mirror x)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "fee9e0fb-d406-4ad3-8151-1e7a226ab30f")
+		(property "Reference" "R19"
+			(at 69.85 152.0699 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "14.7k"
+			(at 69.85 154.6099 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 70.612 153.3400 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 72.39 153.3400 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "1ebcdf63-8282-4d2b-8cba-4259cf6007e1")
+		)
+		(pin "1"
+			(uuid "c81422bd-a6e1-42aa-8c9c-d1e94c37d391")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 91.44 157.1500 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "625a7655-aa8b-40d4-89a8-38ee6d924253")
+		(property "Reference" "R14"
+			(at 91.44 150.8000 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "47k"
+			(at 91.44 153.3400 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 91.44 155.3720 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 91.44 157.1500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 91.44 157.1500 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "88279654-aeb0-4450-ad4c-9abf3c4ef2e2")
+		)
+		(pin "1"
+			(uuid "77623f9e-f94f-4d4d-b5b6-f7ea8ebff85f")
+		)
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "R14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:BAT54S")
+		(at 115.57 127.94 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "72174d52-e9fc-4643-90e8-34a0ca1e821d")
+		(property "Reference" "D3"
+			(at 110.49 126.67 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BAT54S"
+			(at 110.49 129.21 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 115.57 127.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 115.57 127.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "200mA dual Schottky series, SOT-23"
+			(at 115.57 127.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "13ba606a-cbf9-4113-8ccd-17f85045e129"))
+		(pin "2" (uuid "15053dc2-e607-4d1d-90a6-1457b187910a"))
+		(pin "3" (uuid "a88d3e68-e0d4-4ed9-a102-14c74df74fcb"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "D3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:BAT54S")
+		(at 115.57 148.26 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "59e57e26-f7a5-49d4-bae3-5f3075d8958a")
+		(property "Reference" "D4"
+			(at 110.49 146.98999999999998 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BAT54S"
+			(at 110.49 149.53 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 115.57 148.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 115.57 148.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "200mA dual Schottky series, SOT-23"
+			(at 115.57 148.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "fa0941d7-ed55-47b1-8b08-64b1680f0099"))
+		(pin "2" (uuid "cfb95b47-0314-461a-b441-5ae412f3ec78"))
+		(pin "3" (uuid "3779428e-7e4f-4c9c-ad8a-382b637e0ada"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "D4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "benjiaomodular:PJ3001F")
+		(at 130.81 127.94 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "20aef84f-8e46-47b0-aaed-8c67d078b67d")
+		(property "Reference" "J3"
+			(at 135.89000000000001 125.39999999999999 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PJ3001F"
+			(at 135.89000000000001 127.94 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 130.81 127.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 130.81 127.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 130.81 127.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "S" (uuid "a778f290-1aa9-4381-b4a8-238cec3ce0ef"))
+		(pin "T" (uuid "060298c5-5b13-49aa-ab60-8fb6fdae59d7"))
+		(pin "TN" (uuid "04090c32-d334-4a42-a03c-14dafa64dd39"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "benjiaomodular:PJ3001F")
+		(at 130.81 148.26 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9311ef9f-831c-40f6-bcf3-b0921d0b18ed")
+		(property "Reference" "J4"
+			(at 135.89000000000001 145.72 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PJ3001F"
+			(at 135.89000000000001 148.26 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 130.81 148.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 130.81 148.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 130.81 148.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "S" (uuid "991c52a2-6a89-4d4c-8ee6-0c6cbffb7303"))
+		(pin "T" (uuid "aa68c195-8d1a-474a-b283-b53ead30099a"))
+		(pin "TN" (uuid "38b52d24-64d4-4821-ae73-8da8fe661fd3"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+12V")
+		(at 115.57 116.51 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "df21a114-75f2-459d-8ff7-acde89483550")
+		(property "Reference" "#PWR028"
+			(at 115.57 112.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+12V"
+			(at 115.57 112.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 115.57 116.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 115.57 116.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol"
+			(at 115.57 116.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "0e8d8667-9e2a-4c0c-92cd-3783b68fe725"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:-12V")
+		(at 115.57 139.37 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ad2f404e-1c62-4e03-89cc-3a42a1251a23")
+		(property "Reference" "#PWR029"
+			(at 115.57 135.56 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "-12V"
+			(at 115.57 135.56 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 115.57 139.37 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 115.57 139.37 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol"
+			(at 115.57 139.37 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "d8ffc9ca-fab6-4c86-b8d1-d01206690d35"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR029")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+12V")
+		(at 115.57 136.83 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c79ecb3d-194a-4b8a-9c2d-40270ae736a5")
+		(property "Reference" "#PWR030"
+			(at 115.57 133.02 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+12V"
+			(at 115.57 133.02 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 115.57 136.83 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 115.57 136.83 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol"
+			(at 115.57 136.83 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "a1aeb1c5-6a7a-435d-8b28-7dca6ff330fc"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR030")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:-12V")
+		(at 115.57 159.69 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8508abb2-5ccc-4fdb-81f9-11428dfac224")
+		(property "Reference" "#PWR031"
+			(at 115.57 155.88 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "-12V"
+			(at 115.57 155.88 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 115.57 159.69 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 115.57 159.69 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol"
+			(at 115.57 159.69 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "4ba3e9c3-a02b-44b0-8e57-eb1e4887dcda"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR031")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 125.73 132.08 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1ab2ad3b-6f76-4c2e-9dd8-509a02bb0bd8")
+		(property "Reference" "#PWR032"
+			(at 125.73 128.27 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 125.73 128.27 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 125.73 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 125.73 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol"
+			(at 125.73 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "8fa0de0a-426c-44c8-9f42-c393464c0d8d"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 125.73 152.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b46c1261-e194-4272-8284-cb986f503f9d")
+		(property "Reference" "#PWR033"
+			(at 125.73 148.59 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 125.73 148.59 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 125.73 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 125.73 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol"
+			(at 125.73 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1" (uuid "51f29d54-6347-4a52-938a-3b99b585d7fb"))
+		(instances
+			(project "gio-opamp"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR033")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 106.68 127.94) (xy 120.65 127.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "88a286de-e29e-4c7e-8ebb-9509adca605e")
+	)
+	(wire
+		(pts
+			(xy 120.65 127.94) (xy 125.73 127.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bdfe26ca-2ab4-40ef-85a6-1b03b7ff08db")
+	)
+	(wire
+		(pts
+			(xy 115.57 120.32) (xy 115.57 116.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0f7e9408-dba4-42f1-bfd1-0546e1696030")
+	)
+	(wire
+		(pts
+			(xy 115.57 135.56) (xy 115.57 139.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ba06620a-6530-48bf-9e86-944245e4ca9a")
+	)
+	(wire
+		(pts
+			(xy 125.73 130.48) (xy 125.73 132.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fcbe3718-aba8-41e8-bd1f-32db2fc6d00d")
+	)
+	(wire
+		(pts
+			(xy 106.68 148.26) (xy 120.65 148.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0900e173-0578-4e97-9621-bfc42b585e9e")
+	)
+	(wire
+		(pts
+			(xy 120.65 148.26) (xy 125.73 148.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c7ed43d-17b8-47db-8fee-8275716b1206")
+	)
+	(wire
+		(pts
+			(xy 115.57 140.64) (xy 115.57 136.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25035156-34d8-4fe2-9ad1-fca83e893fc8")
+	)
+	(wire
+		(pts
+			(xy 115.57 155.88) (xy 115.57 159.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6d6764f3-0b54-4a00-bcd8-bdcea2bb3d51")
+	)
+	(wire
+		(pts
+			(xy 125.73 150.8) (xy 125.73 152.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "344e9afb-35e0-4ceb-bf7f-5071ea3e4ce1")
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")
