@@ -524,3 +524,69 @@ This change benefits the production firmware too — same `EncoderInput` library
 - ⏸ Channel B input (J2) scaling stage — wires planned, not built (out of scope until Story 010 external clock or a second CV use case lands)
 
 **The bench platform is complete enough to host the production firmware end-to-end.** Next bench session: flash production firmware and do the audible-VCO test (J3 → external Eurorack VCO, listen).
+
+---
+
+## 2026-05-04 — Bench rebuild on schematic-aligned layout: full signal chain revalidated end-to-end on both channels
+
+**Context:** the schematic in `hardware/gio-opamp/` had drifted ahead of the breadboard wiring across two areas:
+1. **MCP3208 channel layout** (decisions.md §26): CH0 = pot, CH1 = J1 input, CH2 = J2 input. The breadboard had been carrying the older "pot on CH1" assignment.
+2. **Encoder A/B**: schematic uses A→D1, B→D2 (natural assignment); firmware had been swapped to A→D2, B→D1 as a workaround for the bench encoder reading CW as negative. On 2026-05-04 the breadboard wires were physically swapped to align with the schematic, and the firmware was reverted to the natural assignment.
+
+This bench session rebuilds the input scaling stage on the breadboard to match the schematic exactly, then revalidates the full signal chain.
+
+### Findings during the rebuild
+
+**Wiring error caught at the bench:** the input op-amp ch A had its jack-side input chain (R_series 100 k → BAT54S clamps → R_in2 22 k) wired to **pin 1 (output)** instead of **pin 2 (inverting input)**. With J1 tip grounded, pin 1 read **1.727 V** instead of the expected ~1.96 V. Working backward:
+
+```
+V_pin1 / V_pin3 - 1 = 1.727 / 1.66 - 1 ≈ 0.04 effective gain
+Design gain          = R_fb / (R_series + R_in2) = 22 / 122 = 0.180
+```
+
+A 4× gain error pointed at either R_fb being wrong (4.7 k instead of 22 k — the same math bug we caught in the §7 doc on 2026-04-30) or the input chain not actually reaching pin 2. After confirming all resistor values were correct, traced the wires: R_in2's "op-amp" end was on pin 1 (the output) — meaning pin 2 was floating except via R_fb, the op-amp drove pin 1 to follow pin 3 via virtual short, and the external signal at pin 1 was just being absorbed by the op-amp's low-impedance output. Moving the wire to pin 2 fixed it: pin 1 read **2.039 V** with J1 grounded (predicted 2.030 V given the actual pin 3 bias of 1.720 V) — a **9 mV error**, within E12 resistor tolerance and TL072 input offset.
+
+### Validation matrix (loopback via direct tip-to-tip jumpers, since the breadboard jacks won't hold patch cables)
+
+| Test | Expected | Measured | Pass? |
+|---|---|---|---|
+| Pot at CW endpoint | `pot_v` ≈ 4.096 V | 4.094 V | ✓ |
+| Input A (J1) tip floating | `j1_v` ≈ 1.66 V | 1.65 V | ✓ |
+| Input B (J2) tip floating | `j2_v` ≈ 1.66 V | 1.63 V | ✓ |
+| **J5 → J1** (Output A triangle into Input A) | `j1_v` swings 0.34 → 3.57 V at 1 Hz | 0.36 → 3.60 V | ✓ (~30 mV error) |
+| **J5 → J2** (Output A triangle into Input B) | `j2_v` swings 0.34 → 3.57 V at 1 Hz | 0.35 → 3.58 V | ✓ (~10 mV error) |
+
+End-to-end transfer (DAC value → jack-side ADC reading) matches the bench-validated math from 2026-04-30 across both input channels.
+
+### Naming convention update
+
+Adopted the KiCad schematic's jack-numbering convention for all future docs and conversation:
+
+| Jack | Role |
+|---|---|
+| **J1** | Input A (CV in, ±10 V Eurorack, scaled to 0..VREF for ADC ch 1) |
+| **J2** | Input B (same as J1) |
+| **J5** | Output A (DAC ch A → ±9 V at jack via inverting op-amp) |
+| **J6** | Output B (DAC ch B → ±9 V at jack) |
+
+(The schematic's auto-annotation skipped J3/J4 — those refs may have been used during early KiCad iterations on a different sheet and weren't reused. Going forward we just use what the schematic says.)
+
+### Bench platform validation status
+
+The breadboard now matches the KiCad schematic 1:1, including all the design refinements we've layered in over the past week:
+
+- ✅ XIAO RP2350 + USB CDC + smoke-test firmware
+- ✅ SPI bus arbitration (DAC8552 + MCP3208 sharing SCK/MOSI/MISO + per-chip CS)
+- ✅ DAC8552 + output op-amp + jacks J5/J6 (±9 V swing, both channels)
+- ✅ MCP3208 + input op-amp + jacks J1/J2 (±9 V → 0..VREF → ADC counts within 30 mV across full swing, both channels)
+- ✅ Tempo pot on MCP3208 CH0 (full 12-bit range, smooth)
+- ✅ Encoder + click + long-press, interrupt-driven (no missed detents at any speed; A→D1, B→D2 natural assignment)
+- ✅ OLED on I²C at 0x3C (live updates at 10 Hz)
+- ✅ VREF rail (REF3040 stand-in via TL072 buffer at 4.096 V)
+
+**Implication for the PCB:** the schematic is now a high-confidence target. Whenever PCB layout starts, every component's connectivity has been physically verified at the bench — no more "hope it works on the board too."
+
+### Lessons added to the troubleshooting playbook
+
+- **"4× gain error → check R_fb value OR look for input chain on the wrong pin."** Both have the same magnitude impact and same observable symptom. Verify R values first (faster) then trace wires.
+- **Inverting-amp wiring error mode:** if the input chain lands on pin 1 (output) instead of pin 2 (inverting input), the op-amp acts as a unity-gain follower of pin 3's bias point regardless of the input. Output sits near bias, the external signal gets absorbed by the op-amp's low-impedance output stage, and you'll see a tiny "gain" that's actually just the op-amp-vs-input-source impedance ratio.
