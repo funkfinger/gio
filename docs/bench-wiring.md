@@ -550,13 +550,13 @@ When you're ready to add **channel B** (jack J2 → **MCP3208 CH2**, pin 3), rem
 | OLED | GND | GND |
 | OLED | SDA | XIAO D4 |
 | OLED | SCL | XIAO D5 |
-| Encoder | A | XIAO **D2** (no external pull-up — firmware uses `INPUT_PULLUP`) |
-| Encoder | B | XIAO **D1** (same — internal pull-up) |
+| Encoder | A | XIAO **D1** (no external pull-up — firmware uses `INPUT_PULLUP`) |
+| Encoder | B | XIAO **D2** (same — internal pull-up) |
 | Encoder | Common | **GND** — required; without it, A and B float and the decoder sees no transitions |
 | Encoder switch | One side | XIAO D7 (no external — internal pull-up) |
 | Encoder switch | Other side | GND |
 
-> **Encoder A/B swap (caught 2026-05-02):** the firmware assignment was originally A→D1, B→D2. The bench encoder reads **CW as a negative delta** with that wiring; swapping A/B in firmware (`PIN_ENC_A = D2`, `PIN_ENC_B = D1`) fixes it cleanly. The table above already reflects the corrected mapping. If a future encoder reads the opposite direction, swap the constants in `src/main.cpp` rather than re-routing the breadboard.
+> **Encoder A/B history:** the bench encoder originally read CW as a *negative* delta with the schematic-natural A→D1, B→D2 wiring (caught 2026-05-02). The firmware was first patched to swap the constants (`PIN_ENC_A = D2`), but on 2026-05-04 the breadboard wires were physically swapped instead so the firmware and schematic agree on **A→D1, B→D2** (CW = positive). If a future encoder reads inverted, swap the constants in `src/main.cpp` and `src/main_smoketest.cpp` rather than re-routing the breadboard or PCB.
 | Tempo pot | CW | **VREF rail** (4.096 V) — *not* +3.3 V; routes through MCP3208 |
 | Tempo pot | Wiper | **MCP3208 pin 1 (CH0)** — *not* XIAO D0 (changed 2026-05-02; landed at CH0 per the 2026-05-03 channel-layout convention) |
 | Tempo pot | CCW | GND |

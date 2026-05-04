@@ -41,11 +41,11 @@
 
 static constexpr uint8_t PIN_CS_DAC    = D3;  // GP5 — DAC8552 /SYNC
 static constexpr uint8_t PIN_CS_ADC    = D6;  // GP0 — MCP3208 /CS
-// Encoder A/B swapped vs the doc: bench encoder reads CW as negative when
-// wired with A→D1, B→D2; flipping the firmware assignment is cleaner than
-// fighting the breadboard. Production firmware mirrors this.
-static constexpr uint8_t PIN_ENC_A     = D2;  // GP28 (was D1)
-static constexpr uint8_t PIN_ENC_B     = D1;  // GP27 (was D2)
+// Encoder A/B match the schematic convention (A→D1, B→D2). The 2026-05-02
+// firmware-swap was reverted on 2026-05-04 after the breadboard wires were
+// physically swapped to align with the KiCad schematic.
+static constexpr uint8_t PIN_ENC_A     = D1;  // GP27
+static constexpr uint8_t PIN_ENC_B     = D2;  // GP28
 static constexpr uint8_t PIN_ENC_CLICK = D7;  // GP1
 
 static EncoderInput g_encoder;
