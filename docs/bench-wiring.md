@@ -2,7 +2,7 @@
 
 Single-source wiring reference for the breadboard rebuild covering Stories 012 (SPI bus), 013 (DAC output stage), 015 (input protection + scaling), plus the encoder pin migration. Use alongside `decisions.md` §25 and `hardware/bom.md`.
 
-**Bench substitution active:** REF3040 not yet on hand → using a 10 kΩ multi-turn trimpot dialled to 4.096 V, buffered through one TL072 channel. See §5. Swap to REF3040 SOT-23 once it arrives — same node, same decoupling.
+**Bench substitution removed (2026-05-04):** REF3040AIDBZR (SOT-23-3) now drives the VREF rail directly. The pot+TL072 stand-in is gone. VREF stability went from ±56 mV (pot+TL072 drift) to ±2 mV (essentially MCP3208 LSB noise). See §5 for the swap details.
 
 ---
 
@@ -227,16 +227,21 @@ The DAC8552's R-2R ladder draws transient current on its VREF pin every time the
 
 Same logic applies to the MCP3208: each conversion samples a 20 pF capacitor onto VREF for ~1.5 µs. A buffered reference settles cleanly between conversions; a bare divider doesn't.
 
-### Drop-in path for REF3040
+### Drop-in done — REF3040 on the bench (2026-05-04)
 
-When the SOT-23 arrives, all of §5 collapses to:
+All of §5 above is **historical** — the pot+TL072 stand-in has been replaced. Current VREF source:
 
-- Cut wires 1–9 (everything except wire 7 and cap 10)
-- Solder REF3040 onto a SOT-23 → DIP adapter (or directly to the breadboard with fly-wires)
-- Connect: REF3040 pin 1 (GND) → GND; pin 2 (IN) → +5 V; pin 3 (OUT) → **VREF rail node**
-- Wire 7 and cap 10 stay as-is — same node, same decoupling
-- Re-meter the VREF rail; should read 4.096 V ± 8 mV (REF3040 is ±0.2% spec)
-- Free up the TL072's channel A for use in the input/output stages
+| Wire / part | From | To | Notes |
+|---|---|---|---|
+| 1 | REF3040 **pin 1 (VIN)** | +5 V rail | TI REF30xx series in DBZ (SOT-23-3) package |
+| 2 | REF3040 **pin 2 (GND)** | GND rail | |
+| 3 | REF3040 **pin 3 (VOUT)** | **VREF rail node** | Same node that feeds DAC8552 pin 2, MCP3208 pin 15, all four bias dividers, pot CW |
+| 4 | 100 nF cap | REF3040 pin 1 → GND | Input decoupling, close to chip |
+| 5 | **1 µF cap** | REF3040 pin 3 → GND | **Required for stability** per datasheet |
+
+**Verified at the bench (2026-05-04):** VREF rail reads 4.094–4.096 V across a 4 s window (±2 mV total — essentially MCP3208 LSB noise). Pot+TL072 stand-in fully removed; TL072 #1 also pulled (REF3040's 25 mA output drives the ~1 mA total load directly without buffering). This matches the production PCB topology exactly.
+
+**Note on pin numbers:** the SOT-23-3 pin assignment varies by manufacturer; the table above is per TI's REF3040 datasheet (DBZ package). Always verify against the part's datasheet before powering on.
 
 ---
 

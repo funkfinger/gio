@@ -590,3 +590,23 @@ The breadboard now matches the KiCad schematic 1:1, including all the design ref
 
 - **"4× gain error → check R_fb value OR look for input chain on the wrong pin."** Both have the same magnitude impact and same observable symptom. Verify R values first (faster) then trace wires.
 - **Inverting-amp wiring error mode:** if the input chain lands on pin 1 (output) instead of pin 2 (inverting input), the op-amp acts as a unity-gain follower of pin 3's bias point regardless of the input. Output sits near bias, the external signal gets absorbed by the op-amp's low-impedance output stage, and you'll see a tiny "gain" that's actually just the op-amp-vs-input-source impedance ratio.
+
+### REF3040 swap — VREF stand-in retired (2026-05-04 continued)
+
+Replaced the pot+TL072 VREF stand-in with a **REF3040AIDBZR** (TI series voltage reference, ±0.2 % initial, 75 ppm/°C). Wiring per `bench-wiring.md` §5: pin 1 (VIN) → +5 V, pin 2 (GND) → GND, pin 3 (VOUT) → VREF rail; 100 nF on VIN, 1 µF on VOUT (required for stability per datasheet).
+
+The TL072 #1 (VREF buffer) was also pulled — REF3040's 25 mA output drives the ~1 mA total load (DAC + ADC VREF inputs + pot + 4× bias dividers) directly without any buffering. This matches what the production PCB will do.
+
+**Stability comparison:**
+
+| | Pot+TL072 stand-in | REF3040 |
+|---|---|---|
+| `pot_v` reading at CW endpoint | 4.040 – 4.096 V | 4.094 – 4.096 V |
+| Range across 4 s window | **56 mV** | **2 mV** |
+| Improvement | — | **28×** more stable |
+
+The 2 mV residual is essentially MCP3208 LSB quantization (1 mV per count) plus a touch of analog noise. VREF is locked to within 1–2 LSB of the ADC's resolution.
+
+**Implications:**
+- Calibration constants in `main.cpp` (`CAL_OUT_*`, `CAL_IN_*`) were fit against the pot+TL072 setting — they may shift slightly under REF3040, but the system is ratiometric (DAC + ADC share VREF) so the impact is well below 0.1 %. Worth re-fitting next time we calibrate, but no urgent action.
+- Bench rig is now using the production-grade VREF source. Nothing about this needs to change when the PCB lands.
