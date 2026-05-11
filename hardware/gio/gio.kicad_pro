@@ -124,15 +124,15 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.0,
-        "min_connection": 0.0,
-        "min_copper_edge_clearance": 0.5,
+        "min_clearance": 0.15,
+        "min_connection": 0.1,
+        "min_copper_edge_clearance": 0.075,
         "min_groove_width": 0.0,
         "min_hole_clearance": 0.25,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
         "min_microvia_drill": 0.1,
-        "min_resolved_spokes": 2,
+        "min_resolved_spokes": 1,
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
@@ -472,14 +472,14 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "gio-opamp.kicad_pro",
+    "filename": "gio.kicad_pro",
     "version": 3
   },
   "net_settings": {
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -495,6 +495,118 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "name": "+12",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 8,
+        "schematic_color": "rgb(255, 111, 39)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "name": "+3.3V",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2,
+        "schematic_color": "rgb(72, 0, 0)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "name": "+5",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 7,
+        "schematic_color": "rgb(255, 10, 31)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "name": "-12",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 6,
+        "schematic_color": "rgb(255, 208, 179)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "name": "ADC/DAC",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgb(128, 77, 0)",
+        "tuning_profile": "",
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "name": "CLAMP",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 3,
+        "schematic_color": "rgb(188, 209, 255)",
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "name": "ENCODER",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgb(132, 132, 0)",
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "line_style": 1,
+        "name": "GND",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 5,
+        "schematic_color": "rgb(132, 132, 132)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "wire_width": 8
+      },
+      {
+        "bus_width": 12,
+        "name": "I2C",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 9,
+        "schematic_color": "rgb(235, 21, 255)",
+        "tuning_profile": "",
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "name": "SPI",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 10,
+        "schematic_color": "rgb(111, 27, 255)",
+        "tuning_profile": "",
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "name": "VREF",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 4,
+        "schematic_color": "rgb(0, 132, 0)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "wire_width": 8
       }
     ],
     "meta": {
@@ -510,6 +622,82 @@
       {
         "netclass": "Default",
         "pattern": "/adc_ch2"
+      },
+      {
+        "netclass": "+12",
+        "pattern": "+12V"
+      },
+      {
+        "netclass": "+12",
+        "pattern": "-12V"
+      },
+      {
+        "netclass": "CLAMP",
+        "pattern": "/out_a"
+      },
+      {
+        "netclass": "CLAMP",
+        "pattern": "/out_b"
+      },
+      {
+        "netclass": "+5",
+        "pattern": "+5V"
+      },
+      {
+        "netclass": "-12",
+        "pattern": "-12V"
+      },
+      {
+        "netclass": "CLAMP",
+        "pattern": "/clamp_a"
+      },
+      {
+        "netclass": "GND",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "VREF",
+        "pattern": "/vref"
+      },
+      {
+        "netclass": "CLAMP",
+        "pattern": "/clamp_b"
+      },
+      {
+        "netclass": "I2C",
+        "pattern": "/I2C_S(CL|DA)"
+      },
+      {
+        "netclass": "SPI",
+        "pattern": "/SPI_(MISO|MOSI|SCK)"
+      },
+      {
+        "netclass": "Default",
+        "pattern": "/ENCODER_(A|B|CLICK)"
+      },
+      {
+        "netclass": "ENCODER",
+        "pattern": "/ENCODER_(A|B|CLICK)"
+      },
+      {
+        "netclass": "ADC/DAC",
+        "pattern": "/adc_ch(0|1|2)"
+      },
+      {
+        "netclass": "SPI",
+        "pattern": "/CS_ADC"
+      },
+      {
+        "netclass": "SPI",
+        "pattern": "/CS_DAC"
+      },
+      {
+        "netclass": "ADC/DAC",
+        "pattern": "/dac_(a|b)"
+      },
+      {
+        "netclass": "+12",
+        "pattern": "+3.3V"
       }
     ]
   },
@@ -517,7 +705,7 @@
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "gerber/",
       "specctra_dsn": "",
       "vrml": ""
     },
@@ -666,12 +854,12 @@
     "subpart_id_separator": 0,
     "top_level_sheets": [
       {
-        "filename": "gio-opamp.kicad_sch",
+        "filename": "gio.kicad_sch",
         "name": "Root",
         "uuid": "f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
       }
     ],
-    "used_designators": "SW1,C11-14,U6-7,#PWR28-33,#PWR40-45,J3-4",
+    "used_designators": "",
     "variants": []
   },
   "sheets": [

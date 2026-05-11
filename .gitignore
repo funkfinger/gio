@@ -11,6 +11,18 @@ firmware/**/.pio/
 fp-info-cache
 ~*.lck
 .history/
+_autosave-*
+tmp*.rpt
+*.step
+
+# KiCad output / fab artifacts (regenerated from .kicad_pcb on demand)
+**/gerber/
+**/jlcpcb/
+**/production_files/
+*.gbr
+*.gbrjob
+*.drl
+project.db
 
 # macOS
 .DS_Store

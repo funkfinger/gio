@@ -3269,7 +3269,218 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Seeed_Studio_XIAO_Series:XIAO-RP2350-DIP"
+		(symbol "benjiaomodular:PJ3001F"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 8.89 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "PJ3001F"
+				(at 0 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Audio Jack, 2 Poles (Mono / TS), Switched T Pole (Normalling)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "audio jack receptacle mono headphones phone TS connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Jack*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "PJ3001F_0_1"
+				(rectangle
+					(start -2.54 0)
+					(end -3.81 -2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0.635 -0.635) (xy 1.27 0) (xy 2.54 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.778 -0.254) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start 2.54 3.81)
+					(end -2.54 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 2.54) (xy -0.635 2.54) (xy -0.635 0) (xy -1.27 -0.635) (xy -1.905 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -2.54) (xy 1.778 -2.54) (xy 1.778 -0.254) (xy 1.524 -0.762)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "PJ3001F_1_1"
+				(pin passive line
+					(at 5.08 2.54 180)
+					(length 2.54)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 2.54)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "T"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 -2.54 180)
+					(length 2.54)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "TN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "my_kicad_library:XIAO-RP2350-DIP_pins_only"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -3286,7 +3497,7 @@
 					(justify left bottom)
 				)
 			)
-			(property "Value" "XIAO-RP2350-DIP"
+			(property "Value" "XIAO-RP2350-DIP_pins_only"
 				(at -21.59 -31.75 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3330,7 +3541,7 @@
 					)
 				)
 			)
-			(symbol "XIAO-RP2350-DIP_0_1"
+			(symbol "XIAO-RP2350-DIP_pins_only_0_1"
 				(rectangle
 					(start -21.59 25.4)
 					(end 24.13 -29.21)
@@ -3343,7 +3554,7 @@
 					)
 				)
 			)
-			(symbol "XIAO-RP2350-DIP_1_0"
+			(symbol "XIAO-RP2350-DIP_pins_only_1_0"
 				(polyline
 					(pts
 						(xy -22.86 -3.81) (xy -21.59 -3.81)
@@ -3865,399 +4076,6 @@
 						)
 					)
 					(number "14"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "XIAO-RP2350-DIP_1_1"
-				(pin passive line
-					(at 26.67 -26.67 180)
-					(length 2.54)
-					(name "GPIO21_D11_RX1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "15"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 -22.86 180)
-					(length 2.54)
-					(name "GPIO20_D12_TX1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "16"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 -19.05 180)
-					(length 2.54)
-					(name "GPIO17_D13_SCL0"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "17"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 -15.24 180)
-					(length 2.54)
-					(name "GPIO16_D14_SDA0"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "18"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 -11.43 180)
-					(length 2.54)
-					(name "GPIO11_D15_SPI1_MOSI"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "19"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 -7.62 180)
-					(length 2.54)
-					(name "GPIO12_D16_SPI1_MISO"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "20"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 -3.81 180)
-					(length 2.54)
-					(name "GPIO10_D17_SPI1_SCK"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "21"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 0 180)
-					(length 2.54)
-					(name "GPIO9_D18_SPI1_CS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "22"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 22.86 180)
-					(length 2.54)
-					(name "BAT"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "23"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 26.67 19.05 180)
-					(length 2.54)
-					(name "GND_2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "24"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "benjiaomodular:PJ3001F"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "J"
-				(at 0 8.89 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "PJ3001F"
-				(at 0 6.35 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "Audio Jack, 2 Poles (Mono / TS), Switched T Pole (Normalling)"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "audio jack receptacle mono headphones phone TS connector"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_fp_filters" "Jack*"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "PJ3001F_0_1"
-				(rectangle
-					(start -2.54 0)
-					(end -3.81 -2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0) (xy 0.635 -0.635) (xy 1.27 0) (xy 2.54 0)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.778 -0.254) (xy 2.032 -0.762)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 2.54 3.81)
-					(end -2.54 -5.08)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 2.54) (xy -0.635 2.54) (xy -0.635 0) (xy -1.27 -0.635) (xy -1.905 0)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 -2.54) (xy 1.778 -2.54) (xy 1.778 -0.254) (xy 1.524 -0.762)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "PJ3001F_1_1"
-				(pin passive line
-					(at 5.08 2.54 180)
-					(length 2.54)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "S"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 5.08 0 180)
-					(length 2.54)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "T"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 5.08 -2.54 180)
-					(length 2.54)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "TN"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -4915,6 +4733,121 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "power:PWR_FLAG"
+			(power global)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(rectangle
 		(start 212.09 45.72)
@@ -5145,6 +5078,12 @@
 		(uuid "0922be91-e5c7-43f4-82da-442c72b10668")
 	)
 	(junction
+		(at 222.25 55.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "110f847e-2b01-449d-a997-3de0fde7d67f")
+	)
+	(junction
 		(at 54.61 135.89)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5154,7 +5093,7 @@
 		(at 232.41 55.88)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "1369adf2-fb43-453b-a086-6422f31ff59f")
+		(uuid "147785ad-0cee-4cbb-b8ae-42366c6f3f03")
 	)
 	(junction
 		(at 236.22 36.83)
@@ -5185,6 +5124,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "36913542-f3ff-473f-9944-49920e1f912a")
+	)
+	(junction
+		(at 254 132.08)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "37f00994-0141-4f93-95fd-f0e88049826d")
 	)
 	(junction
 		(at 76.2 36.83)
@@ -5271,6 +5216,12 @@
 		(uuid "89420e5b-7561-4d1c-b398-a8414874fc73")
 	)
 	(junction
+		(at 222.25 68.58)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "8da397e0-6598-4dd9-ad74-2cb0ee2558cc")
+	)
+	(junction
 		(at 35.56 175.26)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5325,6 +5276,12 @@
 		(uuid "c38ee028-e083-4581-b3c6-773b035043a9")
 	)
 	(junction
+		(at 232.41 68.58)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c6ec7344-b1ac-4992-80e2-a7150b816952")
+	)
+	(junction
 		(at 95.25 48.26)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5367,12 +5324,6 @@
 		(uuid "e69e46c0-26ac-45c3-8446-5373291b4baf")
 	)
 	(junction
-		(at 222.25 55.88)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "eac7aba4-50a1-4ab4-a83d-98ee02d326b3")
-	)
-	(junction
 		(at 87.63 82.55)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5391,52 +5342,20 @@
 		(uuid "f660f83c-7234-41eb-af0f-16b346cad585")
 	)
 	(no_connect
-		(at 203.2 97.79)
-		(uuid "330ed46c-59c9-4bdc-89ac-d07e10d252e8")
-	)
-	(no_connect
-		(at 203.2 78.74)
-		(uuid "4090de4d-c133-4d04-9efe-4390cba85388")
+		(at 153.67 52.07)
+		(uuid "0150943e-b88a-4ecd-a1f7-56cfbc380e79")
 	)
 	(no_connect
 		(at 134.62 156.21)
 		(uuid "50a7e244-7c8d-47e7-a580-4bd21becdca9")
 	)
 	(no_connect
-		(at 203.2 101.6)
-		(uuid "57c0d4ef-b7ec-4649-8a62-d2889a3e4639")
-	)
-	(no_connect
 		(at 134.62 153.67)
 		(uuid "63e480d3-8362-4d27-a3d1-5b3de50651e4")
 	)
 	(no_connect
-		(at 203.2 90.17)
-		(uuid "73d87b69-c618-4304-9196-6b8af493a05d")
-	)
-	(no_connect
-		(at 203.2 52.07)
-		(uuid "86273da1-3441-4280-9d69-e185c29e5c8f")
-	)
-	(no_connect
 		(at 50.8 80.01)
 		(uuid "a3b56936-4f3c-4122-aaf7-1d09ef9d07f4")
-	)
-	(no_connect
-		(at 152.4 52.07)
-		(uuid "afd95d23-5cc6-4839-8870-fd75eecece75")
-	)
-	(no_connect
-		(at 203.2 55.88)
-		(uuid "b99ccecb-3cd8-4543-b8bf-c1edf66ac56b")
-	)
-	(no_connect
-		(at 203.2 86.36)
-		(uuid "bf9c52ce-33a5-45d1-b2de-5c2bafdc4f93")
-	)
-	(no_connect
-		(at 203.2 82.55)
-		(uuid "c6d850b4-1e1d-4984-b5a5-0f3b056801de")
 	)
 	(no_connect
 		(at 104.14 167.64)
@@ -5453,14 +5372,6 @@
 	(no_connect
 		(at 69.85 167.64)
 		(uuid "f327d057-ca5f-4cee-8780-c11bb7614a53")
-	)
-	(no_connect
-		(at 203.2 74.93)
-		(uuid "f514c1a6-c894-43e9-9727-62a895b30a59")
-	)
-	(no_connect
-		(at 203.2 93.98)
-		(uuid "f627061b-247d-4c5b-88ad-6cdf64430126")
 	)
 	(no_connect
 		(at 134.62 148.59)
@@ -5532,6 +5443,16 @@
 	)
 	(wire
 		(pts
+			(xy 135.89 67.31) (xy 153.67 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "053e5154-1b21-46e7-8a2b-e2eee0a0b612")
+	)
+	(wire
+		(pts
 			(xy 58.42 143.51) (xy 58.42 146.05)
 		)
 		(stroke
@@ -5562,26 +5483,6 @@
 	)
 	(wire
 		(pts
-			(xy 128.27 93.98) (xy 152.4 93.98)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "086d301f-c991-47c1-a54f-85692180b978")
-	)
-	(wire
-		(pts
-			(xy 152.4 97.79) (xy 135.89 97.79)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "08765f4a-4d49-4524-a725-f87b7ce71086")
-	)
-	(wire
-		(pts
 			(xy 106.68 48.26) (xy 111.76 48.26)
 		)
 		(stroke
@@ -5589,16 +5490,6 @@
 			(type default)
 		)
 		(uuid "0ae39e11-d038-479d-8beb-d28ad58e072e")
-	)
-	(wire
-		(pts
-			(xy 232.41 53.34) (xy 232.41 55.88)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0e5b6d32-63db-419b-a4a2-ba8e6f4d6a78")
 	)
 	(wire
 		(pts
@@ -5622,16 +5513,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 67.31) (xy 152.4 67.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "117e85b7-c48c-4e47-8ab3-19fcf9d45ca7")
-	)
-	(wire
-		(pts
 			(xy 106.68 27.94) (xy 111.76 27.94)
 		)
 		(stroke
@@ -5639,6 +5520,16 @@
 			(type default)
 		)
 		(uuid "16bae060-718c-4a12-bae2-bc9d8af61796")
+	)
+	(wire
+		(pts
+			(xy 232.41 52.07) (xy 232.41 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1b2b4b63-26e4-4489-a3bb-2ff0e253360d")
 	)
 	(wire
 		(pts
@@ -5659,6 +5550,16 @@
 			(type default)
 		)
 		(uuid "1d7a8dfa-0f09-41f6-a17c-5a42339c62fa")
+	)
+	(wire
+		(pts
+			(xy 135.89 71.12) (xy 153.67 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1dcd8cb9-708f-41a0-85a2-c9254f60bbd2")
 	)
 	(wire
 		(pts
@@ -5692,16 +5593,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 63.5) (xy 152.4 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "21c4d802-3c4d-45fc-b7a1-c5bcca011893")
-	)
-	(wire
-		(pts
 			(xy 39.37 82.55) (xy 40.64 82.55)
 		)
 		(stroke
@@ -5709,6 +5600,16 @@
 			(type default)
 		)
 		(uuid "23136a62-a88d-4501-b2c0-189a64c4dc18")
+	)
+	(wire
+		(pts
+			(xy 135.89 86.36) (xy 153.67 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2392eab4-bc43-4ae4-862c-26f95dc1672d")
 	)
 	(wire
 		(pts
@@ -5772,16 +5673,6 @@
 	)
 	(wire
 		(pts
-			(xy 222.25 55.88) (xy 215.9 55.88)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "29f81e01-f4c0-45f1-a257-ed1c5af1ab87")
-	)
-	(wire
-		(pts
 			(xy 100.33 170.18) (xy 104.14 170.18)
 		)
 		(stroke
@@ -5789,16 +5680,6 @@
 			(type default)
 		)
 		(uuid "2abd35fc-eaa1-4a5c-a2b1-65785a53d1e3")
-	)
-	(wire
-		(pts
-			(xy 134.62 74.93) (xy 152.4 74.93)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2affec9f-d74f-4143-82b0-e303a5e73e9a")
 	)
 	(wire
 		(pts
@@ -5839,26 +5720,6 @@
 			(type default)
 		)
 		(uuid "306eac01-5ce6-4360-b36c-954a29eb1995")
-	)
-	(wire
-		(pts
-			(xy 134.62 78.74) (xy 152.4 78.74)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "30763760-71bd-4283-b02a-92d3ecb620a9")
-	)
-	(wire
-		(pts
-			(xy 134.62 90.17) (xy 152.4 90.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "313bd98b-1095-48c5-94bd-095cf248e142")
 	)
 	(wire
 		(pts
@@ -5972,6 +5833,16 @@
 	)
 	(wire
 		(pts
+			(xy 135.89 59.69) (xy 153.67 59.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3f16770b-5dbb-4062-b699-3fe95aca2039")
+	)
+	(wire
+		(pts
 			(xy 62.23 45.72) (xy 62.23 46.99)
 		)
 		(stroke
@@ -6029,6 +5900,16 @@
 			(type default)
 		)
 		(uuid "47b11a55-36d3-4eea-a04b-5e76c7859e63")
+	)
+	(wire
+		(pts
+			(xy 135.89 78.74) (xy 153.67 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4a65a5f2-85dd-46b9-97e1-b3a8365185fb")
 	)
 	(wire
 		(pts
@@ -6112,6 +5993,16 @@
 	)
 	(wire
 		(pts
+			(xy 227.33 54.61) (xy 227.33 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "59a37324-d17a-497e-b8aa-5079b29ee7df")
+	)
+	(wire
+		(pts
 			(xy 240.03 140.97) (xy 250.19 140.97)
 		)
 		(stroke
@@ -6119,16 +6010,6 @@
 			(type default)
 		)
 		(uuid "5a0f877e-5cef-445f-ac99-1eccb61b92d7")
-	)
-	(wire
-		(pts
-			(xy 134.62 86.36) (xy 152.4 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5acd336d-23c6-46f9-8449-dcb0d43e2c27")
 	)
 	(wire
 		(pts
@@ -6252,6 +6133,16 @@
 	)
 	(wire
 		(pts
+			(xy 222.25 53.34) (xy 222.25 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6a9186d1-f73a-4bb6-bad7-6c5c29c3179f")
+	)
+	(wire
+		(pts
 			(xy 184.15 139.7) (xy 195.58 139.7)
 		)
 		(stroke
@@ -6269,16 +6160,6 @@
 			(type default)
 		)
 		(uuid "6e9845e0-5a45-4fd6-9e37-28907aff256d")
-	)
-	(wire
-		(pts
-			(xy 134.62 82.55) (xy 152.4 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "708051fa-3549-4db4-89aa-39fb5e305eda")
 	)
 	(wire
 		(pts
@@ -6312,13 +6193,13 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 71.12) (xy 152.4 71.12)
+			(xy 153.67 97.79) (xy 137.16 97.79)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "7241c092-395b-4886-bb28-7efb225c23d1")
+		(uuid "7442a01b-8449-4c2f-89ef-7d3461eb2fe5")
 	)
 	(wire
 		(pts
@@ -6332,7 +6213,7 @@
 	)
 	(wire
 		(pts
-			(xy 254 143.51) (xy 254 135.89)
+			(xy 254 143.51) (xy 254 132.08)
 		)
 		(stroke
 			(width 0)
@@ -6382,6 +6263,16 @@
 	)
 	(wire
 		(pts
+			(xy 254 132.08) (xy 254 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "788b769c-1b70-415b-83a7-5fd7b570a0c8")
+	)
+	(wire
+		(pts
 			(xy 106.68 59.69) (xy 111.76 59.69)
 		)
 		(stroke
@@ -6419,6 +6310,16 @@
 			(type default)
 		)
 		(uuid "7a54cf63-ac00-4507-a61b-42a13dc5374c")
+	)
+	(wire
+		(pts
+			(xy 232.41 52.07) (xy 237.49 52.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7a67dd11-ee8c-4199-a596-b8802c6193f8")
 	)
 	(wire
 		(pts
@@ -6532,16 +6433,6 @@
 	)
 	(wire
 		(pts
-			(xy 215.9 55.88) (xy 215.9 59.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8d6d8de7-2196-4be4-99da-be2e0316c947")
-	)
-	(wire
-		(pts
 			(xy 21.59 52.07) (xy 21.59 53.34)
 		)
 		(stroke
@@ -6599,6 +6490,16 @@
 			(type default)
 		)
 		(uuid "9315ab71-959f-45a9-8c9a-5335735a7fca")
+	)
+	(wire
+		(pts
+			(xy 135.89 90.17) (xy 153.67 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "969d0639-a4ee-4f5e-b4c4-57f443ca3930")
 	)
 	(wire
 		(pts
@@ -6662,13 +6563,23 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 59.69) (xy 152.4 59.69)
+			(xy 135.89 74.93) (xy 153.67 74.93)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a0cf02a4-d9a3-46c1-923f-005d11b81523")
+		(uuid "9fab9faa-504b-4620-ad6c-675944b1bb48")
+	)
+	(wire
+		(pts
+			(xy 137.16 97.79) (xy 137.16 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a0efeec2-43a9-41c3-8e6a-25b9464a6957")
 	)
 	(wire
 		(pts
@@ -6702,16 +6613,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 55.88) (xy 152.4 55.88)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a3a21adf-79ab-44b2-8dfe-8dbc946636f4")
-	)
-	(wire
-		(pts
 			(xy 76.2 36.83) (xy 87.63 36.83)
 		)
 		(stroke
@@ -6729,6 +6630,16 @@
 			(type default)
 		)
 		(uuid "a506f7e0-8e58-44c6-9de1-e6cbf54caab9")
+	)
+	(wire
+		(pts
+			(xy 135.89 82.55) (xy 153.67 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5882f8f-7ae3-4d9d-8209-add0bcb49f93")
 	)
 	(wire
 		(pts
@@ -6839,16 +6750,6 @@
 			(type default)
 		)
 		(uuid "b6961722-e0a0-4c0c-94f8-7972ec65af19")
-	)
-	(wire
-		(pts
-			(xy 128.27 101.6) (xy 152.4 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b6cd8689-27f9-4d28-a2ae-be97cb6f3d50")
 	)
 	(wire
 		(pts
@@ -7092,6 +6993,16 @@
 	)
 	(wire
 		(pts
+			(xy 135.89 55.88) (xy 153.67 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d5d35d4a-4d6c-4b4f-834d-30542b492bf4")
+	)
+	(wire
+		(pts
 			(xy 231.14 100.33) (xy 231.14 102.87)
 		)
 		(stroke
@@ -7109,6 +7020,16 @@
 			(type default)
 		)
 		(uuid "d6e187b3-508d-4ca7-ae2c-f24815f95bd9")
+	)
+	(wire
+		(pts
+			(xy 129.54 93.98) (xy 153.67 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d81ea19f-fe60-456a-9f92-1b22f01b7b4a")
 	)
 	(wire
 		(pts
@@ -7179,6 +7100,16 @@
 			(type default)
 		)
 		(uuid "dce9d916-4ef3-4f47-a80a-5b106da5d07e")
+	)
+	(wire
+		(pts
+			(xy 135.89 63.5) (xy 153.67 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e036b765-ee38-4f5b-bf24-cf4d533610bb")
 	)
 	(wire
 		(pts
@@ -7312,13 +7243,13 @@
 	)
 	(wire
 		(pts
-			(xy 135.89 97.79) (xy 135.89 110.49)
+			(xy 129.54 101.6) (xy 153.67 101.6)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "f95385a9-b6b3-44d2-9353-53c196db405b")
+		(uuid "f80323ce-7e0c-42a2-b89d-6e3c4074f1f0")
 	)
 	(wire
 		(pts
@@ -7440,6 +7371,16 @@
 		)
 		(uuid "06ffd3d8-0e16-4cc5-b8fc-810211e4652e")
 	)
+	(label "ENCODER_CLICK"
+		(at 135.89 78.74 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "072d352c-378b-4edc-80fa-b06b75f5b2f7")
+	)
 	(label "vref"
 		(at 35.56 111.76 90)
 		(effects
@@ -7470,16 +7411,6 @@
 		)
 		(uuid "1966bbf5-713f-4726-81e3-65952070258d")
 	)
-	(label ""
-		(at 59.69 124.46 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1d6199c0-7d68-41ac-ae9e-c36af2268d51")
-	)
 	(label "out_b"
 		(at 100.33 160.02 0)
 		(effects
@@ -7489,6 +7420,16 @@
 			(justify left bottom)
 		)
 		(uuid "1ecd448c-cb3c-4323-8ec0-0eaf5a9013e3")
+	)
+	(label "CS_DAC"
+		(at 135.89 63.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "24a491db-c434-4798-a0b9-34bccb355fd5")
 	)
 	(label "vref"
 		(at 245.11 36.83 180)
@@ -7540,6 +7481,16 @@
 		)
 		(uuid "38ac5c26-28ee-4fea-a47f-9cd41a76961f")
 	)
+	(label "SPI_MISO"
+		(at 135.89 86.36 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3c107096-b0d4-4140-8bfb-966d76a8dfe9")
+	)
 	(label "vref"
 		(at 35.56 132.08 90)
 		(effects
@@ -7569,16 +7520,6 @@
 			(justify left bottom)
 		)
 		(uuid "45b8b92d-59bf-4fcf-88bf-ea0af1510dc3")
-	)
-	(label "SPI_MOSI"
-		(at 134.62 90.17 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "46179941-849f-45bb-a094-53d2762c4dc4")
 	)
 	(label "ENCODER_A"
 		(at 132.08 22.86 0)
@@ -7630,15 +7571,15 @@
 		)
 		(uuid "5174229e-9c34-41ee-ba8f-b3648da84449")
 	)
-	(label "ENCODER_CLICK"
-		(at 134.62 78.74 0)
+	(label "ENCODER_A"
+		(at 135.89 55.88 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "6af5d072-810c-45e4-bf29-a02dbd7aed4c")
+		(uuid "5871e986-d914-4f62-82d3-fd13ff6293f8")
 	)
 	(label "clamp_a"
 		(at 111.76 39.37 0)
@@ -7660,16 +7601,6 @@
 		)
 		(uuid "7376dc8b-7a31-4f8b-b604-20d095ac2033")
 	)
-	(label ""
-		(at 77.47 38.1 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "7d4d48df-9d3e-4e50-86cb-b5a248493dca")
-	)
 	(label "vref"
 		(at 53.34 41.91 90)
 		(effects
@@ -7689,6 +7620,16 @@
 			(justify left bottom)
 		)
 		(uuid "857626d8-e73a-4298-80bb-a4aea0f56abb")
+	)
+	(label "I2C_SCL"
+		(at 135.89 71.12 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "866e1300-7851-4040-ada4-c15913f0a15b")
 	)
 	(label "CS_DAC"
 		(at 184.15 147.32 0)
@@ -7710,25 +7651,25 @@
 		)
 		(uuid "8ed84f29-4b8d-4ba7-8a3d-484a3495b5c4")
 	)
-	(label "SPI_MISO"
-		(at 134.62 86.36 0)
+	(label "I2C_SDA"
+		(at 135.89 67.31 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "9332b7d8-32e3-4a94-9553-eae7d88af33f")
+		(uuid "9599feab-21e3-40ba-a4e9-2cf14f450d63")
 	)
-	(label "I2C_SCL"
-		(at 134.62 71.12 0)
+	(label "ENCODER_B"
+		(at 135.89 59.69 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "a7043188-b115-481b-b8a4-108dadc3f8bf")
+		(uuid "a11a6eb0-5e54-4ac3-b9bc-d97ff3900dce")
 	)
 	(label "out_a"
 		(at 91.44 114.3 0)
@@ -7760,25 +7701,15 @@
 		)
 		(uuid "a964510d-0f4d-4831-aec2-210800dd75a2")
 	)
-	(label "SPI_SCK"
-		(at 134.62 82.55 0)
+	(label "SPI_MOSI"
+		(at 135.89 90.17 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "a975c758-00bb-49b5-84bf-b789b3c5982b")
-	)
-	(label "ENCODER_B"
-		(at 134.62 59.69 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "aa6d3c0e-d2db-4add-b521-f5420858b283")
+		(uuid "b113ee04-3a71-4c8a-bfdc-2e3878d74551")
 	)
 	(label "vref"
 		(at 210.82 129.54 90)
@@ -7801,14 +7732,24 @@
 		(uuid "bc593687-251d-4b2b-9711-f7692f02a9e5")
 	)
 	(label "CS_ADC"
-		(at 134.62 74.93 0)
+		(at 135.89 74.93 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "c2a2189e-1db1-41b1-9522-fcbbf391121c")
+		(uuid "bfecdc4d-64bc-4ba0-a0f2-6f3ac2ed5d41")
+	)
+	(label "SPI_SCK"
+		(at 135.89 82.55 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "c6df59cb-aca9-494a-8db8-f30bda42c4ce")
 	)
 	(label "I2C_SDA"
 		(at 250.19 138.43 180)
@@ -7829,36 +7770,6 @@
 			(justify left bottom)
 		)
 		(uuid "dc45727a-192f-4502-9763-d25ea6c3034c")
-	)
-	(label "I2C_SDA"
-		(at 134.62 67.31 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "dd0c9e1c-23f9-48ef-8de2-b4a32478ce19")
-	)
-	(label "CS_DAC"
-		(at 134.62 63.5 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "dd1d5b48-4e1b-45e4-b21b-310c0c2b933d")
-	)
-	(label "ENCODER_A"
-		(at 134.62 55.88 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e26adf36-4005-4b4b-a4a0-220db59ec84b")
 	)
 	(label "SPI_MOSI"
 		(at 177.8 148.59 180)
@@ -7911,6 +7822,84 @@
 		(uuid "f9937659-202c-4459-a20e-9f001258da0d")
 	)
 	(symbol
+		(lib_id "power:+5V")
+		(at 129.54 101.6 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "04e0017c-fb56-4d28-ad8f-471a5da3434e")
+		(property "Reference" "#PWR047"
+			(at 129.54 105.41 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 129.54 96.52 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 129.54 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 129.54 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 129.54 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "eddb4dd1-efab-4f8f-b32d-18b8c995f956")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR047")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 57.15 45.72 270)
 		(unit 1)
@@ -7942,7 +7931,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 57.15 43.942 90)
 			(hide yes)
 			(show_name no)
@@ -7982,7 +7971,7 @@
 			(uuid "f6ab9da3-cb7a-4043-b515-75c424333d1c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R6")
 					(unit 1)
@@ -8024,7 +8013,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 250.4948 35.56 0)
 			(hide yes)
 			(show_name no)
@@ -8064,9 +8053,165 @@
 			(uuid "8b113750-0efd-4166-9f95-07cb943350f6")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 254 132.08 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "05c9db5a-469c-4098-8561-bd6a8e79a7f5")
+		(property "Reference" "#FLG04"
+			(at 252.095 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 250.19 132.0799 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 254 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 254 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 254 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c284b13b-fd78-4b53-9355-1ff58f34e416")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#FLG04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 227.33 54.61 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "068f2ef1-ff8b-4708-a7df-9ce593e79e31")
+		(property "Reference" "#FLG03"
+			(at 227.33 52.705 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 231.14 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 227.33 54.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 227.33 54.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 227.33 54.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "130e3d24-be33-4ba3-993d-27d337a6f6e5")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#FLG03")
 					(unit 1)
 				)
 			)
@@ -8106,7 +8251,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 22.5552 34.29 0)
 			(hide yes)
 			(show_name no)
@@ -8146,7 +8291,7 @@
 			(uuid "d4d47d29-b63f-4b53-874a-a01efd82dc16")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C2")
 					(unit 1)
@@ -8225,7 +8370,7 @@
 			(uuid "28e45c24-a7a2-4294-ad83-fb28843b3fb8")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR042")
 					(unit 1)
@@ -8267,7 +8412,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
+		(property "Footprint" "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
 			(at 227.33 60.96 0)
 			(hide yes)
 			(show_name no)
@@ -8331,9 +8476,126 @@
 			(uuid "50906a04-7941-43b0-b956-3bb8f53c25a8")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "my_kicad_library:XIAO-RP2350-DIP_pins_only")
+		(at 177.8 74.93 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "09b07683-5e11-4f0c-9bc9-78cd3683c6dc")
+		(property "Reference" "U8"
+			(at 166.624 45.72 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.0795)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "XIAO-RP2350-DIP_pins_only"
+			(at 166.624 48.26 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.0795)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "my_kicad_library:XIAO-RP2350-DIP_pins_only"
+			(at 177.038 108.204 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 177.8 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 177.8 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "33f047b7-facd-46e5-876f-bbbe335bc50a")
+		)
+		(pin "2"
+			(uuid "10102e00-8cd1-43ad-9f61-f4bfd65adee8")
+		)
+		(pin "7"
+			(uuid "aa78ae44-4688-4adb-bb45-9154a1e5726f")
+		)
+		(pin "6"
+			(uuid "ec21827f-b9cd-41ca-b9fb-c6ce02e672a6")
+		)
+		(pin "10"
+			(uuid "7586072d-2c1e-4f01-8e04-ca2e87d55242")
+		)
+		(pin "8"
+			(uuid "e7542ae6-4d3c-474f-b3fe-80ed0d3b53ef")
+		)
+		(pin "14"
+			(uuid "7a25d1c4-0a19-46eb-9e70-d0eac3c2d1d3")
+		)
+		(pin "13"
+			(uuid "aa6a5a22-ce16-450b-a149-42f38c63c793")
+		)
+		(pin "12"
+			(uuid "c1c883b5-1047-4068-9a7b-91576915f6c0")
+		)
+		(pin "9"
+			(uuid "bf09dee1-3376-4631-942e-8fe2f9553798")
+		)
+		(pin "11"
+			(uuid "892cc3aa-3a3d-426d-a885-8b6fb2a726b9")
+		)
+		(pin "4"
+			(uuid "b150a208-5d88-41ef-a722-f8b1622a5bc2")
+		)
+		(pin "5"
+			(uuid "cc7bc3d0-84c4-41b5-8ff3-ab29988bb756")
+		)
+		(pin "3"
+			(uuid "4f524a68-24cd-41d3-9b62-9d065d6df286")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "U8")
 					(unit 1)
 				)
 			)
@@ -8409,7 +8671,7 @@
 			(uuid "cbeef7f7-ddf2-4349-b19c-0b0577a1c39c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR08")
 					(unit 1)
@@ -8488,7 +8750,7 @@
 			(uuid "af69b7be-937e-4353-aa0a-5dcdcc71d1ea")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR012")
 					(unit 1)
@@ -8566,7 +8828,7 @@
 			(uuid "1dd3fac1-bbd3-44e3-86c1-5f5f8f69c33d")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR035")
 					(unit 1)
@@ -8608,7 +8870,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 61.2648 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -8648,7 +8910,7 @@
 			(uuid "a1612bcd-2dad-4b1f-ac17-164eae1c7a3a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C4")
 					(unit 1)
@@ -8689,7 +8951,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 232.41 103.8352 0)
 			(hide yes)
 			(show_name no)
@@ -8729,7 +8991,7 @@
 			(uuid "25d6970d-a0d9-4c44-92ae-b9b228996852")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C12")
 					(unit 1)
@@ -8769,7 +9031,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 102.87 26.162 90)
 			(hide yes)
 			(show_name no)
@@ -8809,7 +9071,7 @@
 			(uuid "033f56cf-09a0-4c9b-9992-b0fb9da7859c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R3")
 					(unit 1)
@@ -8888,7 +9150,7 @@
 			(uuid "a81687a7-11e0-4602-9bed-5af75fe42379")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR037")
 					(unit 1)
@@ -8928,7 +9190,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 85.09 112.522 90)
 			(hide yes)
 			(show_name no)
@@ -8968,7 +9230,7 @@
 			(uuid "e6852787-b4e0-488d-bc7d-be1cad7cf6a2")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R15")
 					(unit 1)
@@ -9008,7 +9270,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 85.09 144.272 90)
 			(hide yes)
 			(show_name no)
@@ -9048,7 +9310,7 @@
 			(uuid "bae86062-d835-461d-a92a-77131aab5ace")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R22")
 					(unit 1)
@@ -9126,7 +9388,7 @@
 			(uuid "67e3b742-f09c-480d-ae95-c1cf6c1f5595")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR09")
 					(unit 1)
@@ -9204,7 +9466,7 @@
 			(uuid "07800bb2-2d31-4b5b-b020-e26a9e1605f2")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR039")
 					(unit 1)
@@ -9282,7 +9544,7 @@
 			(uuid "2e1dac95-8c79-4fd1-a5fe-aab9b81c5c2d")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR019")
 					(unit 1)
@@ -9360,7 +9622,7 @@
 			(uuid "1ed21cb0-ff22-4828-9a12-995dfe0b0082")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR026")
 					(unit 1)
@@ -9400,7 +9662,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 39.37 134.112 90)
 			(hide yes)
 			(show_name no)
@@ -9440,7 +9702,7 @@
 			(uuid "cc76cc3a-d729-43b8-b92d-c94dfba74212")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R18")
 					(unit 1)
@@ -9480,7 +9742,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 44.45 80.772 90)
 			(hide yes)
 			(show_name no)
@@ -9520,7 +9782,7 @@
 			(uuid "729cad93-2f2c-4232-bf13-10b9174a0758")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R9")
 					(unit 1)
@@ -9598,9 +9860,87 @@
 			(uuid "b0321d8c-28a5-4833-bf1b-e618cc1ea0f2")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR011")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 137.16 110.49 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "28e25ab4-45e3-4326-acd1-00edc4716ac7")
+		(property "Reference" "#PWR048"
+			(at 137.16 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 137.16 115.57 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 137.16 110.49 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 137.16 110.49 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 137.16 110.49 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a778ee29-333e-4659-abe6-9500196ab43a")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR048")
 					(unit 1)
 				)
 			)
@@ -9676,7 +10016,7 @@
 			(uuid "7bdb58e3-81e4-4ffc-997d-9c3fdbb6bf67")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR041")
 					(unit 1)
@@ -9754,7 +10094,7 @@
 			(uuid "79cadf11-eb06-4da3-9aeb-c246112f6852")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR07")
 					(unit 1)
@@ -9794,7 +10134,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical"
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
 			(at 234.95 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -9840,7 +10180,7 @@
 			(uuid "207c67b4-363d-4bab-b9b5-285367421820")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "J3")
 					(unit 1)
@@ -9919,7 +10259,7 @@
 			(uuid "971a66fd-c156-46cc-8044-218171b094ab")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR034")
 					(unit 1)
@@ -10037,7 +10377,7 @@
 			(uuid "c018486c-5d29-4cce-905f-88797fe8e3ef")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "RV1")
 					(unit 1)
@@ -10077,7 +10417,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 39.37 113.792 90)
 			(hide yes)
 			(show_name no)
@@ -10117,7 +10457,7 @@
 			(uuid "7f89ef7b-5260-4f70-a345-75663e376482")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R17")
 					(unit 1)
@@ -10196,7 +10536,7 @@
 			(uuid "9d9dd1b5-b820-4951-adf9-decc6c8ebba0")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR01")
 					(unit 1)
@@ -10238,7 +10578,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 43.4848 143.51 0)
 			(hide yes)
 			(show_name no)
@@ -10278,7 +10618,7 @@
 			(uuid "43fc4ca4-15e0-407b-98a1-8b8e40d79e91")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C9")
 					(unit 1)
@@ -10360,7 +10700,7 @@
 			(uuid "a8bdf4f3-fd4e-4cd4-8459-a440eeec7f9b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "J6")
 					(unit 1)
@@ -10370,7 +10710,7 @@
 	)
 	(symbol
 		(lib_id "power:-12V")
-		(at 215.9 59.69 180)
+		(at 237.49 52.07 180)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10381,7 +10721,7 @@
 		(fields_autoplaced yes)
 		(uuid "422a80f4-e26d-475e-abb7-eb133d743430")
 		(property "Reference" "#PWR040"
-			(at 215.9 55.88 0)
+			(at 237.49 48.26 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10392,7 +10732,7 @@
 			)
 		)
 		(property "Value" "-12V"
-			(at 215.9 64.77 0)
+			(at 237.49 57.15 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10402,7 +10742,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 215.9 59.69 0)
+			(at 237.49 52.07 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10413,7 +10753,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 215.9 59.69 0)
+			(at 237.49 52.07 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10424,7 +10764,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"-12V\""
-			(at 215.9 59.69 0)
+			(at 237.49 52.07 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10438,7 +10778,7 @@
 			(uuid "338413ae-ba03-422d-8223-28bb93ce18f8")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR040")
 					(unit 1)
@@ -10536,7 +10876,7 @@
 			(uuid "2e7dc3d9-eeeb-4f13-beb1-5aa7f634c9a8")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U5")
 					(unit 2)
@@ -10576,7 +10916,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 102.87 46.482 90)
 			(hide yes)
 			(show_name no)
@@ -10616,7 +10956,7 @@
 			(uuid "65d1245d-924c-4584-880e-2dea5ed24f66")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R4")
 					(unit 1)
@@ -10714,7 +11054,7 @@
 			(uuid "42287b1d-3b9a-4d2a-87c4-2dcf554b7679")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U1")
 					(unit 2)
@@ -10754,7 +11094,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_SMD:TO-252-3_TabPin2"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-223"
 			(at 231.14 87.63 0)
 			(hide yes)
 			(show_name no)
@@ -10797,7 +11137,7 @@
 			(uuid "4e4031a3-de91-41c5-a00c-b7572d343011")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U6")
 					(unit 1)
@@ -10879,7 +11219,7 @@
 			(uuid "b59406a3-b199-47ad-83d1-29837940445c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "J2")
 					(unit 1)
@@ -10957,7 +11297,7 @@
 			(uuid "a9965f56-6470-4686-b1e9-4f4a1f2b5508")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR010")
 					(unit 1)
@@ -10967,7 +11307,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 254 135.89 0)
+		(at 254 130.81 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10978,7 +11318,7 @@
 		(fields_autoplaced yes)
 		(uuid "54fe1be2-816e-43fb-999e-c6ca9a21f2c2")
 		(property "Reference" "#PWR029"
-			(at 254 139.7 0)
+			(at 254 134.62 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10989,7 +11329,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 254 130.81 0)
+			(at 254 125.73 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10999,7 +11339,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 254 135.89 0)
+			(at 254 130.81 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11010,7 +11350,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 254 135.89 0)
+			(at 254 130.81 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11021,7 +11361,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 254 135.89 0)
+			(at 254 130.81 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11035,7 +11375,7 @@
 			(uuid "32e9de82-f787-4605-82f8-610ae8be4db6")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR029")
 					(unit 1)
@@ -11113,7 +11453,7 @@
 			(uuid "0765cbdf-969f-4001-99a2-fc47138ea93c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR030")
 					(unit 1)
@@ -11191,7 +11531,7 @@
 			(uuid "87f02ea7-9274-447d-b3a0-a120923dc6ff")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR028")
 					(unit 1)
@@ -11276,7 +11616,7 @@
 			(uuid "71b245ab-2c1f-46b7-88bd-fa9461142d86")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "D1")
 					(unit 1)
@@ -11354,7 +11694,7 @@
 			(uuid "d9b8d99d-39e4-4498-b9a1-c1f995eb8113")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR02")
 					(unit 1)
@@ -11394,7 +11734,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 73.66 141.732 90)
 			(hide yes)
 			(show_name no)
@@ -11434,7 +11774,7 @@
 			(uuid "77623f9e-f94f-4d4d-b5b6-f7ea8ebff85f")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R14")
 					(unit 1)
@@ -11512,7 +11852,7 @@
 			(uuid "bd980d61-2817-4942-bf09-982e625ad7df")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR031")
 					(unit 1)
@@ -11552,7 +11892,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 57.15 23.622 90)
 			(hide yes)
 			(show_name no)
@@ -11592,9 +11932,86 @@
 			(uuid "64ff74b7-aa66-41dc-9b22-89dd1b292d4b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 232.41 68.58 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "6d34c249-15ad-4b28-b709-7cf6cb88779b")
+		(property "Reference" "#FLG02"
+			(at 232.41 70.485 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 235.966 73.406 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 232.41 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 232.41 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 232.41 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "462714fc-8a98-4262-b5a2-55ded4da1d87")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#FLG02")
 					(unit 1)
 				)
 			)
@@ -11632,7 +12049,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 102.87 57.912 90)
 			(hide yes)
 			(show_name no)
@@ -11672,7 +12089,7 @@
 			(uuid "051b9ded-81c6-43a4-b927-be5cacbbd582")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R11")
 					(unit 1)
@@ -11751,7 +12168,7 @@
 			(uuid "6578ff11-d91a-42c2-a561-6d17fe569d7a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR014")
 					(unit 1)
@@ -11793,7 +12210,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 61.2648 34.29 0)
 			(hide yes)
 			(show_name no)
@@ -11833,7 +12250,7 @@
 			(uuid "10af7b7a-5e63-45c4-a2b7-84628414e7c9")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C3")
 					(unit 1)
@@ -11873,7 +12290,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 91.44 35.052 90)
 			(hide yes)
 			(show_name no)
@@ -11913,155 +12330,9 @@
 			(uuid "e9ace7d6-fde3-42fd-9512-3861d5f033a3")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Seeed_Studio_XIAO_Series:XIAO-RP2350-DIP")
-		(at 176.53 74.93 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "772aa03a-3ae3-4043-8e3b-d80fe77eb101")
-		(property "Reference" "U4"
-			(at 177.1269 44.45 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.0795)
-				)
-			)
-		)
-		(property "Value" "XIAO-RP2350-DIP"
-			(at 177.1269 46.99 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.0795)
-				)
-			)
-		)
-		(property "Footprint" "Seeed Studio XIAO Series Library:XIAO-RP2350-DIP"
-			(at 175.768 108.204 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 176.53 63.5 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 176.53 63.5 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "5"
-			(uuid "36cfec28-1d81-491b-af44-ad6a36a37fc9")
-		)
-		(pin "4"
-			(uuid "26e41287-b2bf-497a-a519-8657ecf29652")
-		)
-		(pin "3"
-			(uuid "65d0e069-6d1f-4849-b60e-413f6288ca00")
-		)
-		(pin "2"
-			(uuid "445c1b7e-5e90-4aff-ad3e-c7e93f31ec5c")
-		)
-		(pin "1"
-			(uuid "036b038e-7a5f-448a-9888-0d603b4dd3a2")
-		)
-		(pin "9"
-			(uuid "cfcdcdc9-691a-4fc7-bc9c-3f1f7bb85235")
-		)
-		(pin "8"
-			(uuid "e8d0ea81-a5b0-4b53-a086-325729441b97")
-		)
-		(pin "7"
-			(uuid "d5df6bfe-6543-462f-8dc5-802e9d19563b")
-		)
-		(pin "6"
-			(uuid "cc092f6a-605b-4e01-852d-780821dc496c")
-		)
-		(pin "15"
-			(uuid "45572308-25b4-4f0c-ad17-59c0ea55d85e")
-		)
-		(pin "16"
-			(uuid "29b58b92-dd9a-4060-8df6-e321e7f439cb")
-		)
-		(pin "17"
-			(uuid "1485c10a-eae4-4ba3-9dc6-3e1251ecf604")
-		)
-		(pin "18"
-			(uuid "30f12d75-523e-4c2d-b2f4-ad83d8d59fef")
-		)
-		(pin "19"
-			(uuid "aad1af8e-3032-4591-9793-5fa75afa3912")
-		)
-		(pin "21"
-			(uuid "ad7f0cf1-c5d2-483b-81cf-19771e460959")
-		)
-		(pin "20"
-			(uuid "fbbaeb55-87c1-460e-9a1a-772f7685aa3c")
-		)
-		(pin "13"
-			(uuid "99b3787f-a67d-4874-a3ec-86b01b34c91d")
-		)
-		(pin "14"
-			(uuid "2586dd2d-c588-4e05-b384-362a1128e598")
-		)
-		(pin "11"
-			(uuid "488f6861-c4b8-4d9e-a1c7-db5a5d82b339")
-		)
-		(pin "12"
-			(uuid "c855b19e-f21d-4784-a442-fc351453c449")
-		)
-		(pin "10"
-			(uuid "9a6c3863-9d90-40b0-a8e8-949e191b739e")
-		)
-		(pin "22"
-			(uuid "49e12223-ee17-4cee-89c6-ae1508aa0898")
-		)
-		(pin "23"
-			(uuid "eaaa83ca-b0c5-49fb-ac4e-f0cfcb7d4c85")
-		)
-		(pin "24"
-			(uuid "4d72e0f6-9abc-4f03-a1a5-6b57158e5adb")
-		)
-		(instances
-			(project "gio-opamp"
-				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
-					(reference "U4")
 					(unit 1)
 				)
 			)
@@ -12137,7 +12408,7 @@
 			(uuid "c3f03138-2ffa-4f4b-9dd0-862d50675918")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR038")
 					(unit 1)
@@ -12261,87 +12532,9 @@
 			(uuid "b8a71b6c-5a8f-4107-8f81-9d175df260d3")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 135.89 110.49 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "78db659e-af29-4edb-a0f3-1d11ce5a3054")
-		(property "Reference" "#PWR04"
-			(at 135.89 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 135.89 115.57 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 135.89 110.49 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 135.89 110.49 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 135.89 110.49 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "16e76667-eed4-4888-9cd3-aae0e1b3d9e3")
-		)
-		(instances
-			(project "gio-opamp"
-				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
-					(reference "#PWR04")
 					(unit 1)
 				)
 			)
@@ -12417,7 +12610,7 @@
 			(uuid "5a35c0df-6d66-4fcf-900e-0050426f4c68")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR015")
 					(unit 1)
@@ -12502,7 +12695,7 @@
 			(uuid "a702c5cb-8179-43cf-81ec-82a70a1b4fc2")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "D3")
 					(unit 1)
@@ -12580,7 +12773,7 @@
 			(uuid "991fc3c3-81e0-494d-a1b0-650a09899c07")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR036")
 					(unit 1)
@@ -12681,7 +12874,7 @@
 			(uuid "42287b1d-3b9a-4d2a-87c4-2dcf554b767a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U1")
 					(unit 3)
@@ -12691,7 +12884,7 @@
 	)
 	(symbol
 		(lib_id "power:+12V")
-		(at 232.41 53.34 0)
+		(at 222.25 53.34 0)
 		(mirror y)
 		(unit 1)
 		(body_style 1)
@@ -12703,7 +12896,7 @@
 		(fields_autoplaced yes)
 		(uuid "974b4259-fb68-4fa8-ada9-521b3b8cf0d6")
 		(property "Reference" "#PWR033"
-			(at 232.41 57.15 0)
+			(at 222.25 57.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12714,7 +12907,7 @@
 			)
 		)
 		(property "Value" "+12V"
-			(at 232.41 48.26 0)
+			(at 222.25 48.26 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12724,7 +12917,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 232.41 53.34 0)
+			(at 222.25 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12735,7 +12928,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 232.41 53.34 0)
+			(at 222.25 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12746,7 +12939,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+12V\""
-			(at 232.41 53.34 0)
+			(at 222.25 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12760,7 +12953,7 @@
 			(uuid "eb8dd808-437d-4e8c-9368-491eb095bc2c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR033")
 					(unit 1)
@@ -12800,7 +12993,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 85.09 123.952 90)
 			(hide yes)
 			(show_name no)
@@ -12840,7 +13033,7 @@
 			(uuid "0930f3bb-322b-4ad2-9d88-c1b816e58675")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R21")
 					(unit 1)
@@ -12918,7 +13111,7 @@
 			(uuid "1e6308de-777a-4a06-b37d-511683beaa54")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR044")
 					(unit 1)
@@ -12960,7 +13153,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 225.0948 34.29 0)
 			(hide yes)
 			(show_name no)
@@ -13000,7 +13193,7 @@
 			(uuid "b66c0443-4707-4969-98c6-0aa21c87bbd8")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C13")
 					(unit 1)
@@ -13078,7 +13271,7 @@
 			(uuid "cc737092-abbe-49ba-8d51-3d671cd4036a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR017")
 					(unit 1)
@@ -13119,7 +13312,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 40.3352 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -13159,87 +13352,9 @@
 			(uuid "cf2e2133-0f9e-41e8-abe6-2d01703ff2b3")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 128.27 93.98 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a5741c35-9c34-4296-b8f9-12398b55b5ef")
-		(property "Reference" "#PWR06"
-			(at 128.27 97.79 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 128.27 88.9 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 128.27 93.98 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 128.27 93.98 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 128.27 93.98 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "28695655-0a9a-4b18-8d3a-fe3928ee9278")
-		)
-		(instances
-			(project "gio-opamp"
-				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
-					(reference "#PWR06")
 					(unit 1)
 				)
 			)
@@ -13315,7 +13430,7 @@
 			(uuid "d6f68f19-0e39-47e5-9001-dfa32bf19a6e")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR027")
 					(unit 1)
@@ -13393,7 +13508,7 @@
 			(uuid "25d0ff39-a220-49b5-87fe-fb31f38adb2d")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR020")
 					(unit 1)
@@ -13434,7 +13549,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 21.2852 167.64 0)
 			(hide yes)
 			(show_name no)
@@ -13474,7 +13589,7 @@
 			(uuid "f433f6af-14cf-4620-af27-801f3f6788ea")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C7")
 					(unit 1)
@@ -13552,9 +13667,86 @@
 			(uuid "5a839fec-9c7c-4e94-81f2-69fcc7fce16c")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR021")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 222.25 68.58 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "ae938631-4efc-452e-891d-805ce83169b1")
+		(property "Reference" "#FLG01"
+			(at 222.25 70.485 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 218.44 73.152 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 222.25 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 222.25 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 222.25 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f1bacc48-24a6-41ec-87a4-d738d9385b86")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#FLG01")
 					(unit 1)
 				)
 			)
@@ -13631,87 +13823,9 @@
 			(uuid "f8f3e8c5-2b9b-42b4-ac6f-a853a040e816")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR025")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 128.27 101.6 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b0f6673e-a93c-40cb-abef-fd73c0d57457")
-		(property "Reference" "#PWR05"
-			(at 128.27 105.41 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 128.27 96.52 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 128.27 101.6 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 128.27 101.6 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 128.27 101.6 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "b363de21-1039-446e-88a5-9137d0fb2a92")
-		)
-		(instances
-			(project "gio-opamp"
-				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
-					(reference "#PWR05")
 					(unit 1)
 				)
 			)
@@ -13787,7 +13901,7 @@
 			(uuid "1da9b357-09d3-4b39-91fc-0573cfb5d73a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR043")
 					(unit 1)
@@ -13869,7 +13983,7 @@
 			(uuid "bd13ea78-63c6-4244-9136-7325b06f8c28")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "J5")
 					(unit 1)
@@ -13911,7 +14025,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 220.0148 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -13951,7 +14065,7 @@
 			(uuid "69bcdc17-0929-49d7-ab87-2c95793eaa14")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C11")
 					(unit 1)
@@ -13991,7 +14105,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 102.87 37.592 90)
 			(hide yes)
 			(show_name no)
@@ -14031,7 +14145,7 @@
 			(uuid "e64e4f7b-9776-4a08-be25-d3ff93ecd620")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R10")
 					(unit 1)
@@ -14109,7 +14223,7 @@
 			(uuid "bfc746cd-7ac1-4b24-a2fa-7054e8251751")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR024")
 					(unit 1)
@@ -14194,7 +14308,7 @@
 			(uuid "4b1fb3b3-7929-44e3-9111-2e5a0c1b566a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "D5")
 					(unit 1)
@@ -14276,7 +14390,7 @@
 			(uuid "029aea68-550b-40c3-a467-fe331b97943d")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "J1")
 					(unit 1)
@@ -14354,7 +14468,7 @@
 			(uuid "69e4145a-fd40-4cb8-bf59-1050d5d540bc")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR03")
 					(unit 1)
@@ -14396,7 +14510,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 22.5552 52.07 0)
 			(hide yes)
 			(show_name no)
@@ -14436,7 +14550,7 @@
 			(uuid "97530cba-419c-49b7-804f-e013413b3953")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C1")
 					(unit 1)
@@ -14536,7 +14650,7 @@
 			(uuid "77a16053-a4fa-4be3-838b-d460f46a3a4b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U3")
 					(unit 1)
@@ -14577,7 +14691,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 40.3352 40.64 0)
 			(hide yes)
 			(show_name no)
@@ -14617,7 +14731,7 @@
 			(uuid "753887b4-6749-4686-90ec-e8c2158d406b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C5")
 					(unit 1)
@@ -14718,7 +14832,7 @@
 			(uuid "d8e03096-adf7-4e4b-8d3c-c9243e34696f")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U5")
 					(unit 3)
@@ -14804,7 +14918,7 @@
 			(uuid "a9af6da0-f451-42a5-a59d-794a81e37705")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U7")
 					(unit 1)
@@ -14846,7 +14960,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 43.4848 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -14886,7 +15000,7 @@
 			(uuid "a9ceeecf-fb3f-4d85-a1f4-d63b7862203d")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C8")
 					(unit 1)
@@ -14918,7 +15032,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "14.7k"
+		(property "Value" "15k"
 			(at 69.85 34.2899 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14929,7 +15043,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 70.612 33.02 90)
 			(hide yes)
 			(show_name no)
@@ -14969,7 +15083,7 @@
 			(uuid "4845ca48-1b6e-41fa-997a-9001514dab25")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R8")
 					(unit 1)
@@ -15067,7 +15181,7 @@
 			(uuid "f792114d-1f0b-4ca5-b296-4fe7c5a29e9b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U5")
 					(unit 1)
@@ -15165,7 +15279,7 @@
 			(uuid "42287b1d-3b9a-4d2a-87c4-2dcf554b767b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "U1")
 					(unit 1)
@@ -15243,7 +15357,7 @@
 			(uuid "bede5713-0fbd-474c-a466-224cac636d80")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR023")
 					(unit 1)
@@ -15321,7 +15435,7 @@
 			(uuid "63ba4aef-f3b8-491d-8997-8899bd6fd03f")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR013")
 					(unit 1)
@@ -15399,7 +15513,7 @@
 			(uuid "798056c5-c8e7-40d7-80d8-d9c2b48d8aaf")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR016")
 					(unit 1)
@@ -15477,7 +15591,7 @@
 			(uuid "390599bb-d13f-47f7-9845-b4c3bd06e16a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR032")
 					(unit 1)
@@ -15517,7 +15631,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 85.09 132.842 90)
 			(hide yes)
 			(show_name no)
@@ -15557,7 +15671,7 @@
 			(uuid "6c284f20-d553-4acd-90c6-939590ae46ae")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R16")
 					(unit 1)
@@ -15589,7 +15703,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "14.7k"
+		(property "Value" "15k"
 			(at 69.85 54.6099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15600,7 +15714,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 70.612 53.34 90)
 			(hide yes)
 			(show_name no)
@@ -15640,7 +15754,7 @@
 			(uuid "98638c50-2432-4e1e-a557-93ac1d2b230e")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R7")
 					(unit 1)
@@ -15718,7 +15832,7 @@
 			(uuid "e55f9caf-cbc0-4f9c-89ac-4f36efd634ce")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR018")
 					(unit 1)
@@ -15807,7 +15921,7 @@
 			(uuid "d9a5a3a2-e368-4528-a561-1a3d653312fd")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "SW1")
 					(unit 1)
@@ -15847,7 +15961,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 73.66 121.412 90)
 			(hide yes)
 			(show_name no)
@@ -15887,7 +16001,7 @@
 			(uuid "7f659061-b1c7-4ca7-88a9-b3de56736dd1")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R13")
 					(unit 1)
@@ -15919,7 +16033,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "14.7k"
+		(property "Value" "15k"
 			(at 52.07 120.6499 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15930,7 +16044,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 52.832 119.38 90)
 			(hide yes)
 			(show_name no)
@@ -15970,7 +16084,7 @@
 			(uuid "43eee86c-ac40-4beb-867f-cf03271258a0")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R20")
 					(unit 1)
@@ -16048,9 +16162,87 @@
 			(uuid "80cd784d-e3aa-4daf-b551-5eb61849dae7")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR045")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 129.54 93.98 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f127075e-ca23-4a31-8ec5-5ed88ed7770e")
+		(property "Reference" "#PWR046"
+			(at 129.54 97.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 129.54 88.9 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 129.54 93.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 129.54 93.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 129.54 93.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "d941622b-9dc3-481b-a179-fb4ba2f359ce")
+		)
+		(instances
+			(project "gio"
+				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
+					(reference "#PWR046")
 					(unit 1)
 				)
 			)
@@ -16089,7 +16281,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 21.2852 182.88 0)
 			(hide yes)
 			(show_name no)
@@ -16129,7 +16321,7 @@
 			(uuid "6b6c541f-265b-499b-ae10-25b317b81f28")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "C6")
 					(unit 1)
@@ -16169,7 +16361,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 92.71 80.772 90)
 			(hide yes)
 			(show_name no)
@@ -16209,7 +16401,7 @@
 			(uuid "697abc9d-d91b-4cfd-9ee5-38d0846cc2bb")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R12")
 					(unit 1)
@@ -16249,7 +16441,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 91.44 55.372 90)
 			(hide yes)
 			(show_name no)
@@ -16289,7 +16481,7 @@
 			(uuid "ba2cfd9b-8a41-4734-b729-c134982ff2d6")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R2")
 					(unit 1)
@@ -16374,7 +16566,7 @@
 			(uuid "7305da43-7ba9-4d45-a346-5f26fc4c631b")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "D2")
 					(unit 1)
@@ -16452,7 +16644,7 @@
 			(uuid "13d34495-09d9-4ffd-b022-8b5396a1610a")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "#PWR022")
 					(unit 1)
@@ -16484,7 +16676,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "14.7k"
+		(property "Value" "15k"
 			(at 52.07 140.9699 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16495,7 +16687,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 52.832 139.7 90)
 			(hide yes)
 			(show_name no)
@@ -16535,7 +16727,7 @@
 			(uuid "c81422bd-a6e1-42aa-8c9c-d1e94c37d391")
 		)
 		(instances
-			(project "gio-opamp"
+			(project "gio"
 				(path "/f6852cf7-9b4a-49f8-8f93-0a6918ef02b7"
 					(reference "R19")
 					(unit 1)
