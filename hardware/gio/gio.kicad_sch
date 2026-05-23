@@ -3508,7 +3508,7 @@
 					(justify left bottom)
 				)
 			)
-			(property "Footprint" "Seeed_Studio_XIAO_Series:XIAO-RP2350-DIP"
+			(property "Footprint" "my_kicad_library:XIAO-RP2350-DIP_pins_only"
 				(at -0.762 -33.274 0)
 				(show_name no)
 				(do_not_autoplace no)
