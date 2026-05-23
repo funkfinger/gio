@@ -10,10 +10,15 @@
 //   Final design   (0.49" 64×32 portrait):    WIDTH=64,  HEIGHT=32, ROTATION=1
 //
 // ROTATION values: 0=native landscape, 1=90° CW (portrait), 2=180°, 3=270° CW.
+//
+// gio PCB rev 1 BODGE: OLED footprint had VCC/GND swapped on the manufactured
+// board; rework was to physically flip the OLED 180°. Compensating for that
+// in software requires ROTATION=2 (90° from natural portrait → 180° from
+// native). When rev 2 ships with a corrected footprint, revert this to 1.
 // ---------------------------------------------------------------------------
 #define OLED_WIDTH     64
 #define OLED_HEIGHT    32
-#define OLED_ROTATION   1
+#define OLED_ROTATION   2
 
 #define OLED_I2C_ADDR 0x3C   // both 0.91" and 0.49" SSD1306 default to 0x3C
 

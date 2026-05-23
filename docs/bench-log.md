@@ -610,3 +610,132 @@ The 2 mV residual is essentially MCP3208 LSB quantization (1 mV per count) plus 
 **Implications:**
 - Calibration constants in `main.cpp` (`CAL_OUT_*`, `CAL_IN_*`) were fit against the pot+TL072 setting — they may shift slightly under REF3040, but the system is ratiometric (DAC + ADC share VREF) so the impact is well below 0.1 %. Worth re-fitting next time we calibrate, but no urgent action.
 - Bench rig is now using the production-grade VREF source. Nothing about this needs to change when the PCB lands.
+
+---
+
+## 2026-05-21 — Manufactured board rev 1: full electrical bring-up
+
+**Context:** the rev 1 PCB returned from JLCPCB, was hand-populated with through-hole jacks / pot / encoder / OLED / XIAO sockets, and powered up for the first time. This entry captures the full bring-up validation pass: every subsystem exercised against the design intent, with one PCB footprint bug found, one firmware bodge applied, and a productive false-alarm chase through the input op-amp transfer function.
+
+### Bring-up sequence + per-subsystem validation
+
+**Power-up:** confirmed XIAO comes up on Eurorack +5 V alone (AMS1117-5.0 → XIAO LDO → 3.3 V chain works). USB CDC enumerates as `/dev/cu.usbmodem*`.
+
+**Flash:** smoke-test firmware uploaded clean — `pio run -d firmware/arp -e seeed-xiao-rp2350-smoketest --target upload`. 75 252 bytes flash, 11 472 bytes RAM (~3.6 % / 2.2 %).
+
+**Baseline capture (undisturbed, J1/J2 unpatched):**
+
+| Signal | Reading | Verdict |
+|---|---|---|
+| `dac_a_v` 0.016 → 4.080 V | full DAC range | ✓ DAC ch A alive |
+| `dac_b_v` 1.024 ↔ 3.072 V | square endpoints exact | ✓ DAC ch B alive |
+| `pot_v` stable ±2 mV | matches bench REF3040 stability exactly | ✓ MCP3208 CH0 + REF3040 |
+| `j1_v` floating ≈ 1.665 V | matches bench bias point | ✓ Input A op-amp |
+| `j2_v` floating ≈ 1.662 V | same | ✓ Input B op-amp |
+| Encoder/click idle | all zeros | ✓ no spurious ISRs |
+
+SPI bus, both ICs, VREF chain, and both input op-amp stages cleared on the first 6 s capture. No `ERROR:` lines from `outputs::begin()` or `inputs::begin()`.
+
+### OLED footprint bug + rework (rev 1 → rev 2 to-do)
+
+**Symptom:** OLED dark on first power-up; no display, no I²C ACK at 0x3C (firmware-side `OLED: NOT detected at 0x3C` would have printed if we'd caught the boot banner — we didn't, but the visible output confirmed it).
+
+**Diagnosis:** visual comparison of the 4-pin OLED header on the gio PCB vs the silkscreen on the actual 0.49" SSD1306 module showed the pin order was **reversed**. The PCB had been laid out for one common 0.49" module pinout (e.g. `VCC GND SCL SDA`) and the module we used had the opposite (`SDA SCL GND VCC`). With VCC and GND swapped, the OLED was reverse-biased through its ESD diodes on first power-on — almost certainly cooked the IC.
+
+**Rework:** physically flipped the OLED 180° to swap the pin mapping. With the flip, software needs to compensate by adding 180° of framebuffer rotation: `OLED_ROTATION` in `oled_ui.h` changed from `1` (90° CW, design intent for the portrait mounting) to `2` (180° — adds 90° CW on top of the original portrait rotation to match the physically inverted orientation).
+
+After the bodge: OLED detected, splash + "ENC = N" displays cleanly with text reading in the correct portrait orientation.
+
+**Rev 2 fix:** correct the OLED footprint in KiCad to match the actual module pinout. Once rev 2 ships, `OLED_ROTATION` reverts to `1`.
+
+### 2 × 2 patch matrix — all four op-amp half-stages validated
+
+Loopback tests with a 3.5 mm cable between each Output and each Input. DAC channel A drives Output A as a 1 Hz triangle full-swing; DAC channel B drives Output B as a 0.5 Hz square between 1/4·VREF and 3/4·VREF.
+
+|   | **Output A (triangle, ±9 V at jack)** | **Output B (square, ±4.5 V at jack)** |
+|---|---|---|
+| **Input A** (`j1_v`) | range 3.40 V, center 1.99 V | range 1.73 V, center 1.99 V |
+| **Input B** (`j2_v`) | range 3.39 V, center 1.98 V | (not run — redundant with the other three) |
+
+All three captures agree on the same center (~1.99 V) and on the input-stage gain (slope ≈ 0.18 V/V at the ADC per V at the jack). The 5 % bigger swing than bench (3.40 V vs 3.24 V design) is within E12 resistor tolerance.
+
+**Back-computed Output A swing**: j1_v 0.29 → 3.68 V → V_J5 = +9.28 → −9.56 V — centered at −0.14 V, swing ±9.4 V — **design ±9 V matches within tolerance**.
+
+### Tempo pot — full 12-bit range, no glitches
+
+10 s end-to-end sweep with monotonicity + decile coverage:
+
+| | Bench (2026-04-29) | Manufactured rev 1 |
+|---|---|---|
+| CCW endpoint | 0 / 0.0000 V | **0 / 0.0000 V** ✓ |
+| CW endpoint | 4090 / 4.0950 V | **4095 / 4.0960 V** ✓ (5 LSB better than bench) |
+| Glitches > 200 LSB | none | **none** ✓ |
+| Decile coverage | smooth | **smooth, all deciles** ✓ |
+
+437 samples over 10 s = 44 Hz read rate — plenty fast for UI use.
+
+### Encoder — rotation + click + long-press all clean
+
+| Test | Result | Pass? |
+|---|---|---|
+| CW rotation ~10 detents | enc_count delta **+10**, no skipped detents | ✓ |
+| CCW rotation ~10 detents | enc_count delta **−10**, returns to start | ✓ |
+| 3 short taps | **3 click pulses** at 2.95 / 6.16 / 9.42 s (well-separated, clean debouncing) | ✓ |
+| 1 long press (~1 s) | **1 long pulse, 0 click pulses** (long correctly suppresses the same-gesture short-click) | ✓ |
+
+Matches the 2026-05-02 bench validation behavior exactly. The interrupt-driven `EncoderInput` lib doesn't drop detents even with OLED I²C bursts in the same loop.
+
+### Diagnostic chase: the "Output DC offset" that wasn't
+
+Mid-validation, the data appeared to show a **~−1.8 V DC offset on both Output A and Output B**: when the triangle / square was patched into an input, the observed `j1_v` (or `j2_v`) center sat at ~1.99 V instead of the 1.66 V bias point measured floating. Walking back through the input gain (−0.18 V/V) and the bias (1.66 V), this looked like J5 and J6 were both shifted by −1.83 V at the jack.
+
+Spent considerable analysis time hunting the likely bias-divider culprit (R17/R18/R19/R20), even predicting which resistor value substitution would match (`R19/R20 loaded as 10 k instead of 15 k` was the lead hypothesis since 10 k parts are right next door on the BOM). Then multimeter measurements at the four op-amp non-inverting input pins came back **all spot-on at 1.66 V**:
+
+| Pin | Reading | Design |
+|---|---|---|
+| vref (U7 OUT) | 4.097 V | 4.096 V ✓ |
+| U5A pin 3 (Out A non-inv) | 1.664 V | 1.66 V ✓ |
+| U5B pin 5 (Out B non-inv) | 1.656 V | 1.66 V ✓ |
+| U1A pin 3 (In A non-inv) | 1.662 V | 1.66 V ✓ |
+
+The divider was fine. The offset was a **math error in the live analysis**: the input op-amp transfer function is not `V_adc = V_bias − 0.18·V_jack` as I'd been treating it; the R9 (100 k) + R10 (22 k) front end means it's:
+
+$$V_{adc} = 1.180 \cdot V_{bias} - 0.180 \cdot V_{jack}$$
+
+The bias contribution gets a **1.18× multiplier** because V_bias propagates from the non-inverting input through the virtual short, up through R10 + R1 into the output. So when V_jack is at 0 V (DAC mid, design center), V_adc isn't V_bias = 1.66 V — it's 1.18×1.66 = **1.96 V**. That's exactly the "center shift from 1.66 to 1.99 V" the data was showing.
+
+Sanity check with the formula:
+- Floating J1 (V_jack = V_bias via R9): V_adc = 1.18·1.66 − 0.18·1.66 = 1.66 V ✓ matches measurement
+- V_jack = +9 V: V_adc = 1.96 − 1.62 = 0.34 V ✓ matches bench-log 2026-05-04 entry exactly
+- V_jack = −9 V: V_adc = 1.96 + 1.62 = 3.58 V ✓ matches bench-log
+
+And re-deriving V_J5 swing from the measured j1_v range gives ±9.4 V centered at 0 V — matches design. **No offset, no PCB fault, no rework.**
+
+### Lesson for the troubleshooting playbook
+
+- **"Output DC offset" symptoms via an input-stage measurement are deceptive.** The input op-amp's bias multiplier (1 + R_fb/R_in_eq for the path from V_bias to V_out) means the centerline of an input observation depends on the divider AND the bias — not just the input signal. Before chasing an offset, sanity-check by **measuring the input op-amp output directly with a multimeter while the input is floating, then again while driven by a known DC voltage**. If both readings match the formula `V_adc = (1 + R_fb/R_in_eq) · V_bias − (R_fb/R_in_eq) · V_jack`, the chain is fine.
+- **The bench-log already had this pattern documented** (the 2026-05-04 entry shows `j1_v` driven center at 1.98 V, floating at 1.65 V — same +330 mV shift). I missed the pattern in real-time. Worth re-reading bench-log entries during diagnostic sessions before chasing new hypotheses.
+
+### Final validation status — manufactured board, rev 1
+
+| Subsystem | Status | Notes |
+|---|---|---|
+| XIAO RP2350 + USB CDC | ✅ | enumerates on USB and on Eurorack +5 V |
+| AMS1117-5.0 → +3.3 V LDO chain | ✅ | XIAO comes up on Eurorack alone |
+| REF3040 VREF | ✅ | 4.097 V measured, 2 mV stability |
+| SPI bus + DAC8552 + MCP3208 | ✅ | both ICs alive, full range |
+| Output A op-amp (U5A → J5) | ✅ | swings ±9.4 V centered 0 V |
+| Output B op-amp (U5B → J6) | ✅ | matches Output A |
+| Input A op-amp (U1A → ADC CH1) | ✅ | bias 1.66 V, gain 0.18 V/V, no DC error |
+| Input B op-amp (U1B → ADC CH2) | ✅ | matches Input A |
+| Tempo pot (ADC CH0) | ✅ | full 12-bit, smooth |
+| OLED (post-rework) | ⚠️ | works with `OLED_ROTATION=2` firmware bodge; **footprint needs rev 2 fix** |
+| Encoder rotation | ✅ | both directions, no missed detents |
+| Encoder click / long-press | ✅ | debouncing clean, long suppresses short |
+| ±12 V Eurorack rails | ✅ (inferred — outputs swing ±9.4 V) | not directly metered |
+
+**Rev 2 to-do list (PCB):**
+- Fix OLED 4-pin header footprint to match the production module pinout (so the OLED can sit "right way up" without the 180° physical flip).
+- Revert `OLED_ROTATION` to `1` in `oled_ui.h` when rev 2 firmware ships.
+- Faceplate to be designed (separate work).
+- (Any other tweaks the user is collecting for rev 2 — to be added.)
