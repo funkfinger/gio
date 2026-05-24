@@ -739,3 +739,74 @@ And re-deriving V_J5 swing from the measured j1_v range gives ±9.4 V centered a
 - Revert `OLED_ROTATION` to `1` in `oled_ui.h` when rev 2 firmware ships.
 - Faceplate to be designed (separate work).
 - (Any other tweaks the user is collecting for rev 2 — to be added.)
+
+---
+
+## 2026-05-23 — Toolchain regression chase + Wire pin remap; production arp firmware lives
+
+**TL;DR: a brutal day.** Took most of a session and at least one destroyed PCB to isolate two interlocking *silent-failure* issues in the build environment that had nothing to do with the gio hardware design itself:
+
+1. **arduino-pico framework 4.4.0 began producing UF2s that don't boot on this XIAO RP2350.** Builds made earlier in the project's history (and already flashed on boards) still ran fine, but *new* builds — same source code, same pinned framework tag — produced UF2s that crashed before any USB CDC output. We never identified which transitive dependency changed (PlatformIO, picotool, an arduino-pico submodule, …); the practical fix was upgrading to **arduino-pico 5.6.0**.
+2. **arduino-pico 5.6.0 changed the default Wire (Wire0) pin mapping on the seeed_xiao_rp2350 variant.** Where 4.4.0 had `PIN_WIRE0_SDA = GP6 / GP7 (= D4/D5)` — matching the gio board's OLED wiring — 5.6.0 moved Wire0 to `GP16/GP17` and put GP6/GP7 on **Wire1**. The OLED stopped responding even though `ui.begin()` returned true (Adafruit_SSD1306 happily writes to the wrong I²C peripheral and never notices nothing's on the bus).
+
+Both failures presented as "USB CDC works, OLED dark, zero serial output, can't tell what's hung where." Combined, they consumed hours.
+
+### What we paid for these lessons
+
+- **1 XIAO desoldered** from board #1 (used as a "is it the XIAO or the PCB?" diagnostic when we still thought we had a hardware fault).
+- **Board #1's MCP3208 had been killed earlier** by overvoltage during the bench fail (see the 2026-05-21 follow-up notes); replacement reflow then introduced what felt like cascading PCB damage, but in hindsight may have been the build regression all along — we'll never know for sure because we were testing with broken UF2s during the post-rework diagnostic.
+- **Hours** of "is it the firmware? the chip? the rails? the OLED? the rework?" — each new hypothesis was indistinguishable from the right one because every test got the same answer: silence.
+
+### Timeline (compressed)
+
+1. Morning: board #2 plugged in, factory smoke test (pre-existing 4.4.0 build) streams cleanly. All subsystems healthy per the 2026-05-21 pattern.
+2. Flashed production arp firmware (built today, also 4.4.0) → USB CDC came up, **0 lines** of serial output, OLED dark.
+3. Suspected production firmware bug. Re-flashed smoke test (built today, 4.4.0) → same silence.
+4. Suspected XIAO damage. Wiped `.pio/` for a fully fresh build, re-flashed → same silence.
+5. Rebooted the Mac (clear any host-side USB stack state) → same silence.
+6. Pulled the XIAO from board #1, plugged it in standalone, flashed MicroPython for sanity → MicroPython runs fine, REPL prompt + version banner visible. So **the chip is healthy.**
+7. Re-flashed our 4.4.0 smoke test onto the standalone XIAO → silent again.
+8. Pulled a fresh XIAO out of the parts bin, flashed our smoke test → still silent. So **it's not the chip.**
+9. Inspected the failing UF2 with `picotool info`:
+    - Family ID `0xE48BFF59` (`RP2350_ARM_S`) — the expected default for stock RP2350 ARM code. ✓
+    - `Program Information: none` — suspicious. A healthy arduino-pico UF2 for RP2350 should embed program metadata that picotool can read back.
+10. Upgraded `framework-arduinopico` pin from `#4.4.0` → `#5.6.0`, rebuilt minimal sketch (just `Serial.begin` + `Serial.println` in loop) → **booted**, USB CDC streamed "alive t=N" messages. We had a working build path again.
+11. Built and flashed smoke test with 5.6.0 → boots and streams data, but **OLED dark.** Even on a board where the OLED is wired correctly and was provably working with a prior-session 4.4.0 build.
+12. Production firmware (5.6.0) also boots — `ui.begin()` reports `ready=true` — but OLED still dark. Loop heartbeat prints proved setup() completed and loop() was running; renderMenu() was being called. Yet the OLED never displayed anything.
+13. Read the 5.6.0 variant header `~/.platformio/packages/framework-arduinopico/variants/seeed_xiao_rp2350/pins_arduino.h`:
+    - `PIN_WIRE0_SDA = (16u)` — Wire0 is now on GP16, not GP6.
+    - `PIN_WIRE1_SDA = (6u)` — GP6/GP7 (D4/D5, where our OLED is wired) is now on Wire1.
+14. Changed `Adafruit_SSD1306 display_{OLED_WIDTH, OLED_HEIGHT, &Wire, -1}` → `&Wire1` in `oled_ui.h`. Wire1's default pins on the XIAO RP2350 variant are GP6/GP7 (matching our wiring), so no `setSDA`/`setSCL` remap is needed.
+15. Smoke test flashed → OLED lights up showing "ENC 0". 🎉
+16. Production firmware flashed → OLED shows the menu, encoder rotation updates it cleanly. 🎉🎉
+
+### Lessons captured (high-confidence, hard-earned)
+
+- **Never trust "no output" as a diagnostic.** When USB CDC enumerates but no serial output appears, the firmware is almost certainly hanging in `setup()` *before* any `Serial.println` had a chance to flush. The cure is to write code that makes hangs *visible*: put `Serial.begin()` as the very first line of `setup()`, and stamp a `Serial.println("BOOT N: <step>")` between *every* peripheral `begin()` call. The diagnostic prints we added today (`BOOT 0` … `BOOT 14` plus a `LOOP heartbeat` once per second) are arguably worth keeping permanently — they turn silent failures into "we got to BOOT 7 and stopped" tractable bugs.
+- **Pin your dependencies all the way down.** `framework-arduinopico @ ...#4.4.0` looked like a pin, but the surrounding ecosystem (platform-raspberrypi tracking `main`, picotool versions, transitive deps) is unpinned and *will* drift under you. The platform line in `platformio.ini` is `https://github.com/maxgerhardt/platform-raspberrypi.git` (no `#commit`), which means every build can grab a different platform package and a different picotool. Followup: pin `platform = …#<commit>` and `platform_packages` for picotool/openocd to specific known-good versions.
+- **arduino-pico variant pin mappings can change between minor versions without warning.** Specifically, on the seeed_xiao_rp2350 variant, default `Wire` (Wire0) moved from GP6/GP7 to GP16/GP17 somewhere between 4.4.0 and 5.6.0. The gio board's OLED is wired to GP6/GP7 (which is correct for the schematic — `I2C_SDA` and `I2C_SCL` net labels), and we relied on `Wire` defaulting there. Fix: explicitly target `Wire1` (or `Wire` with `setSDA(D4); setSCL(D5)` before `Wire.begin()`) so the firmware doesn't drift along with framework defaults.
+- **picotool's USB-CDC reset trick depends on the running firmware servicing CDC properly.** When you flash a buggy firmware that hangs in setup(), the next `pio run --target upload` will spin trying to reset via baud-touch and fail. Recovery is always: hold **B** + replug USB to force BOOTSEL, then drag-and-drop the new UF2 (or `cp -X` on macOS — without `-X`, cp fails partway through trying to copy extended attributes to FAT32 and bricks the upload).
+- **`pio device monitor` needs a TTY**, so it doesn't work from automated/captured shell environments. pyserial works fine for that.
+- **When a flashed firmware "works" on a board but a freshly-built copy with the same source doesn't, suspect the build environment, not the hardware.** This took us hours to consider seriously — the natural first instinct was always "what's wrong with the board?" Capture this for future sessions: if old-build + same-XIAO works AND new-build + same-XIAO doesn't → it's the toolchain. Don't desolder anything until you've ruled this out.
+
+### Status now (end of 2026-05-23 session)
+
+- Production arp firmware boots cleanly on board #2.
+- OLED renders the menu correctly (`OLED_ROTATION = 0` for this board — board-specific until the rev 2 footprint fix lands; rev 1 board #1 needed `ROTATION = 2` because of its 180° flip rework).
+- Encoder rotation updates menu + emits serial events.
+- NeoPixel (onboard RGB LED) updates on parameter change — confirmed visible.
+- Eurorack power was disconnected at the time of this entry; full analog-chain validation on board #2 still to do next session.
+
+### Followups (firmware/toolchain)
+
+- Pin `platform = ...` URL to a specific commit hash (not `main`).
+- Pin `platform_packages` for picotool to a known-good version.
+- Decide whether to keep the `BOOT N` and `LOOP heartbeat` diagnostic prints in `main.cpp` permanently (lean: yes, as a `#ifdef DEBUG_BOOT` block — cheap insurance).
+- Consider keeping the Serial-first ordering (`Serial.begin()` before `Wire.begin()`) as the permanent convention — makes any future setup() hang at least diagnosable.
+- Update bench-wiring docs to note that the OLED is on `Wire1` (not `Wire`) in firmware, even though the schematic net labels are just `I2C_SDA` / `I2C_SCL`.
+
+### Followups (rev 2 PCB — accumulating)
+
+- OLED 4-pin header footprint fix (carry-over from 2026-05-21).
+- ADC input protection: BAT54S clamps between op-amp outputs and MCP3208 input pins, plus bump R3/R4 from 1k to 4.7k (so a fault on a jack can't fry an ADC channel like it did on board #1).
+- Faceplate design (separate work).
