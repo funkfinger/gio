@@ -1,7 +1,13 @@
 #include "oled_ui.h"
+#include <Arduino.h>
 #include <Wire.h>
 
 bool OledUI::begin(uint8_t i2cAddr) {
+    // Adafruit_SSD1306 constructor uses &Wire1 (see oled_ui.h header note).
+    // Wire1's default pins on XIAO RP2350 are already PIN_WIRE1_SDA=GP6 (D4)
+    // and PIN_WIRE1_SCL=GP7 (D5), matching the gio board, so no setSDA/setSCL
+    // remap is needed. Adafruit_SSD1306::begin() calls Wire1.begin() inside.
+
     // Adafruit_SSD1306::begin() returns true on successful init.
     if (!display_.begin(SSD1306_SWITCHCAPVCC, i2cAddr)) {
         ready_ = false;

@@ -549,31 +549,48 @@ static const float CAL_IN_0_GAIN   = -5.56f;
 static const float CAL_IN_0_OFFSET = +10.89f;
 
 void setup() {
-    pinMode(PIN_LED, OUTPUT);
-    ledWrite(false);
-
-    Wire.begin();
-    Wire.setClock(400000);
-
+    // TEMP DIAGNOSTIC ORDERING — Serial FIRST, before pinMode/anything, so
+    // we get output even if pinMode hangs. Original ordering had pinMode
+    // then Wire.begin then Serial.begin, which made every early hang
+    // invisible. Restore once the hang we're chasing is found and fixed.
     Serial.begin(115200);
     uint32_t t0 = millis();
     while (!Serial && (millis() - t0) < 2000) { /* wait briefly for USB */ }
+    Serial.println();
+    Serial.println(F("BOOT 0: setup entered (global ctors done)"));
+
+    pinMode(PIN_LED, OUTPUT);
+    Serial.println(F("BOOT 0.5: pinMode LED done"));
+    ledWrite(false);
+    Serial.println(F("BOOT 1: Serial up + LED parked"));
+
+    // OLED is on Wire1 (I2C1, GP6/GP7 = D4/D5) — OledUI configures it
+    // internally. Wire (I2C0) is not currently used by anything on the gio
+    // board, but we still init it as a no-op so nothing else is surprised.
+    Wire.begin();
+    Serial.println(F("BOOT 2: Wire.begin done"));
+    Wire.setClock(400000);
+    Serial.println(F("BOOT 3: Wire.setClock done"));
 
     // SPI bus shared between DAC8552 and MCP3208. Both Rob Tillaart libs
     // call SPI.begin() internally on first transaction; explicit call here
     // makes the clock pin active early so a scope sees something on power-up.
     SPI.begin();
+    Serial.println(F("BOOT 4: SPI.begin done"));
 
     // outputs:: HAL — DAC8552 dual SPI DAC. setVRef + per-channel calibration
     // must come AFTER begin() so they apply to the right object instance.
     if (!outputs::begin(PIN_CS_DAC)) Serial.println("outputs::begin failed!");
+    Serial.println(F("BOOT 5: outputs::begin done"));
     outputs::setVRef(BENCH_VREF_V);
     outputs::setCalibration(0, CAL_OUT_A_GAIN, CAL_OUT_A_OFFSET);
     outputs::setCalibration(1, CAL_OUT_B_GAIN, CAL_OUT_B_OFFSET);
     gateWrite(false);                       // park gate at jack J4 = 0 V
+    Serial.println(F("BOOT 6: outputs configured + gate parked"));
 
     // inputs:: HAL — MCP3208 12-bit 8-channel SPI ADC.
     if (!inputs::begin(PIN_CS_ADC)) Serial.println("inputs::begin failed!");
+    Serial.println(F("BOOT 7: inputs::begin done"));
     inputs::setVRef(BENCH_VREF_V);
     // CH0 = pot wiper (no calibration; raw 0..VREF is what the pot delivers).
     // CH1 = J1 input scaling stage. CH2 = J2 input scaling stage (calibration
@@ -594,6 +611,7 @@ void setup() {
         seed ^= (uint32_t)inputs::readRaw(ADC_CH_POT) << 16;
         std::srand(seed);
     }
+    Serial.println(F("BOOT 8: rand seeded"));
 
     Serial.println();
     Serial.println("=== gio post-pivot firmware (SPI HAL) ===");
@@ -601,10 +619,13 @@ void setup() {
     Serial.println("J3=V/Oct out, J4=gate out, J1=CV transpose in (J2 deferred)");
 
     if (!ui.begin()) Serial.println("OLED init failed!");
+    Serial.println(F("BOOT 9: ui.begin done"));
     // Boot splash: frame 1 holds for 3 s, then 100 ms per subsequent frame.
     // Total run time ≈ 3.0 + 8 × 0.1 = 3.8 s. Blocks setup(); fine here.
     ui.playAnimation(screens::splash_screen_animation, 3000, 100);
+    Serial.println(F("BOOT 10: splash done"));
     enc.begin(PIN_ENC_A, PIN_ENC_B, PIN_ENC_CLICK);
+    Serial.println(F("BOOT 11: encoder begin done"));
 
     pinMode(PIN_NEOPIXEL_POWER, OUTPUT);
     digitalWrite(PIN_NEOPIXEL_POWER, HIGH);
@@ -612,18 +633,34 @@ void setup() {
     pixel.begin();
     pixel.setBrightness(NEOPIXEL_BRIGHTNESS);
     updateNeoPixel();
+    Serial.println(F("BOOT 12: neopixel done"));
 
     // Register intervals as the arp's "notes". nextNote() then returns an
     // interval offset directly. Cleaner than maintaining two parallel state.
     arp.setNotes((const uint8_t*)CHORD_INTERVALS, CHORD_LEN);
     arp.setOrder(order);
     renderMenu();
+    Serial.println(F("BOOT 13: renderMenu done"));
 
     fireStep();
+    Serial.println(F("BOOT 14: setup complete, entering loop"));
 }
 
 // ------------------------------ loop -------------------------------
 void loop() {
+    // TEMP DIAGNOSTIC heartbeat — prints once per second so we can verify
+    // setup() completed and loop() is running. Includes ui.ready() so we
+    // can tell whether OLED was detected at boot without needing to catch
+    // the early boot banner. Remove once the issue we're chasing is fixed.
+    static uint32_t s_last_hb_ms = 0;
+    if (millis() - s_last_hb_ms >= 1000) {
+        s_last_hb_ms = millis();
+        Serial.print(F("LOOP heartbeat t="));
+        Serial.print(millis());
+        Serial.print(F("  ui.ready="));
+        Serial.println(ui.ready() ? 1 : 0);
+    }
+
     enc.poll();
     uint32_t now = millis();
 

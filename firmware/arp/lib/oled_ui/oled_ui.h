@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------------
 #define OLED_WIDTH     64
 #define OLED_HEIGHT    32
-#define OLED_ROTATION   2
+#define OLED_ROTATION   0
 
 #define OLED_I2C_ADDR 0x3C   // both 0.91" and 0.49" SSD1306 default to 0x3C
 
@@ -65,6 +65,10 @@ public:
     bool ready() const { return ready_; }
 
 private:
-    Adafruit_SSD1306 display_{OLED_WIDTH, OLED_HEIGHT, &Wire, -1};
+    // arduino-pico 5.6.0 default Wire (I2C0) on XIAO RP2350 → GP16/GP17.
+    // RP2350's I2C0 hardware can't route to GP6/GP7 (where the gio OLED is
+    // wired). GP6/GP7 = I2C1 → use Wire1. (In 4.4.0 the default Wire was
+    // GP6/GP7; the swap landed somewhere between those versions.)
+    Adafruit_SSD1306 display_{OLED_WIDTH, OLED_HEIGHT, &Wire1, -1};
     bool             ready_ = false;
 };
