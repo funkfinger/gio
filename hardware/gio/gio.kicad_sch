@@ -5523,6 +5523,16 @@
 	)
 	(wire
 		(pts
+			(xy 240.03 135.89) (xy 250.19 135.89)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1a6b2b9f-7bb2-4b8a-bc17-7419091e4102")
+	)
+	(wire
+		(pts
 			(xy 232.41 52.07) (xy 232.41 55.88)
 		)
 		(stroke
@@ -5620,6 +5630,16 @@
 			(type default)
 		)
 		(uuid "25143258-6996-4db7-b3ae-57e5aba602e3")
+	)
+	(wire
+		(pts
+			(xy 240.03 143.51) (xy 254 143.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25ca8af3-71ee-4637-a6d1-a18d663ceff9")
 	)
 	(wire
 		(pts
@@ -5863,7 +5883,7 @@
 	)
 	(wire
 		(pts
-			(xy 254 146.05) (xy 254 148.59)
+			(xy 254 143.51) (xy 254 148.59)
 		)
 		(stroke
 			(width 0)
@@ -6000,16 +6020,6 @@
 			(type default)
 		)
 		(uuid "59a37324-d17a-497e-b8aa-5079b29ee7df")
-	)
-	(wire
-		(pts
-			(xy 240.03 140.97) (xy 250.19 140.97)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5a0f877e-5cef-445f-ac99-1eccb61b92d7")
 	)
 	(wire
 		(pts
@@ -6213,7 +6223,7 @@
 	)
 	(wire
 		(pts
-			(xy 254 143.51) (xy 254 132.08)
+			(xy 254 132.08) (xy 254 140.97)
 		)
 		(stroke
 			(width 0)
@@ -6793,16 +6803,6 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 146.05) (xy 254 146.05)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "be5262e2-b6ef-4ab1-9424-593281318cd6")
-	)
-	(wire
-		(pts
 			(xy 54.61 111.76) (xy 54.61 115.57)
 		)
 		(stroke
@@ -7163,16 +7163,6 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 138.43) (xy 250.19 138.43)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e76f6e38-a738-4941-9bf3-35c96d53d23c")
-	)
-	(wire
-		(pts
 			(xy 96.52 82.55) (xy 99.06 82.55)
 		)
 		(stroke
@@ -7183,13 +7173,13 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 143.51) (xy 254 143.51)
+			(xy 240.03 138.43) (xy 250.19 138.43)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "e9171a65-7ef7-4c4d-b972-46bb9f12dd20")
+		(uuid "e980ba7f-159a-43ed-a4a1-9c141c12919c")
 	)
 	(wire
 		(pts
@@ -7333,6 +7323,16 @@
 	)
 	(wire
 		(pts
+			(xy 240.03 140.97) (xy 254 140.97)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ffbfe305-ebd8-49a7-83e1-e1091972e27f")
+	)
+	(wire
+		(pts
 			(xy 165.1 151.13) (xy 177.8 151.13)
 		)
 		(stroke
@@ -7450,16 +7450,6 @@
 			(justify left bottom)
 		)
 		(uuid "30a16202-6b67-4ca8-879c-bbee80952eae")
-	)
-	(label "I2C_SCL"
-		(at 250.19 140.97 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "33684b2d-ded2-47b4-b4d3-8c3c46d815a6")
 	)
 	(label "SPI_MISO"
 		(at 177.8 146.05 180)
@@ -7752,14 +7742,14 @@
 		(uuid "c6df59cb-aca9-494a-8db8-f30bda42c4ce")
 	)
 	(label "I2C_SDA"
-		(at 250.19 138.43 180)
+		(at 250.19 135.89 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right bottom)
 		)
-		(uuid "cb383646-b8b7-40e3-81ea-5ebf0fece145")
+		(uuid "dbe9a88d-3c8a-4828-a394-2888ae214ed2")
 	)
 	(label "clamp_b"
 		(at 87.63 72.39 0)
@@ -7800,6 +7790,16 @@
 			(justify left bottom)
 		)
 		(uuid "eadc59df-fba4-4c51-9539-6991505cef06")
+	)
+	(label "I2C_SCL"
+		(at 250.19 138.43 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ee898d90-8e9d-4729-a9e8-661c83a5f3f1")
 	)
 	(label "SPI_MOSI"
 		(at 184.15 137.16 0)
@@ -10105,6 +10105,7 @@
 	(symbol
 		(lib_id "Connector:Conn_01x04_Pin")
 		(at 234.95 140.97 0)
+		(mirror x)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10112,10 +10113,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "2bf720d1-5687-4544-a49a-89f3b3e32a17")
 		(property "Reference" "J3"
-			(at 235.585 133.35 0)
+			(at 235.585 148.59 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10125,7 +10125,7 @@
 			)
 		)
 		(property "Value" "oled"
-			(at 235.585 135.89 0)
+			(at 235.585 146.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
