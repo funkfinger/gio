@@ -17,27 +17,28 @@
 // PWM-DAC + analog-CV + digital-gate paths. See bench-wiring.md for the
 // breadboard topology this code targets.
 //
-// Jack roles after the pivot (per decisions.md §23 — generic IN/OUT labels):
-//   J1 (MCP3208 CH1) — CV transpose in (replaces old PIN_CV/A1 analog read)
-//   J2 (MCP3208 CH2) — second CV in (deferred — input scaling stage ch B not yet wired)
-//   J3 (DAC ch A)    — V/Oct out via inverting bipolar output stage (replaces PIN_DAC_PWM)
-//   J4 (DAC ch B)    — gate out via DAC ch B (replaces digital PIN_GATE on D6)
+// Canonical jack roles (decisions.md §23 — locked in 2026-05-29):
+//   J1 / Input A  (MCP3208 CH1) — Clock in     (consumed when CLOCK=EXT)
+//   J2 / Input B  (MCP3208 CH2) — CV in        (V/oct transpose; active in INT and EXT)
+//   J3 / Output A (DAC ch A)    — CV out       (V/oct → VCO)
+//   J4 / Output B (DAC ch B)    — Trigger out  (envelope/VCA; gate-style, HIGH for GATE_FRAC of each step)
 //
-// External clock-in on J2 is dormant until input ch B is wired (a Schmitt on
-// inputs::readVolts(ADC_CH_CV_IN_2) replaces the old digitalRead(D3) edge detector). Until
-// then, the arp runs from the internal tempo pot only.
+// Clock source is an explicit encoder param (CLOCK = EXT / INT). EXT is the
+// boot default and the arp sits silent until a clock cable arrives on J1; INT
+// runs strictly from the tempo pot and ignores J1 entirely. There is no
+// auto-fallback — the previously timeout-based mode switching was removed.
 
 // ------------------------------ pins -------------------------------
 // MCP3208 channel layout (decisions.md §26, finalized 2026-05-03):
 //   CH0 = primary pot (tempo today; "primary pot" generically)
-//   CH1 = J1 input (CV / trigger / audio — interpretation per app)
-//   CH2 = J2 input (same flexibility)
+//   CH1 = J1 input — Clock in (per canonical role lock-in 2026-05-29)
+//   CH2 = J2 input — CV in (V/oct transpose)
 //   CH3–CH7 = expansion / daughterboard
 // Conventionally: pots/internal controls at low channels, jacks contiguous
 // after, expansion at high channels.
-static const uint8_t  ADC_CH_POT     = 0;    // MCP3208 CH0 — primary pot wiper (tempo in this app)
-static const uint8_t  ADC_CH_CV_IN_1 = 1;    // MCP3208 CH1 — J1 input
-static const uint8_t  ADC_CH_CV_IN_2 = 2;    // MCP3208 CH2 — J2 input (when scaling stage built)
+static const uint8_t  ADC_CH_POT      = 0;    // MCP3208 CH0 — primary pot wiper (tempo in this app)
+static const uint8_t  ADC_CH_CLOCK_IN = 1;    // MCP3208 CH1 — J1 (Input A) clock in
+static const uint8_t  ADC_CH_CV_IN    = 2;    // MCP3208 CH2 — J2 (Input B) CV in
 // SPI bus: SCK=D8/GP2, MISO=D9/GP4, MOSI=D10/GP3 (handled by SPI.begin())
 static const uint8_t  PIN_CS_DAC     = D3;   // GP5 — DAC8552 /SYNC
 static const uint8_t  PIN_CS_ADC     = D6;   // GP0 — MCP3208 /CS
@@ -64,16 +65,27 @@ static const uint8_t NEOPIXEL_BRIGHTNESS = 64;
 static const float    BENCH_VREF_V  = 4.096f;
 static const uint16_t ADC_MAX       = 4095;     // MCP3208 12-bit full-scale
 
-// Music range
+// Music range. MAX raised to C9 (was C7) so OCT=4 + high-keyPC combos don't
+// squash the top notes onto the ceiling — at OCT=4 the chord buffer's top
+// interval is +48 semitones, and `keyMidi + interval` reaches 107 (B8) with
+// keyPC=B. CV transpose still pushes past in extreme combos; that's
+// acceptable. Hardware: midi 120 → +6 V at J3, well inside the +8.79 V
+// output ceiling.
 static const uint8_t MIDI_NOTE_MIN = 24;   // C1
-static const uint8_t MIDI_NOTE_MAX = 96;   // C7
+static const uint8_t MIDI_NOTE_MAX = 120;  // C9
 
 // ------------------------------ Clock-in ---------------------------
-// External clock detection on J2 is deferred until the input ch B scaling
-// stage is built on the bench (Story 015 channel B). When it lands, this
-// stage will read inputs::readVolts(ADC_CH_CV_IN_2) and feed it to a Schmitt trigger
-// (lib/trigger_in/) for edge detection. For now the arp runs internally only.
-static const uint32_t EXT_CLOCK_TIMEOUT_MS = 2000;
+// External-clock edge detection lives on J1 (Input A) — see
+// pollExternalClockEdge() below. The clock source itself (EXT vs INT) is
+// driven by the encoder's CLOCK param; there is no auto-fallback. In INT
+// mode, J1 signals are not even sampled by the edge detector.
+//
+// EXT_CLOCK_RESET_MS: when an edge arrives after a gap longer than this from
+// the previous edge, the arp pattern is reset (next note = note 1) and the
+// edge is treated as a fresh first pulse (no interpolation burst from the
+// stale period). Default 2 s is arbitrary — exposed as a constant so it can
+// later be promoted to an encoder param or sub-setting of CLOCK.
+static const uint32_t EXT_CLOCK_RESET_MS = 2000;
 
 // ----------------------------- music -------------------------------
 // Chord stored as semitone INTERVALS from the active key. Key tonic is
@@ -93,7 +105,15 @@ static const char* PITCH_CLASS_NAMES[12] = {
 static const uint8_t KEY_OCTAVE_BASE_MIDI = 48;
 
 // ----------------------------- menu --------------------------------
-enum class Param : uint8_t { Scale = 0, Order, Key, Trigger, COUNT };
+enum class Param : uint8_t { Scale = 0, Order, Key, Trigger, Clock, Octave, COUNT };
+static const uint8_t OCT_MIN = 1;
+static const uint8_t OCT_MAX = 4;
+
+// User-selected clock source. EXT (boot default) only fires on detected
+// external clock edges on J1 — arp sits silent without a cable. INT runs
+// strictly from the tempo pot and ignores J1 entirely; no auto-fallback in
+// either direction.
+enum class ClockSource : uint8_t { Ext = 0, Int, COUNT };
 
 static const char* paramName(Param p) {
     switch (p) {
@@ -101,7 +121,16 @@ static const char* paramName(Param p) {
         case Param::Order:   return "ORDER";
         case Param::Key:     return "KEY";
         case Param::Trigger: return "TRIG";
+        case Param::Clock:   return "CLOCK";
+        case Param::Octave:  return "OCT";
         default:             return "?";
+    }
+}
+static const char* clockSourceName(ClockSource c) {
+    switch (c) {
+        case ClockSource::Ext: return "EXT";
+        case ClockSource::Int: return "INT";
+        default:               return "?";
     }
 }
 static const char* scaleName(Scale s) {
@@ -146,6 +175,10 @@ static Arp           arp;
 static Scale         scale       = Scale::Major;
 static ArpOrder      order       = ArpOrder::Up;
 static uint8_t       keyPC       = 0;             // 0=C, 1=C#, ... 11=B
+static ClockSource   clockSource = ClockSource::Ext;
+static uint8_t       octRange    = 1;             // OCT_MIN..OCT_MAX
+static uint8_t       chordBuf[CHORD_LEN * OCT_MAX];
+static uint8_t       chordBufLen = 0;
 static Param         active      = Param::Scale;
 
 static OledUI        ui;
@@ -175,11 +208,29 @@ static uint32_t extPrevEdgeMs            = 0;     // millis() of edge before tha
 static uint8_t  extMultiplier            = 2;     // 1, 2, or 4 steps per external pulse (from tempo pot)
 static uint8_t  extStepsRemaining        = 0;     // interpolated steps still to fire before next pulse
 static uint32_t extInterpolatedInterval  = 0;     // ms between interpolated steps (period / multiplier)
-static bool     wasExtModeLast           = false; // for detecting mode transitions
 
 // ---------------------- voltage ↔ note -----------------------------
 static float midiToVolts(uint8_t midi) {
     return ((float)midi - 48.0f) / 12.0f;
+}
+
+// Rebuild the arp's interval list by stacking CHORD_INTERVALS across
+// `octRange` octaves. Consecutive duplicates are skipped — for the major
+// triad + octave shape {0,4,7,12}, OCT=2 would otherwise produce
+// {0,4,7,12, 12,16,19,24} with a doubled 12 across the octave boundary.
+// Dedup yields {0,4,7,12,16,19,24} so Up/Down arps don't stutter on the
+// repeat. Generic — works for any chord whose last interval equals the
+// next octave's first (which is the usual case).
+static void rebuildChord() {
+    chordBufLen = 0;
+    for (uint8_t oct = 0; oct < octRange; oct++) {
+        for (uint8_t i = 0; i < CHORD_LEN; i++) {
+            uint8_t v = (uint8_t)(CHORD_INTERVALS[i] + 12 * oct);
+            if (chordBufLen > 0 && chordBuf[chordBufLen - 1] == v) continue;
+            chordBuf[chordBufLen++] = v;
+        }
+    }
+    arp.setNotes(chordBuf, chordBufLen);
 }
 
 // --------------------------- HAL helpers ---------------------------
@@ -194,12 +245,13 @@ static inline void ledWrite(bool on) {
 }
 
 // --------------------------- CV reader -----------------------------
-// inputs::readVolts(ADC_CH_CV_IN_1) returns calibrated jack-side volts on J1.
-// The cv lib's volts-to-transpose function clamps negatives to 0 and >8 V to
-// 8 V, so we can pass through the full ±10 V span without extra defensive
-// code here.
+// inputs::readVolts(ADC_CH_CV_IN) returns calibrated jack-side volts on J2
+// (Input B). The cv lib's volts-to-transpose function clamps negatives to 0
+// and >8 V to 8 V, so we can pass through the full ±10 V span without extra
+// defensive code here. Active in BOTH INT and EXT clock modes — J1 stays
+// dedicated to clock.
 static float readCvVolts() {
-    return inputs::readVolts(ADC_CH_CV_IN_1);
+    return inputs::readVolts(ADC_CH_CV_IN);
 }
 
 // Hysteresis-wrapped transpose: only accept a new snapped value once voltage
@@ -275,29 +327,21 @@ static uint8_t externalMultiplierFromPot() {
     return held;
 }
 
-// External clock edge detection — DEFERRED until input ch B (J2) scaling
-// stage is built. Once it lands, this function will read inputs::readVolts(ADC_CH_CV_IN_2)
-// through a Schmitt trigger (lib/trigger_in/) for edge detection. For now,
-// always returns false — the arp runs from internal tempo only.
+// Clock-in on Input A (J1 / MCP3208 CH1). The input op-amp stage is
+// INVERTING, so a positive clock pulse at the jack makes the ADC reading
+// DROP: idle ~1.97 V (driven low) / ~1.66 V (floating); a +5 V gate pulls
+// it to ~1.06 V, +10 V toward ~0.16 V. A rising clock edge is therefore
+// the reading crossing DOWN through V_ASSERT. Schmitt-trigger hysteresis
+// (separate assert / de-assert thresholds) rejects chatter at the edge.
+// Bench-verified (smoke test, +5 V clock): high ≈ 1.06 V, idle ≈ 1.97 V.
 static bool pollExternalClockEdge() {
-    // Clock-in on Input A (J1 / MCP3208 CH1). The input op-amp stage is
-    // INVERTING, so a positive clock pulse at the jack makes the ADC reading
-    // DROP: idle ~1.97 V (driven low) / ~1.66 V (floating); a +5 V gate pulls
-    // it to ~1.06 V, +10 V toward ~0.16 V. A rising clock edge is therefore
-    // the reading crossing DOWN through V_ASSERT. Schmitt-trigger hysteresis
-    // (separate assert / de-assert thresholds) rejects chatter at the edge.
-    // Bench-verified (smoke test, +5 V clock): high ≈ 1.06 V, idle ≈ 1.97 V.
     const float V_ASSERT   = 1.50f;   // clock HIGH when reading drops below
     const float V_DEASSERT = 1.75f;   // re-arm  when reading rises back above
-    float v = inputs::readVolts(ADC_CH_CV_IN_1);
+    float v = inputs::readVolts(ADC_CH_CLOCK_IN);
     bool edge = false;
     if (!extClockHigh && v < V_ASSERT) {
         extClockHigh = true;
         edge = true;                  // rising clock edge → caller fires a step
-        // Stamp the edge times HERE so externalClockActive() flips to EXT and
-        // the loop can measure the pulse period for step interpolation. The
-        // original stub returned false and never set these, so the mode stayed
-        // stuck on INT even once detection worked.
         extPrevEdgeMs = extLastEdgeMs;
         extLastEdgeMs = millis();
     } else if (extClockHigh && v > V_DEASSERT) {
@@ -306,16 +350,11 @@ static bool pollExternalClockEdge() {
     return edge;
 }
 
-static bool externalClockActive() {
-    if (extLastEdgeMs == 0) return false;
-    return (millis() - extLastEdgeMs) < EXT_CLOCK_TIMEOUT_MS;
-}
-
 static void renderMenu();              // fwd decl: defined below fireStep()
 static void drawRandomOrderScreen();   // fwd decl: defined alongside renderMenu()
 
 static void fireStep() {
-    if (externalClockActive()) {
+    if (clockSource == ClockSource::Ext) {
         // External mode: derive sub-step timing from the interpolated
         // interval (one external-clock note's duration). Composes ratchet
         // on top of the multiplier — multiplier controls how many notes per
@@ -374,6 +413,8 @@ static void updateNeoPixel() {
     else if (active == Param::Order)   b = 255;
     else if (active == Param::Key)     { r = 255; b = 255; } // magenta
     else if (active == Param::Trigger) { r = 255; g = 200; } // yellow/amber
+    else if (active == Param::Clock)   { g = 200; b = 200; } // cyan
+    else if (active == Param::Octave)  { r = 255; g = 80;  } // orange
     pixel.setPixelColor(0, pixel.Color(r, g, b));
     pixel.show();
 }
@@ -398,6 +439,11 @@ static const char* activeValueName() {
         }
         case Param::Trigger: {
             snprintf(buf, sizeof(buf), "%u", (unsigned)ratchet);
+            return buf;
+        }
+        case Param::Clock: return clockSourceName(clockSource);
+        case Param::Octave: {
+            snprintf(buf, sizeof(buf), "%u", (unsigned)octRange);
             return buf;
         }
         default: return "?";
@@ -529,10 +575,10 @@ static void renderMenu() {
     ui.raw().setTextSize(1);
     ui.raw().print(paramName(active));
     {
-        // Top-right tag: EXT when external clock active, INT otherwise.
+        // Top-right tag: mirrors the user's CLOCK selection — not auto-detected.
         int16_t w = ui.raw().width();
         ui.raw().setCursor(w - 18, 0);
-        ui.raw().print(externalClockActive() ? "EXT" : "INT");
+        ui.raw().print(clockSourceName(clockSource));
     }
     ui.raw().println();
     ui.raw().setTextSize(2);
@@ -561,7 +607,8 @@ static void renderMenu() {
 // inputs::setCalibration(channel, gain, offset)
 //   jack_volts = gain * adc_volts + offset
 //
-//   Input ch 0 (J1 = transpose CV in):
+//   Input ch 1 / J1 (clock in — symmetric stage, same constants):
+//   Input ch 2 / J2 (CV in — first-pass: same constants as ch 1):
 //     bench transfer: adc_v ≈ 1.96 - 0.180·V_jack
 //     inverse:        V_jack ≈ 10.89 - 5.56·adc_v
 static const float CAL_OUT_A_GAIN  = -0.227f;
@@ -607,9 +654,13 @@ void setup() {
     if (!inputs::begin(PIN_CS_ADC)) Serial.println("inputs::begin failed!");
     inputs::setVRef(BENCH_VREF_V);
     // CH0 = pot wiper (no calibration; raw 0..VREF is what the pot delivers).
-    // CH1 = J1 input scaling stage. CH2 = J2 input scaling stage (calibration
-    // deferred until ch B scaling is wired).
-    inputs::setCalibration(ADC_CH_CV_IN_1, CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
+    // CH1 = J1 (clock in) — Schmitt threshold runs off calibrated volts so we
+    //       still cal it with the same constants. Symmetric op-amp stage.
+    // CH2 = J2 (CV in) — first-pass cal copied from CH1 (op-amp stages are
+    //       symmetric per bench-log 2026-05-21). Refine with per-channel sweep
+    //       if V/oct tracking drifts.
+    inputs::setCalibration(ADC_CH_CLOCK_IN, CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
+    inputs::setCalibration(ADC_CH_CV_IN,    CAL_IN_0_GAIN, CAL_IN_0_OFFSET);
 
     // Tempo pot moved to MCP3208 CH1 on 2026-05-02 (decisions.md §26) — all
     // analog inputs now share the precision REF3040 reference, and D0 is freed
@@ -629,7 +680,7 @@ void setup() {
     Serial.println();
     Serial.println("=== gio post-pivot firmware (SPI HAL) ===");
     Serial.println("Click=cycle  Rotate=value  Hold=reset");
-    Serial.println("Out A=V/Oct, Out B=gate, In A=clock-in (auto INT/EXT)");
+    Serial.println("In A=clock, In B=CV transpose, Out A=V/Oct, Out B=gate (CLOCK param: EXT/INT)");
 
     if (!ui.begin()) Serial.println("OLED init failed!");
     // Boot splash: frame 1 holds for 3 s, then 100 ms per subsequent frame.
@@ -645,8 +696,9 @@ void setup() {
     updateNeoPixel();
 
     // Register intervals as the arp's "notes". nextNote() then returns an
-    // interval offset directly. Cleaner than maintaining two parallel state.
-    arp.setNotes((const uint8_t*)CHORD_INTERVALS, CHORD_LEN);
+    // interval offset directly. rebuildChord() respects the OCT param —
+    // OCT=1 default produces the original CHORD_INTERVALS list.
+    rebuildChord();
     arp.setOrder(order);
     renderMenu();
 
@@ -682,6 +734,36 @@ void loop() {
                 Serial.printf("ratchet=%u\n", (unsigned)ratchet);
                 break;
             }
+            case Param::Octave: {
+                int next = wrap((int)octRange - OCT_MIN + (int)d, OCT_MAX - OCT_MIN + 1) + OCT_MIN;
+                octRange = (uint8_t)next;
+                rebuildChord();
+                Serial.printf("oct=%u (%u notes)\n",
+                              (unsigned)octRange, (unsigned)chordBufLen);
+                break;
+            }
+            case Param::Clock: {
+                ClockSource prev = clockSource;
+                clockSource = (ClockSource)wrap((int)clockSource + (int)d, (uint8_t)ClockSource::COUNT);
+                if (prev != ClockSource::Ext && clockSource == ClockSource::Ext) {
+                    // Re-arm edge detector: stale latches from before would
+                    // either swallow the first incoming edge (extClockHigh
+                    // stuck true) or fire a phantom interpolation burst (old
+                    // edge timestamps still inside the multiplier window).
+                    extClockHigh            = false;
+                    extLastEdgeMs           = 0;
+                    extPrevEdgeMs           = 0;
+                    extStepsRemaining       = 0;
+                    extInterpolatedInterval = 0;
+                } else if (prev != ClockSource::Int && clockSource == ClockSource::Int) {
+                    // Going INT: re-anchor pot-driven timing immediately so
+                    // the next step fires on a fresh interval.
+                    refreshTempoFromPot();
+                    lastStepMs = millis();
+                }
+                Serial.printf("clock=%s\n", clockSourceName(clockSource));
+                break;
+            }
             default: break;
         }
         renderMenu();
@@ -715,30 +797,25 @@ void loop() {
         fireSubGate();
     }
 
-    // ---- clock source selection: external if recent edges, else internal ----
-    bool extEdge = pollExternalClockEdge();
-    bool extNow  = externalClockActive();
-
-    // Detect mode transition (for OLED refresh + clean fallback to internal)
-    if (extNow != wasExtModeLast) {
-        wasExtModeLast = extNow;
-        if (!extNow) {
-            // Just timed out → internal: re-anchor timing from pot
-            refreshTempoFromPot();
-            lastStepMs    = millis();
-            extStepsRemaining = 0;
-            extInterpolatedInterval = 0;
-        }
-        renderMenu(); // toggles the INT/EXT badge
-        Serial.printf("clock=%s\n", extNow ? "EXTERNAL" : "INTERNAL");
-    }
-
-    if (extNow) {
+    // ---- clock source: user selection via CLOCK param, no auto-fallback ----
+    if (clockSource == ClockSource::Ext) {
         // External: each pulse fires a step + N-1 interpolated steps before
         // the next pulse. The interpolated interval is computed once per
         // pulse from the previously-measured period (so the very first pulse
-        // doesn't interpolate — extPrevEdgeMs is 0).
-        if (extEdge) {
+        // doesn't interpolate — extPrevEdgeMs is 0). With no cable, no edges
+        // arrive and the arp sits silent — that's the contract.
+        if (pollExternalClockEdge()) {
+            // Long idle gap: rewind the arp and treat this pulse as fresh —
+            // skip interpolation that would otherwise use the stale period.
+            if (extPrevEdgeMs > 0
+                && (extLastEdgeMs - extPrevEdgeMs) > EXT_CLOCK_RESET_MS) {
+                arp.reset();
+                extPrevEdgeMs           = 0;
+                extStepsRemaining       = 0;
+                extInterpolatedInterval = 0;
+                Serial.printf("clock idle >%lums — arp reset\n",
+                              (unsigned long)EXT_CLOCK_RESET_MS);
+            }
             extMultiplier = externalMultiplierFromPot();
             if (extPrevEdgeMs > 0 && extMultiplier > 0) {
                 uint32_t period = extLastEdgeMs - extPrevEdgeMs;
@@ -754,7 +831,8 @@ void loop() {
             extStepsRemaining--;
         }
     } else {
-        // Internal: existing time-based step advance.
+        // Internal: time-based step advance from the tempo pot. Edge detector
+        // is intentionally NOT called here — J1 signals are ignored in INT.
         if ((now - lastStepMs) >= stepMs) {
             fireStep();
             if (resetFlashUntilMs && (int32_t)(now - resetFlashUntilMs) >= 0) {
